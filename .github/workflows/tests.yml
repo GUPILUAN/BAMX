@@ -13,6 +13,8 @@ jobs:
       run:
         shell: bash
         working-directory: ./backend
+    env:
+      PYTHONPATH: ./backend
 
     steps:
       - name: Checkout Repository
@@ -22,6 +24,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
+
+      - name: Set PYTHONPATH
+        run: export PYTHONPATH=$PYTHONPATH:$(pwd)/backend
 
       - name: Install Dependencies
         run: |
