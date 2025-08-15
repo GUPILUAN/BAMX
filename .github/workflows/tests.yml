@@ -29,6 +29,9 @@ jobs:
       - name: Check available directories
         run: ls -a
 
+      - name: Set PYTHONPATH
+        run: export PYTHONPATH="$PYTHONPATH:$(pwd)"
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
