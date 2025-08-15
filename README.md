@@ -1,4 +1,1 @@
 # BAMX App
-
-
-chupameUnHuevo.jpg

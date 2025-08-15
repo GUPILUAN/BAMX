@@ -1,0 +1,43 @@
+# Normalize line endings to LF in the repository
+# Developers on Windows will still get CRLF locally if configured in Git
+* text=auto eol=lf
+
+# Python source files
+*.py text eol=lf
+
+# Configuration and documentation
+*.txt text
+*.md text
+*.json text
+*.yml text
+*.yaml text
+*.ini text
+
+# Flask templates (Jinja2)
+*.html text
+*.jinja text
+*.jinja2 text
+
+# Static assets (treat as text if human-readable)
+*.css text
+*.js text
+
+# Binary files (no diff)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+
+# Database files
+*.db binary
+*.sqlite binary
+
+# Ignore these files when exporting with `git archive`
+.env export-ignore
+*.pyc export-ignore
+__pycache__/ export-ignore
