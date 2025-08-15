@@ -47,13 +47,13 @@ jobs:
 
       - name: Setup Node 22
         uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: "npm"
-          cache-dependency-path: "**/package-lock.json"
+        # with:
+        #  node-version: 22.x
+        # cache: "npm"
+        #cache-dependency-path: "**/package-lock.json"
 
-      - name: Install Dependencies
-        run: npm install
+      # - name: Install Dependencies
+      #  run: npm install
 
       - name: Run Tests
         run: npm run test || true # temporal until frontend is added
