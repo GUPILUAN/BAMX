@@ -1,4 +1,4 @@
-name: CI - Run tests for the app
+name: CI - Run tests
 
 on:
   pull_request:
