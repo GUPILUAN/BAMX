@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "BAMX",
+    "slug": "BAMX",
+    "version": "1.0.0",
+    "orientation": "landscape",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "UISupportedInterfaceOrientations": [
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.luisgtz15.BAMX"
+    },
+    "web": {
+      "favicon": "./assets/logo.png",
+      "bundler": "metro"
+    },
+    "plugins": ["expo-font", "expo-secure-store"],
+    "extra": {
+      "eas": {
+        "projectId": "9954e048-385d-423b-8a01-a6361966e324"
+      }
+    }
+  }
+}
