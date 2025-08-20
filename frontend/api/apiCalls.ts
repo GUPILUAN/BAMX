@@ -1,5 +1,5 @@
 import axios from "axios";
-import { deleteData, getData, saveData } from "./userKey";
+import { deleteData, getData, saveData } from "../functions/userKey";
 import { replace } from "../functions/NavigationService";
 
 const instance = axios.create({
@@ -33,7 +33,7 @@ instance.interceptors.request.use(
   }
 );
 
-export const tokenExpired = (token) => {
+export const tokenExpired = (token: string) => {
   const payload = JSON.parse(atob(token.split(".")[1]));
   const currentTime = Math.floor(Date.now() / 1000);
   return payload.exp < currentTime;
@@ -70,7 +70,7 @@ const refreshToken = async () => {
   }
 };
 
-export const loginUser = async (username, password) => {
+export const loginUser = async (username: string, password: string) => {
   const response = await instance.post("/api/login/", {
     username: username,
     password: password,
@@ -80,7 +80,7 @@ export const loginUser = async (username, password) => {
   await saveData("refresh", refresh);
 };
 
-export const retrieveData = async (route) => {
+export const retrieveData = async (route: string) => {
   try {
     const response = await instance.get(route);
     return response.data.results;

@@ -2,10 +2,22 @@ import React, { useEffect, useState } from "react";
 import ProductRow from "./ProductRow";
 import { Text, View } from "react-native";
 
-export default function ProductList({ productos, test, getIndexes }) {
-  const [selectedIndexes, setSelectedIndexes] = useState([]);
+import { Product } from "@/types/Product";
 
-  const handleSelect = (index) => {
+type ProductListProps = {
+  productos: Product[];
+  test: number[];
+  getIndexes: (indexes: number[]) => void;
+};
+
+export default function ProductList({
+  productos,
+  test,
+  getIndexes,
+}: ProductListProps) {
+  const [selectedIndexes, setSelectedIndexes] = useState<number[]>([]);
+
+  const handleSelect = (index: number) => {
     if (selectedIndexes.includes(index)) {
       setSelectedIndexes(selectedIndexes.filter((i) => i !== index));
     } else {
@@ -26,7 +38,9 @@ export default function ProductList({ productos, test, getIndexes }) {
       {productos.map((producto, index) => (
         <ProductRow
           handleSelect={handleSelect}
-          isSelected={selectedIndexes?.includes(producto.product_id)}
+          isSelected={selectedIndexes?.includes(
+            producto.product_id as any as number
+          )}
           key={index}
           index={index}
           product={producto}

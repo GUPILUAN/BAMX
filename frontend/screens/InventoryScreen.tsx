@@ -25,13 +25,13 @@ export default function InventoryScreen() {
     textTailwind: isDark ? "text-gray-300" : "text-gray-900",
   };
 
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [query, setQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState(
     productosDummy.results
   );
 
-  const handleSearch = (text) => {
+  const handleSearch = (text: string) => {
     console.log(text);
     const searchValue = text.toLowerCase();
     setQuery(searchValue);
@@ -49,13 +49,13 @@ export default function InventoryScreen() {
 
   const itemsPorPagina = 8;
 
-  function obtenerProductosPorPagina(paginaActual) {
+  function obtenerProductosPorPagina(paginaActual: number) {
     const inicio = (paginaActual - 1) * itemsPorPagina;
     const fin = inicio + itemsPorPagina;
     return filteredResults.slice(inicio, fin);
   }
 
-  function showProducts(page) {
+  function showProducts(page: number) {
     if (page > obtenerTotalPaginas()) {
       return obtenerProductosPorPagina(1);
     }
@@ -67,12 +67,12 @@ export default function InventoryScreen() {
     return Math.ceil(filteredResults.length / itemsPorPagina);
   }
 
-  const [numbers, setNumbers] = useState([]);
+  const [numbers, setNumbers] = useState<number[]>([]);
 
   useEffect(() => {
     const paquetes = obtenerTotalPaginas();
 
-    const newNumbers = [];
+    const newNumbers: number[] = [];
     if (paquetes > 0) {
       for (let i = 0; i < paquetes; i++) {
         newNumbers.push(i + 1);
@@ -111,32 +111,47 @@ export default function InventoryScreen() {
   }, [numbers, inicio, limite]);
 
   const [tt, setTT] = useState([]);
-  const handleButtons = (newData) => {
+  const handleButtons = (newData: any) => {
     setTT(newData);
   };
 
   const [indexes, setIndexes] = useState([]);
 
-  const handleAction = (newData) => {
+  const handleAction = (newData: any) => {
     setIndexes(newData);
   };
 
-  const handleOrder = (order, filter) => {
-    const sortedData = [...filteredResults].sort((a, b) => {
-      return order
-        ? new Date(a[filter]) - new Date(b[filter])
-        : new Date(b[filter]) - new Date(a[filter]);
+  type Product = {
+    name: string;
+    quantity: number;
+    entry_date: string;
+    expiration_date: string;
+    type: string;
+    product_id: string;
+    image: string;
+  };
+
+  const handleOrder = (order: boolean, filter: string) => {
+    const sortedData = [...filteredResults].sort((a: Product, b: Product) => {
+      const dateA = new Date(
+        a[filter as "entry_date" | "expiration_date"]
+      ).getTime();
+      const dateB = new Date(
+        b[filter as "entry_date" | "expiration_date"]
+      ).getTime();
+      return order ? dateA - dateB : dateB - dateA;
     });
     setFilteredResults(sortedData);
   };
 
-  const [selectedNumber, setSelectedNumber] = useState(1);
-  const handleSelect = (newData) => {
+  const [selectedNumber, setSelectedNumber] = useState<number>(1);
+  const handleSelect = (newData: number) => {
     setSelectedNumber(newData);
   };
-  useEffect(() => {
-    setProducts(showProducts(selectedNumber));
-  }, [selectedNumber, filteredResults]);
+  useEffect(
+    () => setProducts(showProducts(selectedNumber)),
+    [selectedNumber, filteredResults]
+  );
 
   return (
     <SafeAreaView

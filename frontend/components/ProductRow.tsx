@@ -3,13 +3,22 @@ import React from "react";
 import { FontAwesome6, FontAwesome5 } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { Product } from "@/types/Product";
+import { navigate } from "@/functions/NavigationService";
+
+interface ProductRowProps {
+  index: number;
+  isSelected: boolean;
+  handleSelect: (index: number) => void;
+  product: Product;
+}
 
 export default function ProductRow({
   index,
   isSelected,
   handleSelect,
   product,
-}) {
+}: ProductRowProps) {
   const navigation = useNavigation();
   const unidad = {
     fruit: "unidades",
@@ -21,7 +30,7 @@ export default function ProductRow({
     jar: "frasco",
   };
 
-  const formatearFecha = (date) => {
+  const formatearFecha = (date: string) => {
     const fecha = new Date(date);
 
     const dia = String(fecha.getDate()).padStart(2, "0");
@@ -32,11 +41,11 @@ export default function ProductRow({
     return fechaFormateada;
   };
 
-  function evaluarFecha(fechaObjetivo) {
+  function evaluarFecha(fechaObjetivo: string) {
     const hoy = new Date();
     const fecha = new Date(fechaObjetivo);
 
-    const diferenciaTiempo = fecha - hoy;
+    const diferenciaTiempo = fecha.getTime() - hoy.getTime();
 
     const diferenciaDias = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
 
@@ -49,7 +58,7 @@ export default function ProductRow({
     }
   }
 
-  const getColor = (state) => {
+  const getColor = (state: string) => {
     if (state === "crítico") {
       return "#FF4D4F";
     } else if (state === "prioritario") {
@@ -66,7 +75,7 @@ export default function ProductRow({
       <TouchableOpacity
         className="max-w-4xl"
         key={index}
-        onPress={() => handleSelect(product.product_id)}
+        onPress={() => handleSelect(product.product_id as any as number)}
       >
         <View
           className={
@@ -77,13 +86,15 @@ export default function ProductRow({
         >
           <TouchableOpacity
             className="border-gray-500 border-2 rounded-lg w-9 h-9 items-center justify-center"
-            onPress={() => navigation.navigate("Details", { product })}
+            onPress={() => navigate("Details", { product })}
           >
             <FontAwesome6 name="info" size={20} color="gray" />
           </TouchableOpacity>
           <Text className="ml-4 w-1/5">{product.name}</Text>
           <Text className="ml-4 w-1/12">
-            {product.quantity + "\n" + unidad[product.type]}
+            {product.quantity +
+              "\n" +
+              unidad[product.type as keyof typeof unidad]}
           </Text>
           <Text className="ml-4 w-1/6">
             {formatearFecha(product.entry_date)}

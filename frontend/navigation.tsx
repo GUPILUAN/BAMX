@@ -10,10 +10,10 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "./slices/themeSlice";
 import { themeColors } from "./theme";
 import SettingsScreen from "./screens/SettingsScreen";
-import { StatusBar } from "react-native";
 import DetailsScreen from "./screens/DetailsScreen";
 import AuthLoadingScreen from "./screens/AuthLoadingScreen";
 import { navigationRef } from "./functions/NavigationService";
+import { StatusBar } from "expo-status-bar";
 
 const Stack = createNativeStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -35,9 +35,6 @@ function DrawerNavigator() {
         headerTitleStyle: {
           fontWeight: "bold",
         },
-        cardStyle: {
-          flex: 1,
-        },
       }}
       initialRouteName="Inicio"
       drawerContent={() => <SideBar />}
@@ -56,12 +53,9 @@ export default function Navigation() {
       <Stack.Navigator
         initialRouteName="AuthLoading"
         screenOptions={{
-          animationEnabled: true,
+          animation: "simple_push",
           headerShown: false,
-        }}
-        options={{
-          animationTypeForReplace: "pop",
-          cardStyle: {
+          contentStyle: {
             flex: 1,
           },
         }}

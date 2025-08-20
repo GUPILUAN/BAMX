@@ -12,28 +12,38 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import ProductCard from "./ProductCard";
 import { Ionicons } from "@expo/vector-icons";
-import { retrieveData } from "../functions/apiCalls";
+import { retrieveData } from "../api/apiCalls";
 import { useNavigation } from "@react-navigation/native";
+import { Product } from "@/types/Product";
+import { navigate } from "@/functions/NavigationService";
 
-export default function FeaturedRow({ status, productos }) {
+interface FeaturedRowProps {
+  status: {
+    title: string;
+    category: string;
+  };
+  productos: Product[];
+}
+
+export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
   const [products, setProducts] = useState({});
   const navigation = useNavigation();
 
   const isWeb = Platform.OS === "web";
-  const iconColor = (category) =>
+  const iconColor = (category: string) =>
     category === "crítico"
       ? "#FF4D4F"
       : category === "prioritario"
-      ? "#FFC107"
-      : "#52C41A";
-  const iconName = (category) =>
+        ? "#FFC107"
+        : "#52C41A";
+  const iconName = (category: string) =>
     category === "crítico"
       ? "warning"
       : category === "prioritario"
-      ? "alert-circle"
-      : "checkmark-circle";
+        ? "alert-circle"
+        : "checkmark-circle";
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -69,12 +79,12 @@ export default function FeaturedRow({ status, productos }) {
           horizontal
           bounces={false}
           ListFooterComponent={
-            productos.length > 10 && (
+            productos.length > 10 ? (
               <TouchableOpacity
                 className="items-center justify-center p-3"
                 onPress={() => {
                   console.log(productos.length);
-                  navigation.navigate("Inventario");
+                  navigate("Inventario");
                 }}
               >
                 <View className="justify-center items-center items-col">
@@ -100,7 +110,7 @@ export default function FeaturedRow({ status, productos }) {
                   </Text>
                 </View>
               </TouchableOpacity>
-            )
+            ) : null
           }
         />
       </View>
@@ -108,16 +118,16 @@ export default function FeaturedRow({ status, productos }) {
   );
 }
 
-const styles = StyleSheet.create({
-  titleText: (category) => ({
+const styles = {
+  titleText: (category: string) => ({
     color:
       category === "crítico"
         ? "#FF4D4F"
         : category === "prioritario"
-        ? "#FFC107"
-        : "#52C41A",
+          ? "#FFC107"
+          : "#52C41A",
     fontFamily: "SF-Compact-Semibold",
     fontSize: Dimensions.get("window").width * 0.035,
     marginRight: 5,
   }),
-});
+};

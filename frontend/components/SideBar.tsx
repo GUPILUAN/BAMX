@@ -23,6 +23,7 @@ import { DrawerActions, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { loadSettings } from "../slices/settingsSlice";
 import { useDrawerStatus } from "@react-navigation/drawer";
+import { navigate } from "@/functions/NavigationService";
 
 export default function SideBar() {
   const navigation = useNavigation();
@@ -76,7 +77,7 @@ export default function SideBar() {
   return (
     <SafeAreaView
       className={"flex-1 w-full h-full border-gray-400 border-r"}
-      style={styles.sideBarBackground(isDark)}
+      style={sideBarBackground(isDark)}
     >
       <View className={"flex-1 h-full pb-3"}>
         <TouchableOpacity
@@ -105,7 +106,7 @@ export default function SideBar() {
               "flex-1 w-full h-full " +
               (isIOS ? "" : " border-gray-400 border-r")
             }
-            style={styles.sideBarBackground(isDark)}
+            style={sideBarBackground(isDark)}
           >
             <View className="py-2 flex-row items-center justify-evenly">
               <Text className="text-center text-gray-600">
@@ -125,7 +126,7 @@ export default function SideBar() {
             <View className="flex-col items-start justify-center  p-4">
               <TouchableOpacity
                 className="pl-4 py-2 flex-row items-center"
-                onPress={() => navigation.navigate("Inicio")}
+                onPress={() => navigate("Inicio")}
               >
                 <Ionicons name="home" size={30} color="#e1a244" />
                 <Text
@@ -137,7 +138,7 @@ export default function SideBar() {
               </TouchableOpacity>
               <TouchableOpacity
                 className="pl-4 py-2 flex-row items-center"
-                onPress={() => navigation.navigate("Inventario")}
+                onPress={() => navigate("Inventario")}
               >
                 <FontAwesome6 name="cube" size={30} color="#e1a244" />
                 <Text
@@ -165,7 +166,7 @@ export default function SideBar() {
             <View className="flex-col items-center justify-center border-b border-t border-gray-300 m-2">
               <TouchableOpacity
                 className="flex-row items-center justify-center m-4 rounded-2xl"
-                style={styles.button(true, width, height)}
+                style={button(true, width, height)}
               >
                 <View className="flex-row items-center p-6">
                   <FontAwesome6
@@ -175,7 +176,7 @@ export default function SideBar() {
                   />
                   <Text
                     className="ml-2 font-extrabold text-lg text-center"
-                    style={styles.cartText(isDark)}
+                    style={cartText(isDark)}
                   >
                     Productos{"\n"}entregables
                   </Text>
@@ -184,7 +185,7 @@ export default function SideBar() {
 
               <TouchableOpacity
                 className="flex-row items-center justify-center m-4 rounded-2xl"
-                style={styles.button(false, width, height)}
+                style={button(false, width, height)}
               >
                 <View className="flex-row items-center p-6">
                   <FontAwesome6
@@ -194,7 +195,7 @@ export default function SideBar() {
                   />
                   <Text
                     className="ml-2 font-extrabold text-lg text-center"
-                    style={styles.cartText(isDark)}
+                    style={cartText(isDark)}
                   >
                     Productos no{"\n"}aptos
                   </Text>
@@ -223,7 +224,7 @@ export default function SideBar() {
               </TouchableOpacity>
               <TouchableOpacity
                 className="flex-row items-center"
-                onPress={() => navigation.navigate("Configuracion")}
+                onPress={() => navigate("Configuracion")}
               >
                 <Ionicons name="settings-outline" size={40} color="#e1a244" />
               </TouchableOpacity>
@@ -241,24 +242,27 @@ const styles = StyleSheet.create({
     fontFamily: "SF-Pro-Bold",
     fontSize: Dimensions.get("window").width * 0.013,
   },
-  sideBarBackground: (isDark) => ({
-    backgroundColor: isDark ? "#100e09" : "#fff", //"#ece7dc",
-  }),
-  cartText: (isDark) => ({
-    color: isDark ? "#1a1a1a" : "#ece7dc",
-    fontFamily: "SF-Pro-Semibold",
-    fontSize: Dimensions.get("window").width * 0.013,
-  }),
-  button: (good, width, height) => ({
-    backgroundColor: good ? "#78af6d" : "#d65f61",
-    width: width * 0.15,
-    height: height * 0.15,
-    padding: 1,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
-  }),
+});
+
+const sideBarBackground = (isDark: boolean) => ({
+  backgroundColor: isDark ? "#100e09" : "#fff", //"#ece7dc",
+});
+
+const cartText = (isDark: boolean) => ({
+  color: isDark ? "#1a1a1a" : "#ece7dc",
+  fontFamily: "SF-Pro-Semibold",
+  fontSize: Dimensions.get("window").width * 0.013,
+});
+
+const button = (good: boolean, width: number, height: number) => ({
+  backgroundColor: good ? "#78af6d" : "#d65f61",
+  width: width * 0.15,
+  height: height * 0.15,
+  padding: 1,
+  borderRadius: 10,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 0.3,
+  shadowRadius: 10,
+  elevation: 10,
 });

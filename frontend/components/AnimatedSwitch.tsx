@@ -10,13 +10,17 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import { LinearGradient } from "expo-linear-gradient";
 
-export default function AnimatedSwitch({ onValueChange }) {
+type AnimatedSwitchProps = {
+  onValueChange: (value: string) => void;
+};
+
+export default function AnimatedSwitch({ onValueChange }: AnimatedSwitchProps) {
   const [active, setActive] = useState("Semaforo");
   const [animatedValue] = useState(new Animated.Value(0));
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  const handlePress = (button) => {
+  const handlePress = (button: string) => {
     setActive(button);
     onValueChange(button);
     Animated.timing(animatedValue, {
@@ -33,7 +37,7 @@ export default function AnimatedSwitch({ onValueChange }) {
 
   return (
     <View className={"items-center justify-start "}>
-      <View style={styles.switchContainer(isDark)}>
+      <View style={getSwitchContainerStyle(isDark)}>
         <Animated.View
           style={[styles.animatedBg, { left: interpolatedLeft }]}
         />
@@ -88,16 +92,17 @@ export default function AnimatedSwitch({ onValueChange }) {
   );
 }
 
+const getSwitchContainerStyle = (isDark: boolean) => ({
+  flexDirection: "row" as "row",
+  backgroundColor: isDark ? "#362e1d" : "#fff",
+  borderRadius: 25,
+  width: 400,
+  height: 50,
+  position: "relative" as "relative",
+  overflow: "hidden" as "hidden",
+});
+
 const styles = StyleSheet.create({
-  switchContainer: (isDark) => ({
-    flexDirection: "row",
-    backgroundColor: isDark ? "#362e1d" : "#fff",
-    borderRadius: 25,
-    width: 400,
-    height: 50,
-    position: "relative",
-    overflow: "hidden",
-  }),
   animatedBg: {
     position: "absolute",
     width: "50%",

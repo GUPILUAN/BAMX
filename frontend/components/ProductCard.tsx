@@ -12,8 +12,19 @@ import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import { Ionicons } from "@expo/vector-icons";
+import { navigate } from "@/functions/NavigationService";
 
-export default function ProductCard({ item }) {
+interface ProductItem {
+  image?: string;
+  name: string;
+  // Add other properties as needed
+}
+
+interface ProductCardProps {
+  item: ProductItem;
+}
+
+export default function ProductCard({ item }: ProductCardProps) {
   const navigation = useNavigation();
   const theme = useSelector(selectTheme);
   const isDarkMode = theme === "dark";
@@ -94,9 +105,7 @@ export default function ProductCard({ item }) {
               >
                 {item.name}
               </Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate("Details", { item })}
-              >
+              <TouchableOpacity onPress={() => navigate("Details", { item })}>
                 <Ionicons
                   name="information-circle-outline"
                   color="#f2a840"
@@ -132,19 +141,19 @@ export default function ProductCard({ item }) {
     </View>
   );
 }
-const styles = StyleSheet.create({
-  button: (good) => ({
+const styles = {
+  button: (good: boolean) => ({
     backgroundColor: good ? "#78af6d" : "#d65f61",
     shadowColor: "#000",
     elevation: 10,
   }),
-  cartText: (isDark) => ({
+  cartText: (isDark: boolean) => ({
     color: isDark ? "#1a1a1a" : "#fbfbfb",
     fontFamily: "SF-Pro-Semibold",
     fontSize: Dimensions.get("window").width * 0.013,
-    textAlign: "center",
+    textAlign: "center" as "center",
   }),
-});
+};
 
 /*Propuesta:
  <View className="flex-row w-full items-center justify-center ">

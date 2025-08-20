@@ -15,7 +15,7 @@ export default function HomeScreen() {
   };
   const [panel, setPanel] = useState("Semaforo");
 
-  const handlePanelChange = (newPanel) => {
+  const handlePanelChange = (newPanel: string) => {
     setPanel(newPanel);
   };
 

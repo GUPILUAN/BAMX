@@ -1,6 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { ColorSchemeName } from "react-native";
 
-export const saveSettingsToStorage = async (settings, colorScheme) => {
+export const saveSettingsToStorage = async (
+  settings: { theme: ColorSchemeName; isAutoTheme: boolean },
+  colorScheme: string | null | undefined
+) => {
   try {
     console.log(settings);
     const updatedSettings = {

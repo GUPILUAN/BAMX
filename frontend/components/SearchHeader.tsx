@@ -16,17 +16,25 @@ import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 
+type SearchHeaderProps = {
+  onDataChange: (data: any[]) => void;
+  indexesLength: number;
+  handleSearch: (text: string) => void;
+  query: string;
+  handleOrder: (orderType: boolean, orderBy: string) => void;
+};
+
 export default function SearchHeader({
   onDataChange,
   indexesLength,
   handleSearch,
   query,
   handleOrder,
-}) {
-  const [selecting, setSelecting] = useState(false);
-  const [filterSelected, setFilterSelected] = useState("ingreso");
-  const [search, setSearch] = useState("");
-  const [orderType, setOrderType] = useState(false);
+}: SearchHeaderProps) {
+  const [selecting, setSelecting] = useState<boolean>(false);
+  const [filterSelected, setFilterSelected] = useState<string>("ingreso");
+  const [search, setSearch] = useState<string>("");
+  const [orderType, setOrderType] = useState<boolean>(false);
   const navigation = useNavigation();
   const theme = useSelector(selectTheme);
   const isDarkMode = theme === "dark";
@@ -40,16 +48,15 @@ export default function SearchHeader({
     );
   }, [orderType, filterSelected]);
 
-  const handleFilterSelection = (filter) => {
+  const handleFilterSelection = (filter: string) => {
     setFilterSelected(filter);
   };
-  const handleFilterOrder = (order) => {
+  const handleFilterOrder = (order: boolean) => {
     setOrderType(order);
   };
 
   const handleClick = () => {
-    const newData = [];
-    onDataChange(newData);
+    onDataChange([]);
   };
 
   return (
@@ -113,7 +120,7 @@ export default function SearchHeader({
           <TouchableOpacity
             className="flex-col bg-gray-400 justify-center rounded-3xl mx-2"
             onPress={handleClick}
-            style={indexesLength > 0 ? styles.button(true) : null}
+            style={indexesLength > 0 ? buttonStyle(true) : null}
             disabled={indexesLength <= 0}
           >
             <View className="items-center p-5">
@@ -130,7 +137,7 @@ export default function SearchHeader({
           <TouchableOpacity
             className="flex-col bg-gray-400 justify-center rounded-3xl mx-2"
             onPress={handleClick}
-            style={indexesLength > 0 ? styles.button(false) : null}
+            style={indexesLength > 0 ? buttonStyle(false) : null}
             disabled={indexesLength <= 0}
           >
             <View className="items-center p-5">
@@ -149,9 +156,7 @@ export default function SearchHeader({
           <Text className="text-center text-base font-light">
             Orden {order}
           </Text>
-          <TouchableOpacity
-            onPress={() => handleFilterOrder((prevState) => !prevState)}
-          >
+          <TouchableOpacity onPress={() => handleFilterOrder(!orderType)}>
             <MaterialCommunityIcons
               name={
                 orderType
@@ -182,12 +187,13 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  button: (good) => ({
-    backgroundColor: good ? "#78af6d" : "#d65f61",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
-  }),
+});
+
+const buttonStyle = (good: boolean) => ({
+  backgroundColor: good ? "#78af6d" : "#d65f61",
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 5 },
+  shadowOpacity: 0.3,
+  shadowRadius: 5,
+  elevation: 5,
 });

@@ -3,6 +3,7 @@ import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import FeaturedRow from "./FeaturedRow";
 import { productosDummy } from "../constants/Products";
+import { Product } from "@/types/Product";
 
 export default function Semaforo() {
   const critic = 1024;
@@ -15,21 +16,21 @@ export default function Semaforo() {
     { title: "Estado estable", category: "estable" },
   ];
 
-  function lerp(a, b, t) {
+  function lerp(a: number, b: number, t: number) {
     return a + t * (b - a);
   }
 
-  const productos = {
+  const productos: { [key: string]: Product[] } = {
     crítico: [],
     prioritario: [],
     estable: [],
   };
 
-  function evaluarFechaDelProducto(producto) {
+  function evaluarFechaDelProducto(producto: Product) {
     const hoy = new Date();
     const fecha = new Date(producto.expiration_date);
 
-    const diferenciaTiempo = fecha - hoy;
+    const diferenciaTiempo = fecha.getTime() - hoy.getTime();
 
     const diferenciaDias = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
 
@@ -42,7 +43,7 @@ export default function Semaforo() {
     }
   }
 
-  const getColor = (state) => {
+  const getColor = (state: string) => {
     if (state === "crítico") {
       return "#FF4D4F";
     } else if (state === "prioritario") {
@@ -56,12 +57,23 @@ export default function Semaforo() {
     evaluarFechaDelProducto(p);
   });
 
-  const findLocation = (x, y, z) => {
+  const findLocation = (
+    x: number,
+    y: number,
+    z: number
+  ): [number, number, ...number[]] => {
     const total = x + y + z;
     const locCritic = x / total;
     const locStable = locCritic + y / total;
     const locWarning = lerp(locCritic, locStable, 0.5);
-    const location = [0, locCritic, locWarning, locStable, 1];
+    // Ensure the return type is a tuple with at least two elements
+    const location: [number, number, ...number[]] = [
+      0,
+      locCritic,
+      locWarning,
+      locStable,
+      1,
+    ];
     return location;
   };
 
@@ -110,7 +122,11 @@ export default function Semaforo() {
         </View>
       </View>
       <View className="flex-auto mb-12 pt-4">
-        <ScrollView vertical bounces={false} nestedScrollEnabled={true}>
+        <ScrollView
+          bounces={false}
+          nestedScrollEnabled={true}
+          horizontal={false}
+        >
           {status.map((s, index) => {
             return (
               <FeaturedRow
@@ -136,7 +152,7 @@ const styles = StyleSheet.create({
   },
   statusBox: {
     alignItems: "center",
-    flex: "row",
+    flexDirection: "row",
   },
   number: {
     fontSize: Dimensions.get("window").width * 0.04,

@@ -3,7 +3,7 @@ import * as SecureStore from "expo-secure-store";
 
 // Funciones para guardar, recuperar o eliminar cookies o tokens dependiendo el dispositivo
 
-export const saveData = async (key, value) => {
+export const saveData = async (key: string, value: string) => {
   if (Platform.OS === "web") {
     console.log("oa");
     localStorage.setItem(key, value);
@@ -12,7 +12,7 @@ export const saveData = async (key, value) => {
   }
 };
 
-export const getData = async (key) => {
+export const getData = async (key: string) => {
   if (Platform.OS === "web") {
     return localStorage.getItem(key);
   } else {
@@ -20,7 +20,7 @@ export const getData = async (key) => {
   }
 };
 
-export const deleteData = async (key) => {
+export const deleteData = async (key: string) => {
   if (Platform.OS === "web") {
     localStorage.removeItem(key);
   } else {

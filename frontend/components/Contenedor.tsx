@@ -10,8 +10,13 @@ import { StackedBarChart } from "react-native-chart-kit";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
+import { Container } from "@/types/Container";
 
-export default function Contenedor({ contenedor }) {
+interface ContenedorProps {
+  contenedor: Container;
+}
+
+export default function Contenedor({ contenedor }: ContenedorProps) {
   const [isActive, setIsActive] = useState(false);
   const screenWidth = Dimensions.get("window").width;
   const theme = useSelector(selectTheme);
@@ -54,7 +59,7 @@ export default function Contenedor({ contenedor }) {
           />
           <View style={styles.headerText}>
             <Text
-              style={styles.temperature(
+              style={getTemperatureStyle(
                 contenedor.temperature,
                 contenedor.is_active
               )}
@@ -71,7 +76,7 @@ export default function Contenedor({ contenedor }) {
             onPress={toggleActiveStatus}
             style={styles.statusButton}
           >
-            <Text style={styles.status(contenedor.is_active)}>
+            <Text style={getStatusStyle(contenedor.is_active)}>
               {contenedor.is_active ? "Activo" : "Off"}
             </Text>
           </TouchableOpacity>
@@ -92,11 +97,22 @@ export default function Contenedor({ contenedor }) {
           fromZero={true}
           chartConfig={chartConfig}
           style={styles.chart}
+          hideLegend={false}
         />
       </View>
     </View>
   );
 }
+
+const getTemperatureStyle = (temperature: number, isActive: boolean) => ({
+  fontSize: 36,
+  color: !isActive ? "red" : temperature < -10 ? "#003366" : "#4193f7",
+});
+
+const getStatusStyle = (isActive: boolean) => ({
+  color: isActive ? "green" : "red",
+  fontWeight: "bold" as "bold",
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -121,10 +137,7 @@ const styles = StyleSheet.create({
   headerText: {
     marginLeft: 10,
   },
-  temperature: (temperature, isActive) => ({
-    fontSize: 36,
-    color: !isActive ? "red" : temperature < -10 ? "#003366" : "#4193f7",
-  }),
+
   chartContainer: {
     flexDirection: "column",
   },
@@ -141,10 +154,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  status: (active) => ({
-    color: active ? "green" : "red",
-    fontWeight: "bold",
-  }),
+
   lastUpdate: {
     fontSize: 12,
     color: "#888",

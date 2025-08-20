@@ -1,10 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
+import { Product } from "@/types/Product";
 
 export default function DetailsScreen() {
-  const { params } = useRoute();
-  let product = params.item || params.product;
+  const { params } = useRoute() as {
+    params: { item?: Product; product?: Product };
+  };
+  let product = (params.item as Product) || (params.product as Product);
   const navigation = useNavigation();
   return (
     <View style={styles.container}>

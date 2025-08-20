@@ -11,16 +11,25 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { loginUser } from "../functions/apiCalls";
+import { loginUser } from "@/api/apiCalls";
 
-export default function AuthScreen({ navigation }) {
+export default function AuthScreen({ navigation }: any) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<{
+    username: string;
+    password: string;
+  }>({
+    username: "",
+    password: "",
+  });
 
   const handleLogin = async () => {
-    let validationErrors = {};
+    let validationErrors = {
+      username: "",
+      password: "",
+    };
     if (!username) {
       validationErrors.username = "El username es requerido";
     }
@@ -28,21 +37,28 @@ export default function AuthScreen({ navigation }) {
       validationErrors.password = "La contraseña es requerida";
     }
 
-    if (Object.keys(validationErrors).length > 0) {
+    if (validationErrors.username || validationErrors.password) {
       setErrors(validationErrors);
       return;
     }
 
     try {
       setLoading(true);
-      setErrors({});
+      setErrors({
+        username: "",
+        password: "",
+      });
+      console.log("Attempting login with", username, password);
       await loginUser(username, password);
       navigation.navigate("DashBoard");
-    } catch (error) {
+    } catch (error: any) {
       Alert.alert("Error", "Las credenciales son incorrectas");
       setUsername("");
       setPassword("");
-      setErrors({});
+      setErrors({
+        username: "",
+        password: "",
+      });
       console.error(error.response);
     } finally {
       setLoading(false);

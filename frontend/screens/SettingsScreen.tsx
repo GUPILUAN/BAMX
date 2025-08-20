@@ -11,7 +11,7 @@ import { loadSettings, selectSettings } from "../slices/settingsSlice";
 import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
-import { logOut } from "../functions/apiCalls";
+import { logOut } from "../api/apiCalls";
 import { useNavigation } from "@react-navigation/native";
 
 export default function SettingsScreen() {
@@ -44,7 +44,7 @@ export default function SettingsScreen() {
     }
   }, [settings]);
   useEffect(() => {
-    const saveSettings = async (newSettings) => {
+    const saveSettings = async (newSettings: any) => {
       try {
         if (newSettings) {
           await AsyncStorage.setItem("userSettings", newSettings);
@@ -109,8 +109,8 @@ export default function SettingsScreen() {
                   ? "bg-gray-200"
                   : "bg-slate-600"
                 : isDark
-                ? "bg-gray-600"
-                : "bg-slate-200"
+                  ? "bg-gray-600"
+                  : "bg-slate-200"
             }`}
             onPress={setAuto}
           >
