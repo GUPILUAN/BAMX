@@ -3,7 +3,7 @@ import { deleteData, getData, saveData } from "./userKey";
 import { replace } from "../functions/NavigationService";
 
 const instance = axios.create({
-  baseURL: "http://ec2-3-129-24-50.us-east-2.compute.amazonaws.com",
+  baseURL: "http://192.168.0.39:5000",
 });
 
 instance.interceptors.request.use(

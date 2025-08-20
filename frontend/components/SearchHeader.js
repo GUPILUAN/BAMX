@@ -11,7 +11,7 @@ import {
   FontAwesome6,
   MaterialCommunityIcons,
   Feather,
-} from "react-native-vector-icons/";
+} from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";

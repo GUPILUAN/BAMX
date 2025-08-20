@@ -11,7 +11,7 @@ import {
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import ProductCard from "./ProductCard";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 import { retrieveData } from "../functions/apiCalls";
 import { useNavigation } from "@react-navigation/native";
 

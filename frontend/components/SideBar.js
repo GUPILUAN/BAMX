@@ -16,7 +16,7 @@ import {
   MaterialCommunityIcons,
   AntDesign,
   Feather,
-} from "react-native-vector-icons/";
+} from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import { DrawerActions, useNavigation } from "@react-navigation/native";

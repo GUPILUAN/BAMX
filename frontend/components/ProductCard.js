@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
-import Ionicons from "react-native-vector-icons/Ionicons";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function ProductCard({ item }) {
   const navigation = useNavigation();

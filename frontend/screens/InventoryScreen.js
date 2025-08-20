@@ -8,7 +8,7 @@ import {
   Keyboard,
   Text,
 } from "react-native";
-import { FontAwesome6 } from "react-native-vector-icons/";
+import { FontAwesome6 } from "@expo/vector-icons";
 import { selectTheme } from "../slices/themeSlice";
 import { useSelector } from "react-redux";
 import SearchHeader from "../components/SearchHeader";

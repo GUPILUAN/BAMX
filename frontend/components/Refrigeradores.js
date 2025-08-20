@@ -5,6 +5,7 @@ import Contenedor from "./Contenedor";
 
 export default function Refrigeradores() {
   const contenedores = contenedoresDummy.results;
+
   return (
     <View className="flex-1 justify-end items-center w-full">
       <View className="items-center justify-center pb-10 w-full border-b border-gray-300">
