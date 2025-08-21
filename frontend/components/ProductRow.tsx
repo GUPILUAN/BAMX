@@ -29,16 +29,12 @@ export default function ProductRow({
     snack: "paquetes",
     jar: "frasco",
   };
-
   const formatearFecha = (date: string) => {
     const fecha = new Date(date);
-
-    const dia = String(fecha.getDate()).padStart(2, "0");
-    const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-    const año = fecha.getFullYear();
-
-    const fechaFormateada = `${dia}/${mes}/${año}`;
-    return fechaFormateada;
+    const dia = String(fecha.getUTCDate()).padStart(2, "0");
+    const mes = String(fecha.getUTCMonth() + 1).padStart(2, "0");
+    const año = fecha.getUTCFullYear();
+    return `${dia}/${mes}/${año}`;
   };
 
   function evaluarFecha(fechaObjetivo: string) {
@@ -82,11 +78,13 @@ export default function ProductRow({
             "flex-row border-gray-400 border p-3 items-center  " +
             (index % 2 === 0 ? "bg-gray-200" : "bg-white")
           }
+          testID="product-row"
           style={isSelected ? styles.selectedItem : null}
         >
           <TouchableOpacity
             className="border-gray-500 border-2 rounded-lg w-9 h-9 items-center justify-center"
             onPress={() => navigate("Details", { product })}
+            testID="info-button"
           >
             <FontAwesome6 name="info" size={20} color="gray" />
           </TouchableOpacity>
@@ -105,6 +103,7 @@ export default function ProductRow({
           <View
             className="flex rounded-xl ml-4 px-12 py-3 items-center justify-center w-1/4 "
             style={{ backgroundColor: getColor(estado) }}
+            testID="status-indicator"
           >
             <Text className="text-white font-bold">Estado {estado}</Text>
           </View>
