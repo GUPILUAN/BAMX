@@ -46,7 +46,23 @@
     "victory-native": "^41.19.3"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "setupFilesAfterEnv": [
+      "<rootDir>/__tests__/setup.ts"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!(jest-)?react-native|@react-native|@react-navigation|expo(nent)?|@expo(nent)?/.*|react-navigation|@react-native-community|@expo/vector-icons|react-redux|@reduxjs)"
+    ],
+    "collectCoverageFrom": [
+      "components/**/*.{ts,tsx}",
+      "screens/**/*.{ts,tsx}",
+      "!**/__tests__/**",
+      "!**/node_modules/**"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/__tests__/setup.ts",
+      "<rootDir>/__tests__/utils/"
+    ]
   },
   "overrides": {
     "victory-native": {

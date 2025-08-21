@@ -102,16 +102,24 @@ export default function SearchHeader({
             }
             onPress={() => handleFilterSelection("ingreso")}
           >
-            <Text className="text-center">Ordenar por fecha de ingreso</Text>
+            <Text
+              className={
+                "text-center rounded-r-xl w-1/2 p-1 border-gray-400 border " +
+                (filterSelected !== "caducidad" ? "bg-gray-300" : "bg-white")
+              }
+            >
+              Ordenar por fecha de ingreso
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            className={
-              "rounded-r-xl w-1/2 p-1 border-gray-400 border " +
-              (filterSelected !== "ingreso" ? "bg-gray-300" : "bg-white")
-            }
-            onPress={() => handleFilterSelection("caducidad")}
-          >
-            <Text className="text-center">Ordenar por fecha de caducidad</Text>
+          <TouchableOpacity onPress={() => handleFilterSelection("caducidad")}>
+            <Text
+              className={
+                "text-center rounded-r-xl w-1/2 p-1 border-gray-400 border " +
+                (filterSelected !== "ingreso" ? "bg-gray-300" : "bg-white")
+              }
+            >
+              Ordenar por fecha de caducidad
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
