@@ -11,11 +11,11 @@ export const contenedoresDummy = {
       temperature: -18,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
       data: [
-        [60, 30, 100],
-        [50, 20, 15],
-        [30, 50, 20],
-        [40, 35, 25],
-        [20, 40, 30],
+        [60, 30, 100], //carnes [verde, amarillo, rojo]
+        [50, 20, 15], //mariscos [verde, amarillo, rojo]
+        [30, 50, 20], //verduras [verde, amarillo, rojo]
+        [40, 35, 25], //lácteos [verde, amarillo, rojo]
+        [20, 40, 30], //otros [verde, amarillo, rojo]
       ],
     },
     {

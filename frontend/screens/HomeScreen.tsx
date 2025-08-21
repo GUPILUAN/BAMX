@@ -21,18 +21,16 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView
-      className={`${themeColorsTailwind.backgroundTailwind} w-full h-full b flex-1 `}
+      className={`${themeColorsTailwind.backgroundTailwind} w-full h-full flex-1 `}
     >
       <View
         className={`${
           themeColorsTailwind.backgroundTailwind
-        } w-full h-full b flex-1 ${isWeb ? "overflow-scroll" : ""}`}
+        }   ${isWeb ? "overflow-scroll w-full h-full" : ""}`}
       >
-        <View className="flex-col ">
-          <AnimatedSwitch onValueChange={handlePanelChange} />
-          <View className="flex-row p-5">
-            {panel === "Semaforo" ? <Semaforo /> : <Refrigeradores />}
-          </View>
+        <AnimatedSwitch onValueChange={handlePanelChange} />
+        <View className="flex flex-row p-5">
+          {panel === "Semaforo" ? <Semaforo /> : <Refrigeradores />}
         </View>
       </View>
     </SafeAreaView>

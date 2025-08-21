@@ -6,11 +6,12 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import { StackedBarChart } from "react-native-chart-kit";
+import { StackedBarChart } from "./StackedBarChart";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import { Container } from "@/types/Container";
+import { themeColors } from "@/theme";
 
 interface ContenedorProps {
   contenedor: Container;
@@ -50,7 +51,11 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
   return (
     <View style={styles.container}>
       <View style={styles.infoContainer}>
-        <Text style={styles.title}>{contenedor.name}</Text>
+        <Text
+          style={{ color: themeColors.headerText(isDark), ...styles.title }}
+        >
+          {contenedor.name}
+        </Text>
         <View style={styles.iconRow}>
           <FontAwesome6
             name={getIconName()}
@@ -95,9 +100,8 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
           width={screenWidth - 300}
           height={220}
           fromZero={true}
-          chartConfig={chartConfig}
           style={styles.chart}
-          hideLegend={false}
+          isDark={isDark}
         />
       </View>
     </View>
@@ -118,7 +122,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     padding: 16,
-    maxWidth: 6000,
+    maxWidth: "100%",
+    height: 300,
+    justifyContent: "space-evenly",
   },
   infoContainer: {
     flexDirection: "column",
@@ -140,6 +146,8 @@ const styles = StyleSheet.create({
 
   chartContainer: {
     flexDirection: "column",
+    height: "auto",
+    width: "60%",
   },
   statusRow: {
     flexDirection: "row",
