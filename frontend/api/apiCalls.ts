@@ -9,9 +9,9 @@ const instance = axios.create({
 instance.interceptors.request.use(
   async (config) => {
     if (
-      config.url === "/api/login/" ||
-      config.url === "/api/register/" ||
-      config.url === "/api/token/refresh/"
+      config.url === "/api/auth/login/" ||
+      config.url === "/api/auth/register/" ||
+      config.url === "/api/auth/token/refresh/"
     ) {
       return config;
     }
@@ -58,7 +58,7 @@ const refreshToken = async () => {
     if (!refresh) {
       throw new Error("No refresh token found");
     }
-    const response = await instance.post("/api/token/refresh/", {
+    const response = await instance.post("/api/auth/token/refresh/", {
       refresh: refresh,
     });
     const { access } = response.data;
@@ -71,7 +71,7 @@ const refreshToken = async () => {
 };
 
 export const loginUser = async (username: string, password: string) => {
-  const response = await instance.post("/api/login/", {
+  const response = await instance.post("/api/auth/login/", {
     username: username,
     password: password,
   });
