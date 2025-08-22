@@ -3,7 +3,7 @@ import { deleteData, getData, saveData } from "../functions/userKey";
 import { replace } from "../functions/NavigationService";
 
 const instance = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000',
 });
 
 instance.interceptors.request.use(
