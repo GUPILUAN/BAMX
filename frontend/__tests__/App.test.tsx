@@ -18,4 +18,14 @@ describe("Testing Jest", () => {
     const { getByText } = render(<TestComponent />);
     expect(getByText("Hello World")).toBeTruthy();
   });
+  test("showing the workflow", () => {
+    const TestComponent = () => (
+      <View>
+        <Text>Alex ponce</Text>
+      </View>
+    );
+
+    const { getByText } = render(<TestComponent />);
+    expect(getByText("Alex ponce")).toBeTruthy();
+  });
 });
