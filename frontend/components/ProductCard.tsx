@@ -34,12 +34,17 @@ export default function ProductCard({ item }: ProductCardProps) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const imageUrl = item.image
-      ? item.image
-      : "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
+    const imageUrl =
+      item && item.image
+        ? item.image
+        : "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
     setImageUri(imageUrl);
     setLoading(true);
   }, [item.image]);
+
+  if (imageUri === "") {
+    return null;
+  }
 
   return (
     <View
@@ -112,13 +117,13 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: "50%",
+    height: "100%",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
   },
   loadingOverlay: {
     position: "absolute",
-    top: 0,
+    top: "50%",
     left: 0,
     right: 0,
     bottom: "50%",
