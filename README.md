@@ -7,6 +7,7 @@ BAMX App
 # Project Structure
 - backend/   # Flask API
 - frontend/  # React Native + Expo app
+---
 # Getting Started
 First, clone the repository anywhere in your device
 ```bash
@@ -14,6 +15,7 @@ git clone https://github.com/GUPILUAN/BAMX
 cd BAMX
 ```
 You will now have all the code from the project
+
 ---
 # Dependency Installation
 ### Backend
@@ -83,6 +85,13 @@ EXPO_PUBLIC_ENV=development
 ---
 # Database Initialization
 In the backend environment variables you can find the SQLALCHEMY_DATABASE_URI it's using the URI for firebird+fdb (banco de alimentos legacy system), you can also use firebird-driver a newer version but not compatible
+```bash
+# --- Database (Firebird) ---
+# Format: firebird+fdb://usuario:password@host:port/route/base.fdb
+# using fdb driver  firebird+fdb://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
+# using firebird-driver firebird+firebird://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
+SQLALCHEMY_DATABASE_URI=firebird+fdb://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
+```
 ---
 # Run the Project in Dev Mode
 ### Backend
@@ -95,6 +104,7 @@ flask run
 cd frontend 
 npx expo start 
 ```
+---
 # Test Running
 The tests are located in frontend/__tests__, the test must run perfectly to create pull requests
 Use this command to run tests in the frontend.
