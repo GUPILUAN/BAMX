@@ -106,7 +106,7 @@ describe("ProductRow", () => {
   it("shows priority status for products expiring in 3-5 days", () => {
     const priorityProduct = {
       ...mockProduct,
-      expiration_date: "2025-08-25", // 4 days from current date
+      expiration_date: "2025-09-01", // 4 days from current date
     };
 
     const { getByText } = render(
@@ -121,7 +121,7 @@ describe("ProductRow", () => {
   it("shows stable status for products expiring in more than 5 days", () => {
     const stableProduct = {
       ...mockProduct,
-      expiration_date: "2025-08-30", // 9 days from current date
+      expiration_date: "2025-09-30", // 9 days from current date
     };
 
     const { getByText } = render(
