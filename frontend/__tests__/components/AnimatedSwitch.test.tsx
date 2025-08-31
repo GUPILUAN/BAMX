@@ -7,14 +7,6 @@ import themeReducer from "../../slices/themeSlice";
 import { Animated } from "react-native";
 
 // Use fake timers for animations
-beforeAll(() => {
-  jest.useFakeTimers();
-});
-
-afterAll(() => {
-  jest.useRealTimers();
-});
-
 // Mock Animated API
 beforeAll(() => {
   jest.useFakeTimers();
