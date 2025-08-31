@@ -2,7 +2,7 @@ import {
   formatDate,
   evaluateExpirationStatus,
   getStatusColor,
-  getUnitLabel,
+  getUnitLabel, addDays
 } from "./dateUtils";
 
 describe("Date Utilities", () => {
@@ -58,6 +58,14 @@ describe("Date Utilities", () => {
     it("returns default color for unknown status", () => {
       expect(getStatusColor("unknown")).toBe("#000000");
       expect(getStatusColor("")).toBe("#000000");
+    });
+  });
+
+  describe("addDays", () => {
+    it("adds days to a date", () => {
+      const date = new Date("2025-08-21");
+      expect(addDays(date, 5)).toBe("2025-08-26");
+      expect(addDays(date, 10)).toBe("2025-08-31");
     });
   });
 

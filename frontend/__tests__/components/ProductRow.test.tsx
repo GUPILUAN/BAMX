@@ -3,6 +3,7 @@ import { render, fireEvent } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import ProductRow from "../../components/ProductRow";
 import { Product } from "../../types/Product";
+import { addDays } from "../utils/dateUtils";
 
 // Mock NavigationService
 jest.mock("../../functions/NavigationService", () => ({
@@ -17,6 +18,7 @@ jest.mock("@react-navigation/native", () => ({
     navigate: mockNavigate,
   }),
 }));
+
 
 // Test wrapper component
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
@@ -40,12 +42,12 @@ describe("ProductRow", () => {
     handleSelect: jest.fn(),
     product: mockProduct,
   };
-
+  const today = new Date();
   beforeEach(() => {
     jest.clearAllMocks();
     // Mock current date to ensure consistent test results
     jest.useFakeTimers();
-    jest.setSystemTime(new Date()); // Set to current date
+    jest.setSystemTime(today); // Set to current date
   });
 
   afterEach(() => {
@@ -91,7 +93,7 @@ describe("ProductRow", () => {
   it("shows critical status for products expiring in 2 days or less", () => {
     const criticalProduct = {
       ...mockProduct,
-      expiration_date: "2025-08-23", // 2 days from current date
+      expiration_date: addDays(today, 2), // 2 days from current date
     };
 
     const { getByText } = render(
@@ -106,7 +108,7 @@ describe("ProductRow", () => {
   it("shows priority status for products expiring in 3-5 days", () => {
     const priorityProduct = {
       ...mockProduct,
-      expiration_date: "2025-09-01", // 4 days from current date
+      expiration_date: addDays(today, 4), // 4 days from current date
     };
 
     const { getByText } = render(
@@ -121,7 +123,7 @@ describe("ProductRow", () => {
   it("shows stable status for products expiring in more than 5 days", () => {
     const stableProduct = {
       ...mockProduct,
-      expiration_date: "2025-09-30", // 9 days from current date
+      expiration_date: addDays(today, 9), // 9 days from current date
     };
 
     const { getByText } = render(
