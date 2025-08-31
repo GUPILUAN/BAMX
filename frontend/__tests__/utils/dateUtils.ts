@@ -47,3 +47,9 @@ export const getUnitLabel = (productType: string): string => {
   };
   return units[productType] || "unidades";
 };
+
+export const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result.toISOString().split("T")[0];
+}
