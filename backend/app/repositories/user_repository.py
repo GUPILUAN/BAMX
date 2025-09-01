@@ -1,12 +1,9 @@
-from app.extensions import users_db
+from ..models import User
 
 
 class UserRepository:
     def find_by_username(self, username: str):
-        return users_db.get(username)
+        return User.query.filter_by(USUARIO=username).first()
 
-    def save(self, username: str, password_hash: str):
-        if username in users_db:
-            raise ValueError("Usuario ya existe")
-        users_db[username] = {"username": username, "password": password_hash}
-        return users_db[username]
+    def find_by_id(self, user_id: int):
+        return User.query.filter_by(IDUSR=user_id).first()
