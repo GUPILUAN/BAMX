@@ -1,5 +1,4 @@
 from typing import Generator
-from unittest.mock import MagicMock
 from flask.testing import FlaskClient
 import pytest
 from flask import Flask
