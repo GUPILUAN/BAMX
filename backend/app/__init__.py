@@ -1,10 +1,10 @@
 from flask import Flask
 from config import config_by_name, Config
-from app.controllers.database_controller import database_bp, init_database_controller
-from app.controllers.auth_controller import auth_bp
-from app.repositories.database_repository import DatabaseRepository
-from app.services.database_service import DatabaseService
-from app.extensions import engine, jwt
+from .controllers.auth_controller import auth_bp
+from .controllers.inventory_controller import inventario_bp
+
+
+from .extensions import jwt,db
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -12,6 +12,7 @@ def create_app(config_name: str = "development") -> Flask:
     config_class: type[Config] = config_by_name.get(config_name, Config)
     app.config.from_object(config_class)
     jwt.init_app(app)
+    db.init_app(app)
 
     # ---------- Healthcheck ----------
     @app.get("/api/health")
@@ -19,14 +20,9 @@ def create_app(config_name: str = "development") -> Flask:
         return {"status": "ok"}, 200
 
     # ---------- Inyección de dependencias ----------
-    repository: DatabaseRepository = DatabaseRepository(engine)
-    db_service: DatabaseService = DatabaseService(
-        repository, app.config["SQLALCHEMY_DATABASE_URI"]
-    )
 
     # Pasamos el servicio al controlador
-    init_database_controller(db_service)
-    app.register_blueprint(database_bp, url_prefix="/api/databases")
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(inventario_bp, url_prefix="/api/inventario")
 
     return app
