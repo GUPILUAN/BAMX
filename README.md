@@ -2,15 +2,15 @@
 
 ## Status
 
-### Frontend
-
-![Frontend Tests](https://github.com/GUPILUAN/BAMX/actions/workflows/tests.yml/badge.svg?event=pull_request)
-[![Frontend Coverage](https://codecov.io/gh/GUPILUAN/BAMX/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/GUPILUAN/BAMX)
-
 ### Backend
 
-![Backend Tests](https://github.com/GUPILUAN/BAMX/actions/workflows/tests.yml/badge.svg?event=pull_request)
+![Backend Tests](https://github.com/GUPILUAN/BAMX/actions/workflows/backend-tests.yml/badge.svg?event=pull_request)
 [![Backend Coverage](https://codecov.io/gh/GUPILUAN/BAMX/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/GUPILUAN/BAMX)
+
+### Frontend
+
+![Frontend Tests](https://github.com/GUPILUAN/BAMX/actions/workflows/frontend-tests.yml/badge.svg?event=pull_request)
+[![Frontend Coverage](https://codecov.io/gh/GUPILUAN/BAMX/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/GUPILUAN/BAMX)
 
 ## Prerequisites
 

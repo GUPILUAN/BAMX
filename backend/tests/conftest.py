@@ -6,7 +6,6 @@ from flask import Flask
 from app import create_app
 
 
-
 @pytest.fixture
 def app() -> Generator[Flask]:
     app = create_app("development")
@@ -21,4 +20,3 @@ def app() -> Generator[Flask]:
 @pytest.fixture
 def client(app: Flask) -> FlaskClient:
     return app.test_client()
-
