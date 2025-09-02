@@ -1,5 +1,17 @@
 # BAMX App
 
+## Status
+
+### Frontend
+
+![Frontend Tests](https://github.com/GUPILUAN/BAMX/actions/workflows/tests.yml/badge.svg?event=pull_request)
+[![Frontend Coverage](https://codecov.io/gh/GUPILUAN/BAMX/branch/main/graph/badge.svg?flag=frontend)](https://codecov.io/gh/GUPILUAN/BAMX)
+
+### Backend
+
+![Backend Tests](https://github.com/GUPILUAN/BAMX/actions/workflows/tests.yml/badge.svg?event=pull_request)
+[![Backend Coverage](https://codecov.io/gh/GUPILUAN/BAMX/branch/main/graph/badge.svg?flag=backend)](https://codecov.io/gh/GUPILUAN/BAMX)
+
 ## Prerequisites
 
 - Node.js >= 18
@@ -30,7 +42,7 @@ You will now have all the code from the project
 
 ## Dependency Installation
 
-### Backend
+### Backend installation
 
 To install the backend dependencies you can use this commands:
 
@@ -65,7 +77,7 @@ flask run
 > 5. Choose .venv as the environment name and select the Python version.
 > 6. When prompted, select the `requirements.txt` file located in the backend directory. → VS Code will automatically install all dependencies.
 
-### Frontend
+### Frontend installation
 
 You can open another console to have the frontend running...
 To install the frontend dependencies you can use this commands:
