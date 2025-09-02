@@ -2,9 +2,7 @@ from flask import Flask
 from config import config_by_name, Config
 from .controllers.auth_controller import auth_bp
 from .controllers.inventory_controller import inventario_bp
-
-
-from .extensions import jwt,db
+from .extensions import jwt, db
 
 
 def create_app(config_name: str = "development") -> Flask:
@@ -19,9 +17,7 @@ def create_app(config_name: str = "development") -> Flask:
     def health() -> tuple[dict[str, str], int]:
         return {"status": "ok"}, 200
 
-    # ---------- Inyección de dependencias ----------
-
-    # Pasamos el servicio al controlador
+    # ---------- Blueprints ----------
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(inventario_bp, url_prefix="/api/inventario")
 
