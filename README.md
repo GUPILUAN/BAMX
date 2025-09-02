@@ -45,14 +45,6 @@ venv\Scripts\activate # Use this for Windows or Git bash
 # There is a requirements text file in the backend folder, we shall use it to get all the dependencies
 pip install -r requirements.txt
 
-#Start Flask server
-export FLASK_APP=app # macOS or Linux
-export FLASK_ENV=development
-flask run
-
-set FLASK_APP=app # Windows
-set FLASK_ENV=development
-flask run
 ```
 
 > [!NOTE]
@@ -124,6 +116,11 @@ EXPO_PUBLIC_ENV=development
 
 In the backend environment variables you can find the SQLALCHEMY_DATABASE_URI it's using the URI for firebird+fdb (banco de alimentos legacy system), you can also use firebird-driver a newer version but not compatible
 
+You must have installed Firebird Server. BAMX uses Firebird 2.5. You can found it here: [Firebird(2.5)](https://firebirdsql.org/en/firebird-2-5/)
+
+> [!WARNING]
+> For Mac users: Apple 'M' Family Chips are not supported
+
 ```bash
 # --- Database (Firebird) ---
 # Format: firebird+fdb://usuario:password@host:port/route/base.fdb
@@ -140,6 +137,13 @@ SQLALCHEMY_DATABASE_URI=firebird+fdb://sysdba:masterkey@localhost///home/testuse
 
 ```bash
 cd backend
+#Start Flask server
+export FLASK_APP=app # macOS or Linux
+export FLASK_ENV=development
+flask run
+
+set FLASK_APP=app # Windows
+set FLASK_ENV=development
 flask run
 ```
 
