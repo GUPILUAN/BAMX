@@ -12,32 +12,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set branch variable
         run: echo "BRANCH_NAME=${GITHUB_REF_NAME#refs/heads/}" >> $GITHUB_ENV
 
       - name: Update badges in README
         run: |
-          echo "Updating badges for branch $BRANCH_NAME"
-
-          # Backend Tests
           sed -i "s|https://github.com/GUPILUAN/BAMX/actions/workflows/backend-tests.yml/badge.svg.*|https://github.com/GUPILUAN/BAMX/actions/workflows/backend-tests.yml/badge.svg?branch=$BRANCH_NAME|g" README.md
-
-          # Backend Coverage
           sed -i "s|https://codecov.io/gh/GUPILUAN/BAMX/branch/.*/graph/badge.svg?flag=backend|https://codecov.io/gh/GUPILUAN/BAMX/branch/$BRANCH_NAME/graph/badge.svg?flag=backend|g" README.md
-
-          # Frontend Tests
           sed -i "s|https://github.com/GUPILUAN/BAMX/actions/workflows/frontend-tests.yml/badge.svg.*|https://github.com/GUPILUAN/BAMX/actions/workflows/frontend-tests.yml/badge.svg?branch=$BRANCH_NAME|g" README.md
-
-          # Frontend Coverage
           sed -i "s|https://codecov.io/gh/GUPILUAN/BAMX/branch/.*/graph/badge.svg?flag=frontend|https://codecov.io/gh/GUPILUAN/BAMX/branch/$BRANCH_NAME/graph/badge.svg?flag=frontend|g" README.md
 
-      - name: Commit changes if any
+      - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add README.md
           git diff-index --quiet HEAD || git commit -m "Update badges for branch $BRANCH_NAME"
-          git push
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+          git push origin HEAD
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
