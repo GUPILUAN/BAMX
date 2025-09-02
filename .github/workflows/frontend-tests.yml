@@ -19,8 +19,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22.x
+        name: Install Dependencies
       - run: npm install
-      - run: npm run test -- --coverage
+        name: Run Tests
+      - run: npm run test
       - uses: codecov/codecov-action@v4
         with:
           directory: ./frontend/coverage
