@@ -7,7 +7,7 @@ class AuthService:
     def __init__(self):
         self.user_repo = UserRepository()
 
-    def login(self, username: str, password: str):
+    def login(self, username: str, password: str) -> tuple[dict, int]:
         if not username or not password:
             return {"msg": "Faltan credenciales"}, 400
         user = self.user_repo.find_by_username(username)
@@ -19,5 +19,6 @@ class AuthService:
         refresh_token = create_refresh_token(identity=user_id)
         return {"access": access_token, "refresh": refresh_token}, 200
 
-    def refresh(self, username):
-        return create_access_token(identity=username)
+    def refresh(self, user_id: str) -> tuple[dict, int]:
+        access_token = create_access_token(identity=user_id)
+        return {"access": access_token}, 200
