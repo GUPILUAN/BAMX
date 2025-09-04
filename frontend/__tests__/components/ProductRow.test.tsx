@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import ProductRow from "../../components/ProductRow";
-import { Product } from "../../types/Product";
+import { Product } from "../../types/InventoryItem";
 import { addDays } from "../utils/dateUtils";
 
 // Mock NavigationService

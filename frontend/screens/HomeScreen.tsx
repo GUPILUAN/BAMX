@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, SafeAreaView, Platform } from "react-native";
 import { selectTheme } from "../slices/themeSlice";
 import { useSelector } from "react-redux";
 import Semaforo from "../components/Semaforo";
 import AnimatedSwitch from "../components/AnimatedSwitch";
 import Refrigeradores from "../components/Refrigeradores";
+import { retrieveData } from "@/api/apiCalls";
+import { InventoryItem } from "@/types/InventoryItem";
 export default function HomeScreen() {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
@@ -18,7 +20,16 @@ export default function HomeScreen() {
   const handlePanelChange = (newPanel: string) => {
     setPanel(newPanel);
   };
+  const [products, setProducts] = useState<InventoryItem[]>([]);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const productsF = await retrieveData("/api/inventario/");
+      setProducts(productsF);
+    };
+      fetchProducts();
+    }, []);
 
+ 
   return (
     <SafeAreaView
       className={`${themeColorsTailwind.backgroundTailwind} w-full h-full flex-1 `}
@@ -30,7 +41,7 @@ export default function HomeScreen() {
       >
         <AnimatedSwitch onValueChange={handlePanelChange} />
         <View className="flex flex-row p-5">
-          {panel === "Semaforo" ? <Semaforo /> : <Refrigeradores />}
+          {panel === "Semaforo" ? <Semaforo productos={products} /> : <Refrigeradores />}
         </View>
       </View>
     </SafeAreaView>

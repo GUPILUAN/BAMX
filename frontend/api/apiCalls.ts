@@ -10,11 +10,12 @@ instance.interceptors.request.use(
   async (config) => {
     if (
       config.url === "/api/auth/login" ||
-      config.url === "/api/auth/register" ||
+     // config.url === "/api/auth/register" ||
       config.url === "/api/auth/token/refresh"
     ) {
       return config;
     }
+    
     let access = await getData("access");
     if (!access || tokenExpired(access)) {
       try {
@@ -58,9 +59,11 @@ const refreshToken = async () => {
     if (!refresh) {
       throw new Error("No refresh token found");
     }
-    const response = await instance.post("/api/auth/token/refresh", {
-      refresh: refresh,
-    });
+    const response = await instance.post("/api/auth/token/refresh",null, {
+      headers: {
+        Authorization: `Bearer ${refresh}`,
+      },
+      });
     const { access } = response.data;
     await saveData("access", access);
     return access;
@@ -83,7 +86,7 @@ export const loginUser = async (username: string, password: string) => {
 export const retrieveData = async (route: string) => {
   try {
     const response = await instance.get(route);
-    return response.data.results;
+    return response.data;
   } catch (error) {
     console.log("Error al obtener datos:", error);
   }

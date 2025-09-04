@@ -14,7 +14,7 @@ import { useSelector } from "react-redux";
 import SearchHeader from "../components/SearchHeader";
 import ProductList from "../components/ProductList";
 import { TouchableOpacity } from "react-native";
-import { productosDummy } from "../constants/Products";
+import { InventoryItem } from "@/types/InventoryItem";
 
 export default function InventoryScreen() {
   const theme = useSelector(selectTheme);
@@ -25,21 +25,21 @@ export default function InventoryScreen() {
     textTailwind: isDark ? "text-gray-300" : "text-gray-900",
   };
 
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<InventoryItem[]>([]);
   const [query, setQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState(
-    productosDummy.results
+    products.length > 0 ? products : []
   );
 
   const handleSearch = (text: string) => {
     console.log(text);
     const searchValue = text.toLowerCase();
     setQuery(searchValue);
-    const filtered = productosDummy.results.filter((item) => {
+    const filtered = products.filter((item) => {
       const searchValueLower = searchValue.toLowerCase();
       return (
-        item.name.toLowerCase().includes(searchValueLower) ||
-        item.type.toLowerCase().includes(searchValueLower) ||
+        item.product_name.toLowerCase().includes(searchValueLower) ||
+        item.type?.toLowerCase().includes(searchValueLower) || 
         item.product_id.toLowerCase().includes(searchValueLower)
       );
     });
@@ -121,23 +121,14 @@ export default function InventoryScreen() {
     setIndexes(newData);
   };
 
-  type Product = {
-    name: string;
-    quantity: number;
-    entry_date: string;
-    expiration_date: string;
-    type: string;
-    product_id: string;
-    image: string;
-  };
 
   const handleOrder = (order: boolean, filter: string) => {
-    const sortedData = [...filteredResults].sort((a: Product, b: Product) => {
+    const sortedData = [...filteredResults].sort((a: InventoryItem, b: InventoryItem) => {
       const dateA = new Date(
-        a[filter as "entry_date" | "expiration_date"]
+        a[filter as "expiration_date" | "last_movement"] ?? ""
       ).getTime();
       const dateB = new Date(
-        b[filter as "entry_date" | "expiration_date"]
+        b[filter as "expiration_date" | "last_movement"] ?? ""
       ).getTime();
       return order ? dateA - dateB : dateB - dateA;
     });

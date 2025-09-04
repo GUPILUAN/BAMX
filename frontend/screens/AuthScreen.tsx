@@ -48,7 +48,7 @@ export default function AuthScreen({ navigation }: any) {
         username: "",
         password: "",
       });
-      console.log("Attempting login with", username, password);
+
       await loginUser(username, password);
       navigation.navigate("DashBoard");
     } catch (error: any) {
