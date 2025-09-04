@@ -15,7 +15,7 @@
 ## Prerequisites
 
 - Node.js >= 18
-- Python >= 3.10
+- Python >= 3.11
 - Expo account (for frontend testing)
 
 ---
