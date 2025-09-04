@@ -126,7 +126,7 @@ EXPO_PUBLIC_ENV=development
 
 ## Database Initialization
 
-In the backend environment variables you can find the SQLALCHEMY_DATABASE_URI it's using the URI for firebird+fdb (banco de alimentos legacy system), you can also use firebird-driver a newer version but not compatible
+In the backend environment variables you can find the SQLALCHEMY_DATABASE_URI it's using the URI for firebird+fdb (banco de alimentos legacy system)
 
 You must have installed Firebird Server. BAMX uses Firebird 2.5. You can found it here: [Firebird(2.5)](https://firebirdsql.org/en/firebird-2-5/)
 
