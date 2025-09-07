@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import ProductRow from "../../components/ProductRow";
-import { Product } from "../../types/InventoryItem";
+import { InventoryItem } from "../../types/InventoryItem";
 import { addDays } from "../utils/dateUtils";
 
 // Mock NavigationService
@@ -26,14 +26,17 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 describe("ProductRow", () => {
-  const mockProduct: Product = {
-    name: "Test Product",
-    quantity: 10,
-    entry_date: "2025-08-01",
-    expiration_date: "2025-08-30",
-    type: "fruit",
-    product_id: "123",
-    image: "test-image.jpg",
+  const mockProduct: InventoryItem = {
+    product_id: "123",                       // Inve01.CVE_ART
+    product_name: "Test Product",            // Inve01.DESCR
+    lot: "L-001",                            // Ltpd01.LOTE
+    available_quantity: 10,                  // Ltpd01.CANTIDAD
+    production_date: new Date("2025-08-01"), // Ltpd01.FEC_PROD_LT
+    expiration_date: new Date("2025-08-30"), // Ltpd01.FCHCADUC
+    last_movement: new Date("2025-08-15"),   // Ltpd01.FCHULTMOV
+    warehouse: 1,                            // Ltpd01.CVE_ALM
+    status: "A",                             // Ltpd01.STATUS
+    type: "fruit",                           // Inve01.LINEA
   };
 
   const mockProps = {
@@ -219,8 +222,8 @@ describe("ProductRow", () => {
   it("formats dates correctly", () => {
     const productWithDates = {
       ...mockProduct,
-      entry_date: "2025-01-15",
-      expiration_date: "2025-12-25",
+      entry_date: new Date("2025-01-15"),
+      expiration_date: new Date("2025-12-25"),
     };
 
     const { getByText } = render(
@@ -234,7 +237,7 @@ describe("ProductRow", () => {
   });
 
   it("applies correct background colors for different status states", () => {
-    const criticalProduct = { ...mockProduct, expiration_date: "2025-08-23" };
+    const criticalProduct = { ...mockProduct, expiration_date: new Date("2025-08-23") };
     const { getByTestId } = render(
       <TestWrapper>
         <ProductRow {...mockProps} product={criticalProduct} />
