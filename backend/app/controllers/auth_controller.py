@@ -22,3 +22,19 @@ def refresh():
     current_user: str = get_jwt_identity()
     new_token, status = auth_service.refresh(current_user)
     return jsonify(new_token), status
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    current_user: str = get_jwt_identity()
+    result, status = auth_service.logout(current_user)
+    return jsonify(result), status
+
+
+@auth_bp.route("/info", methods=["GET"])
+@jwt_required()
+def get_info():
+    current_user: str = get_jwt_identity()
+    result, status = auth_service.get_info(current_user)
+    return jsonify(result), status

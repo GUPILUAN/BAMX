@@ -9,7 +9,7 @@ import {
   ScrollView,
   Dimensions,
 } from "react-native";
-import React, { useEffect } from "react";
+import React, { use, useEffect } from "react";
 import {
   FontAwesome6,
   Ionicons,
@@ -24,6 +24,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { loadSettings } from "../slices/settingsSlice";
 import { useDrawerStatus } from "@react-navigation/drawer";
 import { navigate } from "@/functions/NavigationService";
+import { retrieveData } from "@/api/apiCalls";
 
 export default function SideBar() {
   const navigation = useNavigation();
@@ -73,6 +74,22 @@ export default function SideBar() {
 
     loadStoredSettings();
   }, [dispatch]);
+
+  const [user, setUser] = React.useState<any>(null);
+  useEffect(() => {
+
+    const fetchUser = async () => {
+      try {
+        const response = await retrieveData("api/auth/info");
+        
+        setUser(response.user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+    fetchUser();
+    
+  }, []);
 
   return (
     <SafeAreaView
@@ -212,14 +229,17 @@ export default function SideBar() {
               <TouchableOpacity className="flex-row items-center">
                 <Image
                   source={{
-                    uri: "https://bamx.org.mx/wp-content/uploads/2023/10/RED-BAMX.png",
+                   // blob de la imagen en base64 o URL
+                    uri: user?.profile_picture
+                      ? `data:image/jpeg;base64,${user.profile_picture}`
+                      : "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png",
                   }}
                   style={{ width: 50, height: 50, borderRadius: 20 }}
                 />
                 <Text
                   className={`${themeColorsTailwind.textTailwind} ml-2 text-lg`}
                 >
-                  Usuario
+                  {user ? user.name : "Usuario"}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity

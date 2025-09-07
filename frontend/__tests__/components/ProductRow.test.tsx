@@ -27,6 +27,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 
 describe("ProductRow", () => {
   const mockProduct: InventoryItem = {
+<<<<<<< HEAD
     product_id: "123",                       // Inve01.CVE_ART
     product_name: "Test Product",            // Inve01.DESCR
     lot: "L-001",                            // Ltpd01.LOTE
@@ -37,6 +38,18 @@ describe("ProductRow", () => {
     warehouse: 1,                            // Ltpd01.CVE_ALM
     status: "A",                             // Ltpd01.STATUS
     type: "fruit",                           // Inve01.LINEA
+=======
+    product_name: "Test Product",
+    available_quantity: 10,
+    production_date: new Date("2025-08-01"),
+    expiration_date: new Date("2025-08-31"),
+    type: "fruit",
+    product_id: "123",
+    status: "stable",
+    lot: "LOT123",
+    last_movement: null,
+    warehouse: null
+>>>>>>> f3c0eff (Implement user authentication features and data models for user information)
   };
 
   const mockProps = {

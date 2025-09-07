@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, {  useState } from "react";
 import { View, SafeAreaView, Platform } from "react-native";
 import { selectTheme } from "../slices/themeSlice";
 import { useSelector } from "react-redux";
 import Semaforo from "../components/Semaforo";
 import AnimatedSwitch from "../components/AnimatedSwitch";
 import Refrigeradores from "../components/Refrigeradores";
-import { retrieveData } from "@/api/apiCalls";
-import { InventoryItem } from "@/types/InventoryItem";
+import useFetchProducts from "@/hooks/useFetchProducts";
+
 export default function HomeScreen() {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
@@ -20,14 +20,7 @@ export default function HomeScreen() {
   const handlePanelChange = (newPanel: string) => {
     setPanel(newPanel);
   };
-  const [products, setProducts] = useState<InventoryItem[]>([]);
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const productsF = await retrieveData("/api/inventario/");
-      setProducts(productsF);
-    };
-      fetchProducts();
-    }, []);
+  const products = useFetchProducts();
 
  
   return (
