@@ -44,19 +44,25 @@ export default function ProductCard({ item }: ProductCardProps) {
       style={styles.cardContainer}
       className={"mr-8 rounded-3xl shadow-lg w-48 h-48 " + bgColor}
     >
-      <View style={{ flex: 1 }}>
-        <Image
-          source={{ uri: imageUri }}
-          style={styles.image}
-          resizeMode="cover"
-          onLoad={() => setLoading(false)}
-        />
-        {loading && (
-          <View testID="loading-indicator" style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" />
-          </View>
-        )}
-      </View>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  {item.image && item.image.trim() !== "" ? (
+    <>
+      <Image
+        source={{ uri: imageUri }}
+        style={styles.image}
+        resizeMode="cover"
+        onLoad={() => setLoading(false)}
+      />
+      {loading && (
+        <View testID="loading-indicator" style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" />
+        </View>
+      )}
+    </>
+  ) : (
+    <Text>{item.product_name} No Image</Text>
+  )}
+</View>
 
       <View className="flex-1 justify-center border-t border-gray-300">
         <View className="flex-row justify-evenly items-center rounded-b-3xl">

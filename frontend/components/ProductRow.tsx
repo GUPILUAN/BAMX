@@ -29,13 +29,16 @@ export default function ProductRow({
     snack: "paquetes",
     jar: "frasco",
   };
-  const formatearFecha = (date: string) => {
-    const fecha = new Date(date);
-    const dia = String(fecha.getUTCDate()).padStart(2, "0");
-    const mes = String(fecha.getUTCMonth() + 1).padStart(2, "0");
-    const año = fecha.getUTCFullYear();
-    return `${dia}/${mes}/${año}`;
-  };
+
+const formatearFecha = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const fecha = new Date(year, month - 1, day); // 👈 esta sí es local
+  return fecha.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
   function evaluarFecha(fechaObjetivo: string) {
     const hoy = new Date();
@@ -64,7 +67,7 @@ export default function ProductRow({
     }
   };
 
-  const estado = evaluarFecha(product.expiration_date?.toDateString() || "");
+  const estado = evaluarFecha(product.expiration_date || "");
 
   return (
     <View className="flex-row items-center justify-evenly max-h-16">
@@ -95,10 +98,10 @@ export default function ProductRow({
               unidad[product.type as keyof typeof unidad]}
           </Text>
           <Text className="ml-4 w-1/6">
-            {formatearFecha(product.production_date?.toDateString() || "")}
+            {formatearFecha(product.production_date || "")}
           </Text>
           <Text className="ml-4 w-1/6">
-            CAD: {formatearFecha(product.expiration_date?.toDateString() || "")}
+            CAD: {formatearFecha(product.expiration_date || "")}
           </Text>
           <View
             className="flex rounded-xl ml-4 px-12 py-3 items-center justify-center w-1/4 "

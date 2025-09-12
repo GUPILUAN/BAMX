@@ -5,6 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { configureStore } from "@reduxjs/toolkit";
 import ProductCard from "../../components/ProductCard";
 import themeReducer from "../../slices/themeSlice";
+import { InventoryItem } from "@/types/InventoryItem";
 
 // Mock NavigationService
 jest.mock("../../functions/NavigationService", () => ({
@@ -49,9 +50,18 @@ const TestWrapper = ({
 };
 
 describe("ProductCard", () => {
-  const mockProduct = {
-    name: "Test Product",
-    image: "https://example.com/test-image.jpg",
+  const mockProduct: InventoryItem = {
+     product_id: "123",                       // Inve01.CVE_ART
+    product_name: "Test Product",            // Inve01.DESCR
+    lot: "L-001",                            // Ltpd01.LOTE
+    available_quantity: 10,                  // Ltpd01.CANTIDAD
+    production_date: "2025-08-01",            // Ltpd01.FEC_PROD_LT
+    expiration_date: "2025-08-30",          // Ltpd01.FCHCADUC
+    last_movement: "2025-08-15",   // Ltpd01.FCHULTMOV
+    warehouse: 1,                            // Ltpd01.CVE_ALM
+    status: "A",                             // Ltpd01.STATUS
+    type: "fruit",                           // Inve01.LINEA
+    image: "https://example.com/test-image.jpg"    
   };
 
   beforeEach(() => {
@@ -122,7 +132,17 @@ describe("ProductCard", () => {
 
   it("handles missing image gracefully", async () => {
     const productWithoutImage = {
-      name: "Test Product No Image",
+        product_id: "123",                       // Inve01.CVE_ART
+        product_name: "Test Product",            // Inve01.DESCR
+        lot: "L-001",                            // Ltpd01.LOTE
+        available_quantity: 10,                  // Ltpd01.CANTIDAD
+        production_date: "2025-08-01", // Ltpd01.FEC_PROD_LT
+        expiration_date: "2025-08-30", // Ltpd01.FCHCADUC
+        last_movement: "2025-08-15",   // Ltpd01.FCHULTMOV
+        warehouse: 1,                            // Ltpd01.CVE_ALM
+        status: "A",                             // Ltpd01.STATUS
+        type: "fruit",                           // Inve01.LINEA
+        image: null
     };
 
     const { getByText } = render(
