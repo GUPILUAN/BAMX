@@ -13,14 +13,10 @@ import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import { navigate } from "@/functions/NavigationService";
-
-interface ProductItem {
-  image?: string;
-  name: string;
-}
+import { InventoryItem } from "@/types/InventoryItem";
 
 interface ProductCardProps {
-  item: ProductItem;
+  item: InventoryItem;
 }
 
 export default function ProductCard({ item }: ProductCardProps) {
@@ -34,13 +30,10 @@ export default function ProductCard({ item }: ProductCardProps) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const imageUrl =
-      item && item.image
-        ? item.image
-        : "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
+    const imageUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
     setImageUri(imageUrl);
     setLoading(true);
-  }, [item.image]);
+  }, []);
 
   if (imageUri === "") {
     return null;
@@ -51,19 +44,25 @@ export default function ProductCard({ item }: ProductCardProps) {
       style={styles.cardContainer}
       className={"mr-8 rounded-3xl shadow-lg w-48 h-48 " + bgColor}
     >
-      <View style={{ flex: 1 }}>
-        <Image
-          source={{ uri: imageUri }}
-          style={styles.image}
-          resizeMode="cover"
-          onLoad={() => setLoading(false)}
-        />
-        {loading && (
-          <View testID="loading-indicator" style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" />
-          </View>
-        )}
-      </View>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  {item.image && item.image.trim() !== "" ? (
+    <>
+      <Image
+        source={{ uri: imageUri }}
+        style={styles.image}
+        resizeMode="cover"
+        onLoad={() => setLoading(false)}
+      />
+      {loading && (
+        <View testID="loading-indicator" style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" />
+        </View>
+      )}
+    </>
+  ) : (
+    <Text>{item.product_name} No Image</Text>
+  )}
+</View>
 
       <View className="flex-1 justify-center border-t border-gray-300">
         <View className="flex-row justify-evenly items-center rounded-b-3xl">
@@ -72,7 +71,7 @@ export default function ProductCard({ item }: ProductCardProps) {
               isDarkMode ? "text-white" : "text-black"
             }`}
           >
-            {item.name}
+            {item.product_name}
           </Text>
           <TouchableOpacity
             testID="info-button"

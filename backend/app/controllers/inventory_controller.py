@@ -14,20 +14,5 @@ _service = InventoryService(_inventory_repository)
 @inventario_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_inventario():
-    items = _service.listar_inventario()
-    return jsonify(
-        [
-            {
-                "product_id": i.CVE_ART,
-                "name": i.DESCR,
-                "quantity": i.EXIST,
-                "entry_date": i.F_CREA_ML.isoformat() if i.F_CREA_ML else None,
-                "expiration_date": i.FCH_ULTVTA.isoformat() if i.FCH_ULTVTA else None,
-                "type": i.LIN_PROD,
-                "image": (
-                    b64encode(i.IMAGEN_ML).decode("utf-8") if i.IMAGEN_ML else None
-                ),
-            }
-            for i in items
-        ]
-    )
+    inventory = _service.listar_inventario()
+    return jsonify(inventory), 200

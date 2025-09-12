@@ -2,10 +2,12 @@ import { View, Text, StyleSheet, Dimensions, ScrollView } from "react-native";
 import React from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import FeaturedRow from "./FeaturedRow";
-import { productosDummy } from "../constants/Products";
-import { Product } from "@/types/Product";
+// import { productosDummy } from "../constants/Products";
+import { InventoryItem } from "@/types/InventoryItem";
 
-export default function Semaforo() {
+export default function Semaforo(
+  { productos }: { productos: InventoryItem[] }
+) {
   const critic = 1024;
   const warning = 2048;
   const stable = 4096;
@@ -20,26 +22,31 @@ export default function Semaforo() {
     return a + t * (b - a);
   }
 
-  const productos: { [key: string]: Product[] } = {
+  const productosFiltered: { [key: string]: InventoryItem[] } = {
     crítico: [],
     prioritario: [],
     estable: [],
   };
 
-  function evaluarFechaDelProducto(producto: Product) {
+  function evaluarFechaDelProducto(producto: InventoryItem) {
+
+    if (!producto.expiration_date) {
+      productosFiltered.crítico.push(producto);
+    }
+
     const hoy = new Date();
-    const fecha = new Date(producto.expiration_date);
+    const fecha = new Date(producto.expiration_date || "");
 
     const diferenciaTiempo = fecha.getTime() - hoy.getTime();
 
     const diferenciaDias = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
 
     if (diferenciaDias <= 2) {
-      productos.crítico.push(producto);
+      productosFiltered.crítico.push(producto);
     } else if (diferenciaDias <= 5) {
-      productos.prioritario.push(producto);
+      productosFiltered.prioritario.push(producto);
     } else {
-      productos.estable.push(producto);
+      productosFiltered.estable.push(producto);
     }
   }
 
@@ -53,9 +60,10 @@ export default function Semaforo() {
     }
   };
 
-  productosDummy.results.forEach((p) => {
-    evaluarFechaDelProducto(p);
+  productos?.forEach((producto) => {
+    evaluarFechaDelProducto(producto);
   });
+ 
 
   const findLocation = (
     x: number,
@@ -132,7 +140,7 @@ export default function Semaforo() {
               <FeaturedRow
                 key={index}
                 status={s}
-                productos={productos[s.category]}
+                productos={productosFiltered[s.category]}
               />
             );
           })}

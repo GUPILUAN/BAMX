@@ -2,10 +2,10 @@ import React, { useEffect, useState } from "react";
 import ProductRow from "./ProductRow";
 import { Text, View } from "react-native";
 
-import { Product } from "@/types/Product";
+import { InventoryItem } from "@/types/InventoryItem";
 
 type ProductListProps = {
-  productos: Product[];
+  productos: InventoryItem[];
   test: number[];
   getIndexes: (indexes: number[]) => void;
 };

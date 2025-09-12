@@ -1,13 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, Image, TouchableOpacity } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Product } from "@/types/Product";
+import { InventoryItem } from "@/types/InventoryItem";
 
 export default function DetailsScreen() {
   const { params } = useRoute() as {
-    params: { item?: Product; product?: Product };
+    params: { item?: InventoryItem; product?: InventoryItem };
   };
-  let product = (params.item as Product) || (params.product as Product);
+  let product = (params.item as InventoryItem) || (params.product as InventoryItem);
   const navigation = useNavigation();
   return (
     <View style={styles.container}>
@@ -18,12 +18,12 @@ export default function DetailsScreen() {
         <Text style={styles.closeButtonText}>X</Text>
       </TouchableOpacity>
 
-      <Image source={{ uri: product.image }} style={styles.productImage} />
+      {/* <Image source={{ uri: product.image }} style={styles.productImage} /> */}
 
       <View style={styles.productDetails}>
-        <Text style={styles.productName}>{product.name}</Text>
+        <Text style={styles.productName}>{product.product_name}</Text>
         <Text style={styles.productInfo}>
-          Fecha de registro: {product.registration_date}
+          Fecha de registro: {product.production_date?.toDateString() || "N/A"}
         </Text>
         <Text style={styles.productInfo}>Tipo: {product.type}</Text>
         <Text style={styles.productInfo}>

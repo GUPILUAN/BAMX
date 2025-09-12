@@ -3,14 +3,14 @@ import React from "react";
 import { FontAwesome6, FontAwesome5 } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import { Product } from "@/types/Product";
+import { InventoryItem } from "@/types/InventoryItem";
 import { navigate } from "@/functions/NavigationService";
 
 interface ProductRowProps {
   index: number;
   isSelected: boolean;
   handleSelect: (index: number) => void;
-  product: Product;
+  product: InventoryItem;
 }
 
 export default function ProductRow({
@@ -29,13 +29,16 @@ export default function ProductRow({
     snack: "paquetes",
     jar: "frasco",
   };
-  const formatearFecha = (date: string) => {
-    const fecha = new Date(date);
-    const dia = String(fecha.getUTCDate()).padStart(2, "0");
-    const mes = String(fecha.getUTCMonth() + 1).padStart(2, "0");
-    const año = fecha.getUTCFullYear();
-    return `${dia}/${mes}/${año}`;
-  };
+
+const formatearFecha = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const fecha = new Date(year, month - 1, day); // 👈 esta sí es local
+  return fecha.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
   function evaluarFecha(fechaObjetivo: string) {
     const hoy = new Date();
@@ -64,7 +67,7 @@ export default function ProductRow({
     }
   };
 
-  const estado = evaluarFecha(product.expiration_date);
+  const estado = evaluarFecha(product.expiration_date || "");
 
   return (
     <View className="flex-row items-center justify-evenly max-h-16">
@@ -88,17 +91,17 @@ export default function ProductRow({
           >
             <FontAwesome6 name="info" size={20} color="gray" />
           </TouchableOpacity>
-          <Text className="ml-4 w-1/5">{product.name}</Text>
+          <Text className="ml-4 w-1/5">{product.product_name}</Text>
           <Text className="ml-4 w-1/12">
-            {product.quantity +
+            {product.available_quantity +
               "\n" +
               unidad[product.type as keyof typeof unidad]}
           </Text>
           <Text className="ml-4 w-1/6">
-            {formatearFecha(product.entry_date)}
+            {formatearFecha(product.production_date || "")}
           </Text>
           <Text className="ml-4 w-1/6">
-            CAD: {formatearFecha(product.expiration_date)}
+            CAD: {formatearFecha(product.expiration_date || "")}
           </Text>
           <View
             className="flex rounded-xl ml-4 px-12 py-3 items-center justify-center w-1/4 "

@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import ProductRow from "../../components/ProductRow";
-import { Product } from "../../types/Product";
+import { InventoryItem } from "../../types/InventoryItem";
 import { addDays } from "../utils/dateUtils";
 
 // Mock NavigationService
@@ -26,15 +26,29 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 describe("ProductRow", () => {
-  const mockProduct: Product = {
-    name: "Test Product",
-    quantity: 10,
-    entry_date: "2025-08-01",
-    expiration_date: "2025-08-30",
-    type: "fruit",
-    product_id: "123",
-    image: "test-image.jpg",
+  const mockProduct: InventoryItem = {
+    product_id: "123",                       // Inve01.CVE_ART
+    product_name: "Test Product",            // Inve01.DESCR
+    lot: "L-001",                            // Ltpd01.LOTE
+    available_quantity: 10,                  // Ltpd01.CANTIDAD
+    production_date: "2025-08-01", // Ltpd01.FEC_PROD_LT
+    expiration_date: "2025-08-30", // Ltpd01.FCHCADUC
+    last_movement: "2025-08-15",   // Ltpd01.FCHULTMOV
+    warehouse: 1,                            // Ltpd01.CVE_ALM
+    status: "A",                             // Ltpd01.STATUS
+    type: "fruit",                           // Inve01.LINEA
+    image: "https://example.com/test-image.jpg"                 
   };
+
+  const formatearFecha = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  const fecha = new Date(year, month - 1, day); // 👈 esta sí es local
+  return fecha.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
 
   const mockProps = {
     index: 0,
@@ -63,8 +77,8 @@ describe("ProductRow", () => {
 
     expect(getByText("Test Product")).toBeTruthy();
     expect(getByText("10\nunidades")).toBeTruthy();
-    expect(getByText("01/08/2025")).toBeTruthy();
-    expect(getByText("CAD: 30/08/2025")).toBeTruthy();
+    expect(getByText(formatearFecha(mockProduct.production_date!))).toBeTruthy();
+    expect(getByText("CAD: " + formatearFecha(mockProduct.expiration_date!))).toBeTruthy();
   });
 
   it("displays correct quantity units for different product types", () => {
@@ -93,7 +107,7 @@ describe("ProductRow", () => {
   it("shows critical status for products expiring in 2 days or less", () => {
     const criticalProduct = {
       ...mockProduct,
-      expiration_date: addDays(today, 2), // 2 days from current date
+      expiration_date: addDays(today, 2).toISOString().split("T")[0], // 2 days from current date
     };
 
     const { getByText } = render(
@@ -108,7 +122,7 @@ describe("ProductRow", () => {
   it("shows priority status for products expiring in 3-5 days", () => {
     const priorityProduct = {
       ...mockProduct,
-      expiration_date: addDays(today, 4), // 4 days from current date
+      expiration_date: addDays(today, 4).toISOString().split("T")[0], // 4 days from current date
     };
 
     const { getByText } = render(
@@ -123,7 +137,7 @@ describe("ProductRow", () => {
   it("shows stable status for products expiring in more than 5 days", () => {
     const stableProduct = {
       ...mockProduct,
-      expiration_date: addDays(today, 9), // 9 days from current date
+      expiration_date: addDays(today, 9).toISOString().split("T")[0], // 9 days from current date
     };
 
     const { getByText } = render(
@@ -219,7 +233,7 @@ describe("ProductRow", () => {
   it("formats dates correctly", () => {
     const productWithDates = {
       ...mockProduct,
-      entry_date: "2025-01-15",
+      production_date: "2025-01-15",
       expiration_date: "2025-12-25",
     };
 
@@ -234,7 +248,7 @@ describe("ProductRow", () => {
   });
 
   it("applies correct background colors for different status states", () => {
-    const criticalProduct = { ...mockProduct, expiration_date: "2025-08-23" };
+    const criticalProduct = { ...mockProduct, expiration_date: "2025-08-23"};
     const { getByTestId } = render(
       <TestWrapper>
         <ProductRow {...mockProps} product={criticalProduct} />

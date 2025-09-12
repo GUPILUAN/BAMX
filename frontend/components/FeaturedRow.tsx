@@ -14,7 +14,7 @@ import ProductCard from "./ProductCard";
 import { Ionicons } from "@expo/vector-icons";
 import { retrieveData } from "../api/apiCalls";
 import { useNavigation } from "@react-navigation/native";
-import { Product } from "@/types/Product";
+import { InventoryItem } from "@/types/InventoryItem";
 import { navigate } from "@/functions/NavigationService";
 
 interface FeaturedRowProps {
@@ -22,13 +22,13 @@ interface FeaturedRowProps {
     title: string;
     category: string;
   };
-  productos: Product[];
+  productos: InventoryItem[];
 }
 
 export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
-  const [products, setProducts] = useState({});
+  const [products, setProducts] = useState<InventoryItem[]>([]);
   const navigation = useNavigation();
 
   const isWeb = Platform.OS === "web";
@@ -47,7 +47,7 @@ export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
 
   useEffect(() => {
     const fetchProducts = async () => {
-      const productsF = await retrieveData("/api/products/");
+      const productsF = await retrieveData("/api/inventario/");
       setProducts(productsF);
     };
     fetchProducts();

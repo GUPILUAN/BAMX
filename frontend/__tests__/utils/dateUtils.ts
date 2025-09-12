@@ -51,5 +51,5 @@ export const getUnitLabel = (productType: string): string => {
 export const addDays = (date: Date, days: number) => {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
-  return result.toISOString().split("T")[0];
+  return result;
 }

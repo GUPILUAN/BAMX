@@ -8,7 +8,7 @@ auth_service: AuthService = AuthService()
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    data: dict | None = request.json
+    data: dict[str, str] | None = request.json
     if not data:
         return jsonify({"msg": "Faltan credenciales"}), 400
 
@@ -20,5 +20,21 @@ def login():
 @jwt_required(refresh=True)
 def refresh():
     current_user: str = get_jwt_identity()
-    new_token = auth_service.refresh(current_user)
-    return jsonify({"access": new_token}), 200
+    new_token, status = auth_service.refresh(current_user)
+    return jsonify(new_token), status
+
+
+@auth_bp.route("/logout", methods=["POST"])
+@jwt_required()
+def logout():
+    current_user: str = get_jwt_identity()
+    result, status = auth_service.logout(current_user)
+    return jsonify(result), status
+
+
+@auth_bp.route("/info", methods=["GET"])
+@jwt_required()
+def get_info():
+    current_user: str = get_jwt_identity()
+    result, status = auth_service.get_info(current_user)
+    return jsonify(result), status
