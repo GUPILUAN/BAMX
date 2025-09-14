@@ -30,14 +30,11 @@ export default function ProductCard({ item }: ProductCardProps) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const imageUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
+    const imageUrl = item.image ? `data:image/jpeg;base64,${item.image}` : "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
     setImageUri(imageUrl);
     setLoading(true);
   }, []);
 
-  if (imageUri === "") {
-    return null;
-  }
 
   return (
     <View

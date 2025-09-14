@@ -3,12 +3,12 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
   StyleSheet,
   ScrollView,
   Dimensions,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { use, useEffect } from "react";
 import {
   FontAwesome6,

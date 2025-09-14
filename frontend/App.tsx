@@ -8,6 +8,7 @@ import { selectSettings } from "./slices/settingsSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { saveSettingsToStorage } from "./functions/userSettings";
 import { useFonts } from "expo-font";
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import "./global.css";
 
 const App = () => {
@@ -70,6 +71,8 @@ const App = () => {
 
 export default () => (
   <Provider store={store}>
+    <SafeAreaProvider>
     <App />
+    </SafeAreaProvider>
   </Provider>
 );
