@@ -1,15 +1,17 @@
 import React, { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { getData } from "../functions/userKey";
+import { useRouter } from "expo-router";
 
-export default function AuthLoadingScreen({ navigation }: any) {
+export default function AuthLoadingScreen() {
+  const router = useRouter();
   useEffect(() => {
     const checkLoginStatus = async () => {
       const token = await getData("access");
       if (token) {
-        navigation.navigate("DashBoard");
+       router.push("/inicio");
       } else {
-        navigation.navigate("Auth");
+        router.push("/auth");
       }
     };
     checkLoginStatus();

@@ -2,6 +2,7 @@
   "expo": {
     "name": "BAMX",
     "slug": "BAMX",
+    "scheme": "bamx", 
     "version": "1.0.0",
     "orientation": "landscape",
     "icon": "./assets/logo.png",
@@ -31,7 +32,11 @@
       "favicon": "./assets/logo.png",
       "bundler": "metro"
     },
-    "plugins": ["expo-font", "expo-secure-store"],
+    "plugins": [
+      "expo-font",
+      "expo-secure-store",
+      "expo-router"
+    ],
     "extra": {
       "eas": {
         "projectId": "9954e048-385d-423b-8a01-a6361966e324"
