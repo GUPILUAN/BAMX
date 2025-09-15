@@ -25,7 +25,7 @@ describe('NavigationService', () => {
   });
 
   it('replace should call router.replace with correct path', () => {
-    replace('DashBoard');
+    replace('Dashboard');
     expect(router.replace).toHaveBeenCalledWith({
       pathname: '/(drawer)/inicio',
       params: undefined,
