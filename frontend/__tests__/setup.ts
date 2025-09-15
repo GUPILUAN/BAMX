@@ -48,3 +48,27 @@ beforeEach(() => {
 afterEach(() => {
   console.warn = originalWarn;
 });
+
+// Mock Expo Router
+jest.mock('expo-router', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+  }),
+  useLocalSearchParams: () => ({}),
+  Stack: {
+    Screen: ({ children }: { children: React.ReactNode }) => children,
+  },
+  Drawer: {
+    Screen: ({ children }: { children: React.ReactNode }) => children,
+  },
+  Tabs: {
+    Screen: ({ children }: { children: React.ReactNode }) => children,
+  },
+  router: {
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+  },
+}));

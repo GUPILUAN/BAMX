@@ -50,7 +50,7 @@ export default function AuthScreen({ navigation }: any) {
       });
 
       await loginUser(username, password);
-      navigation.navigate("DashBoard");
+      navigation.navigate("Dashboard");
     } catch (error: any) {
       Alert.alert("Error", "Las credenciales son incorrectas");
       setUsername("");

@@ -18,7 +18,9 @@ export default function DetailsScreen() {
         <Text style={styles.closeButtonText}>X</Text>
       </TouchableOpacity>
 
-      <Image source={{ uri: product.image ? `data:image/jpeg;base64,${product.image}` : undefined }} style={styles.productImage} />
+
+      <Image source={{ uri: product.image ? `data:image/jpeg;base64,${product.image}` : 
+      "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png" }} style={styles.productImage} />
 
       <View style={styles.productDetails}>
         <Text style={styles.productName}>{product.product_name}</Text>
