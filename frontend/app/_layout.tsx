@@ -69,6 +69,7 @@ export function RootLayout() {
           screenOptions={{
             animation: 'simple_push',
             headerShown: false,
+            gestureEnabled: false,
             contentStyle: {
               flex: 1,
             },
