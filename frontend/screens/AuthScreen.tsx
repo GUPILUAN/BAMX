@@ -12,8 +12,9 @@ import {
   Alert,
 } from "react-native";
 import { loginUser } from "@/api/apiCalls";
+import { navigate} from "@/functions/NavigationService";
 
-export default function AuthScreen({ navigation }: any) {
+export default function AuthScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,7 +51,7 @@ export default function AuthScreen({ navigation }: any) {
       });
 
       await loginUser(username, password);
-      navigation.navigate("Dashboard");
+      navigate("Dashboard");
     } catch (error: any) {
       Alert.alert("Error", "Las credenciales son incorrectas");
       setUsername("");
