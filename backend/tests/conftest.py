@@ -1,8 +1,13 @@
+import datetime
+from types import SimpleNamespace
 from typing import Generator
 from flask.testing import FlaskClient
 import pytest
 from flask import Flask
 from app import create_app
+from app.repositories.user_repository import UserRepository
+from app.repositories.inventory_repository import InventoryRepository
+from tests.helpers import patch_repo_method
 
 
 @pytest.fixture
@@ -19,3 +24,50 @@ def app() -> Generator[Flask]:
 @pytest.fixture
 def client(app: Flask) -> FlaskClient:
     return app.test_client()
+
+
+@pytest.fixture(autouse=True)
+def mock_inventory():
+
+    mock_items = [
+        SimpleNamespace(
+            product_id="123",
+            product_name="Manzanas",
+            lot="A123",
+            available_quantity=50,
+            production_date=datetime.date(2025, 9, 1),
+            expiration_date=datetime.date(2025, 9, 20),
+            last_movement=datetime.date(2025, 9, 15),
+            warehouse="Central",
+            status="A",
+            type="Fruta",
+        )
+    ]
+    patcher = patch_repo_method(
+        InventoryRepository,
+        "get_all",
+        return_value=mock_items,
+    )
+    try:
+        yield
+    finally:
+        patcher.stop()
+
+
+@pytest.fixture(autouse=True)
+def mock_user_repo():
+
+    patcher = patch_repo_method(
+        UserRepository,
+        "find_by_username",
+        return_value=SimpleNamespace(
+            IDUSR=1,
+            USUARIO="Test",
+            PASS="¸©·¸",  # Aspel hash for "test"
+        ),
+    )
+
+    try:
+        yield
+    finally:
+        patcher.stop()
