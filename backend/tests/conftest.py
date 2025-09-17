@@ -55,7 +55,7 @@ def mock_inventory():
 
 
 @pytest.fixture(autouse=True)
-def mock_user_repo():
+def mock_user_repo_find_by_username():
 
     patcher = patch_repo_method(
         UserRepository,
@@ -64,6 +64,38 @@ def mock_user_repo():
             IDUSR=1,
             USUARIO="Test",
             PASS="¸©·¸",  # Aspel hash for "test"
+        ),
+    )
+
+    try:
+        yield
+    finally:
+        patcher.stop()
+
+
+@pytest.fixture(autouse=True)
+def mock_user_repo_find_by_id():
+
+    patcher = patch_repo_method(
+        UserRepository,
+        "find_by_id",
+        return_value=SimpleNamespace(
+            IDUSR=1,
+            USUARIO="Test",
+            PASS="¸©·¸",  # Aspel hash for "test"
+            NOMBRE="Test User",
+            MAIL="test@example.com",
+            ESTADO="A",
+            PUESTO="Tester",
+            DEPTO="QA",
+            FOTO=None,
+            EMPRESAS=[
+                SimpleNamespace(
+                    EMPRESA="Test Company",
+                    STATUS=0,
+                    ROL=SimpleNamespace(NOMBRE="admin"),
+                )
+            ],
         ),
     )
 

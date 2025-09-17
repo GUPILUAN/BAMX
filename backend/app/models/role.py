@@ -10,7 +10,7 @@ class Rol001005(db.Model):
     TIPO = db.Column(db.String(2), nullable=False)
 
     # relación inversa
-    usuarios_emp = db.relationship("UsrEmp", back_populates="rol")
+    USUARIOS_EMP = db.relationship("UsrEmp", back_populates="ROL")
 
     def __init__(self, NOMBRE, TIPO):
         self.NOMBRE = NOMBRE

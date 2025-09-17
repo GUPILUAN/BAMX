@@ -1,12 +1,14 @@
 from time import time
-import token
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
 )
+
+from ..models.user import Usuario
 from ..security import hash_aspel
 from ..repositories.user_repository import UserRepository
-from ..dto import UserInfoDTO, ApiResponse, AuthResponse
+from ..dto import ApiResponse, AuthResponse
+from ..mappers.usuario_to_userinfo import usuario_to_dto
 
 
 class AuthService:
@@ -49,7 +51,7 @@ class AuthService:
         return ApiResponse(success=True, message="Logout exitoso").__dict__, 200
 
     def get_info(self, user_id: str) -> tuple[dict, int]:
-        user: UserInfoDTO | None = self.user_repo.find_by_id(int(user_id))
+        user: Usuario | None = self.user_repo.find_by_id(int(user_id))
         if not user:
             return (
                 ApiResponse(success=False, message="Usuario no encontrado").__dict__,
@@ -58,7 +60,7 @@ class AuthService:
         return (
             ApiResponse(
                 success=True,
-                data={"user": user.__dict__},
+                data={"user": usuario_to_dto(user).__dict__},
                 message="Información del usuario",
             ).__dict__,
             200,

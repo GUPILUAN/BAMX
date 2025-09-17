@@ -11,7 +11,7 @@ class FotoUsuario(db.Model):
     )
     FOTOGRAFIA = db.Column(BlobText)
 
-    usuario = db.relationship("Usuario", back_populates="foto")
+    USUARIO = db.relationship("Usuario", back_populates="FOTO")
 
     def __init__(self, IDUSR, FOTOGRAFIA):
         self.IDUSR = IDUSR

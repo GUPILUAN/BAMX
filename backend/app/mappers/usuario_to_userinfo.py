@@ -17,14 +17,14 @@ def safe_b64encode(blob: bytes | BlobReader | None | str):
 
 def usuario_to_dto(user: Usuario) -> UserInfoDTO:
     # Foto en base64 (si existe)
-    profile_picture = safe_b64encode(user.foto.FOTOGRAFIA) if user.foto else None
+    profile_picture = safe_b64encode(user.FOTO.FOTOGRAFIA) if user.FOTO else None
 
     # Empresa y rol (si existen relaciones)
-    empresa = user.empresas[0].EMPRESA if user.empresas else None  # type: ignore
+    empresa = user.EMPRESAS[0].EMPRESA if user.EMPRESAS else None  # type: ignore
     rol = (
-        user.empresas[0].rol.NOMBRE if user.empresas and user.empresas[0].rol else None  # type: ignore
+        user.EMPRESAS[0].ROL.NOMBRE if user.EMPRESAS and user.EMPRESAS[0].ROL else None  # type: ignore
     )
-    status = user.empresas[0].STATUS if user.empresas else None  # type: ignore
+    status = user.EMPRESAS[0].STATUS if user.EMPRESAS else None  # type: ignore
     return UserInfoDTO(
         id=user.IDUSR,
         username=user.USUARIO,
