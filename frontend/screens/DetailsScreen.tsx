@@ -18,12 +18,14 @@ export default function DetailsScreen() {
         <Text style={styles.closeButtonText}>X</Text>
       </TouchableOpacity>
 
-      {/* <Image source={{ uri: product.image }} style={styles.productImage} /> */}
+
+      <Image source={{ uri: product.image ? `data:image/jpeg;base64,${product.image}` : 
+      "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png" }} style={styles.productImage} />
 
       <View style={styles.productDetails}>
         <Text style={styles.productName}>{product.product_name}</Text>
         <Text style={styles.productInfo}>
-          Fecha de registro: {product.production_date?.toDateString() || "N/A"}
+          Fecha de registro: {product.production_date || "N/A"}
         </Text>
         <Text style={styles.productInfo}>Tipo: {product.type}</Text>
         <Text style={styles.productInfo}>

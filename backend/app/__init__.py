@@ -1,3 +1,4 @@
+import json
 from flask import Flask
 from config import config_by_name, Config
 from .controllers.auth_controller import auth_bp

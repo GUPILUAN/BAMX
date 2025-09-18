@@ -1,24 +1,22 @@
 from sqlalchemy.orm import joinedload
-from ..models import Usuario, FotoUsuario, Rol001005, UsrEmp
-from ..dto import UserInfoDTO
-from ..mappers.usuario_to_userinfo import usuario_to_dto
+from ..models import Usuario, UsrEmp
 
 
 class UserRepository:
-    def find_by_username(self, username: str):
+    def find_by_username(self, username: str) -> Usuario | None:
         return Usuario.query.filter_by(USUARIO=username).first()
 
-    def find_by_id(self, user_id: int) -> UserInfoDTO | None:
+    def find_by_id(self, user_id: int) -> Usuario | None:
         user = (
             Usuario.query.options(
-                joinedload(Usuario.foto),  # type: ignore
-                joinedload(Usuario.empresas).joinedload(UsrEmp.rol),  # type: ignore
+                joinedload(Usuario.FOTO),  # type: ignore
+                joinedload(Usuario.EMPRESAS).joinedload(UsrEmp.ROL),  # type: ignore
             )
             .filter_by(IDUSR=user_id)
             .first()
         )
 
         if user:
-            return usuario_to_dto(user)
+            return user
 
         return None

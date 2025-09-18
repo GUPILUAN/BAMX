@@ -26,19 +26,3 @@ class UserInfoDTO:
         self.profile_picture = profile_picture
         self.status = status
         self.company = company
-
-    def to_dict(self) -> dict:
-        return {
-            "id": self.id,
-            "username": self.username,
-            "name": self.name,
-            "email": self.email,
-            "phone": self.phone,
-            "state": self.state,
-            "position": self.position,
-            "department": self.department,
-            "role": self.role,
-            "profile_picture": self.profile_picture,
-            "status": self.status,
-            "company": self.company,
-        }

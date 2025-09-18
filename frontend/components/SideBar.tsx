@@ -3,12 +3,12 @@ import {
   Text,
   Image,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
   StyleSheet,
   ScrollView,
   Dimensions,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import React, { use, useEffect } from "react";
 import {
   FontAwesome6,
@@ -19,16 +19,14 @@ import {
 } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
-import { DrawerActions, useNavigation } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { loadSettings } from "../slices/settingsSlice";
-import { useDrawerStatus } from "@react-navigation/drawer";
+import { DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer";
 import { navigate } from "@/functions/NavigationService";
 import { retrieveData } from "@/api/apiCalls";
 import useFetchUser from "@/hooks/useFetchUser";
 
-export default function SideBar() {
-  const navigation = useNavigation();
+export default function SideBar({ navigation }: DrawerContentComponentProps) {
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
   const { width, height } = Dimensions.get("window");
@@ -96,7 +94,7 @@ export default function SideBar() {
             borderRadius: 25,
             elevation: 5,
           }}
-          onPress={() => navigation.dispatch(DrawerActions.toggleDrawer())}
+          onPress={() => isDrawerOpen ? navigation.closeDrawer() : navigation.openDrawer()}
         >
           <AntDesign
             name={isDrawerOpen ? "menu-unfold" : "menu-fold"}

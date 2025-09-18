@@ -55,17 +55,20 @@ export const logOut = async () => {
 
 const refreshToken = async () => {
   try {
-    const refresh = await getData("refresh");
-    if (!refresh) {
+    const refresh_token = await getData("refresh");
+    if (!refresh_token) {
       throw new Error("No refresh token found");
     }
     const response = await instance.post("/api/auth/token/refresh",null, {
       headers: {
-        Authorization: `Bearer ${refresh}`,
+        Authorization: `Bearer ${refresh_token}`,
       },
       });
-    const { access } = response.data;
+    const { access, refresh } = response.data;
     await saveData("access", access);
+    if (refresh) {
+    await saveData("refresh", refresh);
+    }
     return access;
   } catch (error) {
     console.log("Error al refrescar el token:", error);
@@ -86,7 +89,8 @@ export const loginUser = async (username: string, password: string) => {
 export const retrieveData = async (route: string) => {
   try {
     const response = await instance.get(route);
-    return response.data;
+    console.log("Server response:", response.data.message);
+    return response.data.data;
   } catch (error) {
     console.log("Error al obtener datos:", error);
   }

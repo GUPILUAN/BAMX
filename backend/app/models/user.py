@@ -15,8 +15,8 @@ class Usuario(db.Model):
     MAIL = db.Column(db.String(80))
 
     # relaciones
-    foto = db.relationship("FotoUsuario", uselist=False, back_populates="usuario")
-    empresas = db.relationship("UsrEmp", back_populates="usuario")
+    FOTO = db.relationship("FotoUsuario", uselist=False, back_populates="USUARIO")
+    EMPRESAS = db.relationship("UsrEmp", back_populates="USUARIO")
 
     def __init__(self, NOMBRE, USUARIO, PASS, ESTADO, PUESTO, DEPTO, MAIL):
         self.NOMBRE = NOMBRE
@@ -40,5 +40,5 @@ class UsrEmp(db.Model):
     STATUS = db.Column(db.String(20), nullable=False)
 
     # relaciones
-    usuario = db.relationship("Usuario", back_populates="empresas")
-    rol = db.relationship("Rol001005", back_populates="usuarios_emp")
+    USUARIO = db.relationship("Usuario", back_populates="EMPRESAS")
+    ROL = db.relationship("Rol001005", back_populates="USUARIOS_EMP")

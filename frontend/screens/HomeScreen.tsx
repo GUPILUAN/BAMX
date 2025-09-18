@@ -1,11 +1,12 @@
 import React, {  useState } from "react";
-import { View, SafeAreaView, Platform } from "react-native";
+import { View, Platform } from "react-native";
 import { selectTheme } from "../slices/themeSlice";
 import { useSelector } from "react-redux";
 import Semaforo from "../components/Semaforo";
 import AnimatedSwitch from "../components/AnimatedSwitch";
 import Refrigeradores from "../components/Refrigeradores";
 import useFetchProducts from "@/hooks/useFetchProducts";
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const theme = useSelector(selectTheme);

@@ -3,7 +3,6 @@ import {
   Text,
   Switch,
   TouchableOpacity,
-  SafeAreaView,
 } from "react-native";
 import React, { useState, useEffect } from "react";
 import { selectTheme } from "../slices/themeSlice";
@@ -12,8 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { logOut } from "../api/apiCalls";
-import { useNavigation } from "@react-navigation/native";
-
+import { SafeAreaView } from 'react-native-safe-area-context';
 export default function SettingsScreen() {
   const [isSwitchOn, setIsSwitchOn] = useState(false);
   const settings = useSelector(selectSettings);
