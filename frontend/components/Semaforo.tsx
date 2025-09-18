@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import FeaturedRow from "./FeaturedRow";
 // import { productosDummy } from "../constants/Products";
 import { InventoryItem } from "@/types/InventoryItem";
+import getColor from "@/utils/getColor";
 
 export default function Semaforo(
   { productos }: { productos: InventoryItem[] }
@@ -49,16 +50,6 @@ export default function Semaforo(
       productosFiltered.estable.push(producto);
     }
   }
-
-  const getColor = (state: string) => {
-    if (state === "crítico") {
-      return "#FF4D4F";
-    } else if (state === "prioritario") {
-      return "#FFC107";
-    } else {
-      return "#52C41A";
-    }
-  };
 
   productos?.forEach((producto) => {
     evaluarFechaDelProducto(producto);

@@ -25,6 +25,7 @@ import { loadSettings } from "../slices/settingsSlice";
 import { useDrawerStatus } from "@react-navigation/drawer";
 import { navigate } from "@/functions/NavigationService";
 import { retrieveData } from "@/api/apiCalls";
+import useFetchUser from "@/hooks/useFetchUser";
 
 export default function SideBar() {
   const navigation = useNavigation();
@@ -75,21 +76,7 @@ export default function SideBar() {
     loadStoredSettings();
   }, [dispatch]);
 
-  const [user, setUser] = React.useState<any>(null);
-  useEffect(() => {
-
-    const fetchUser = async () => {
-      try {
-        const response = await retrieveData("api/auth/info");
-        
-        setUser(response.user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-    
-  }, []);
+  const user = useFetchUser();
 
   return (
     <SafeAreaView

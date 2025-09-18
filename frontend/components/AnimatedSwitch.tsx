@@ -3,12 +3,13 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Animated,
 } from "react-native";
 import { useSelector } from "react-redux";
 import { selectTheme } from "../slices/themeSlice";
 import { LinearGradient } from "expo-linear-gradient";
+import getSwitchContainerStyle from "@/utils/getSwitchContainerStyle";
+import { StyleSheet } from "react-native";
 
 type AnimatedSwitchProps = {
   onValueChange: (value: string) => void;
@@ -91,16 +92,6 @@ export default function AnimatedSwitch({ onValueChange }: AnimatedSwitchProps) {
     </View>
   );
 }
-
-const getSwitchContainerStyle = (isDark: boolean) => ({
-  flexDirection: "row" as "row",
-  backgroundColor: isDark ? "#362e1d" : "#fff",
-  borderRadius: 25,
-  width: 400,
-  height: 50,
-  position: "relative" as "relative",
-  overflow: "hidden" as "hidden",
-});
 
 const styles = StyleSheet.create({
   animatedBg: {

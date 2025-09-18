@@ -16,6 +16,7 @@ import { retrieveData } from "../api/apiCalls";
 import { useNavigation } from "@react-navigation/native";
 import { InventoryItem } from "@/types/InventoryItem";
 import { navigate } from "@/functions/NavigationService";
+import useFetchProducts from "@/hooks/useFetchProducts";
 
 interface FeaturedRowProps {
   status: {
@@ -28,8 +29,8 @@ interface FeaturedRowProps {
 export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
-  const [products, setProducts] = useState<InventoryItem[]>([]);
   const navigation = useNavigation();
+  const products = useFetchProducts();
 
   const isWeb = Platform.OS === "web";
   const iconColor = (category: string) =>
@@ -45,13 +46,7 @@ export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
         ? "alert-circle"
         : "checkmark-circle";
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      const productsF = await retrieveData("/api/inventario/");
-      setProducts(productsF);
-    };
-    fetchProducts();
-  }, []);
+  
 
   return (
     <View
