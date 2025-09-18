@@ -7,6 +7,8 @@ load_dotenv()
 
 class Config:
     JWT_SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "change-me")
+    JWT_ACCESS_TOKEN_EXPIRES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRES", 3600))
+    JWT_REFRESH_TOKEN_EXPIRES: int = int(os.getenv("JWT_REFRESH_TOKEN_EXPIRES", 259200))
     SQLALCHEMY_TRACK_MODIFICATIONS: bool = (
         os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", "false").lower() == "true"
     )

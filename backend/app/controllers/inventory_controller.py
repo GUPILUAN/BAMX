@@ -14,5 +14,5 @@ _service = InventoryService(_inventory_repository)
 @inventario_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_inventario():
-    inventory = _service.listar_inventario()
-    return jsonify(inventory), 200
+    inventory, status = _service.inventory_list()
+    return jsonify(inventory), status

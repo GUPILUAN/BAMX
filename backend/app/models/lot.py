@@ -16,4 +16,4 @@ class Ltpd01(db.Model):
     PEDIMENTOSAT = db.Column(db.String(21))
     CVE_ALM = db.Column(db.Integer)
     STATUS = db.Column(db.String(1))
-    inven = db.relationship("Inve01", backref="lotes")
+    INVENTARIO = db.relationship("Inve01", backref="LOTES")
