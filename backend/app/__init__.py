@@ -3,7 +3,7 @@ from flask import Flask
 from config import config_by_name, Config
 from .controllers.auth_controller import auth_bp
 from .controllers.inventory_controller import inventario_bp
-from .extensions import jwt, db
+from .extensions import jwt, db, cors
 from sqlalchemy.dialects import registry
 
 
@@ -12,6 +12,7 @@ def create_app(config_name: str = "development") -> Flask:
     app: Flask = Flask(__name__)
     config_class: type[Config] = config_by_name.get(config_name, Config)
     app.config.from_object(config_class)
+    cors.init_app(app)
     jwt.init_app(app)
     db.init_app(app)
 
