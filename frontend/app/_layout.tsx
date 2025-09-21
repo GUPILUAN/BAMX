@@ -1,12 +1,12 @@
 import { Stack } from 'expo-router';
 import { Provider, useDispatch, useSelector } from 'react-redux';
-import { store } from '../store';
+import { store } from '@/store';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveSettingsToStorage } from '../functions/userSettings';
+import { saveSettingsToStorage } from '@/functions/userSettings';
 import { useFonts } from 'expo-font';
 import { selectSettings } from '@/slices/settingsSlice';
 import { setTheme } from '@/slices/themeSlice';

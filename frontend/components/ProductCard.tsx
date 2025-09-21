@@ -11,7 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
-import { selectTheme } from "../slices/themeSlice";
+import { selectTheme } from "@/slices/themeSlice";
 import { navigate } from "@/functions/NavigationService";
 import { InventoryItem } from "@/types/InventoryItem";
 

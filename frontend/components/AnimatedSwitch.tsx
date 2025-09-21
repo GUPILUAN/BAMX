@@ -7,7 +7,7 @@ import {
   Animated,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { selectTheme } from "../slices/themeSlice";
+import { selectTheme } from "@/slices/themeSlice";
 import { LinearGradient } from "expo-linear-gradient";
 
 type AnimatedSwitchProps = {

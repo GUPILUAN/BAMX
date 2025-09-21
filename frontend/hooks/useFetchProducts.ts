@@ -8,7 +8,7 @@ const useFetchProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       const data = await retrieveData("/api/inventario/");
-      setProducts( data.items || productosDummy.items);
+      setProducts( data?.items || productosDummy.items);
     };
     fetchProducts();
   }, []);

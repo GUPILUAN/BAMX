@@ -9,10 +9,10 @@ import {
   Platform,
 } from "react-native";
 import { useSelector } from "react-redux";
-import { selectTheme } from "../slices/themeSlice";
+import { selectTheme } from "@/slices/themeSlice";
 import ProductCard from "./ProductCard";
 import { Ionicons } from "@expo/vector-icons";
-import { retrieveData } from "../api/apiCalls";
+import { retrieveData } from "@/api/apiCalls";
 import { useNavigation } from "@react-navigation/native";
 import { InventoryItem } from "@/types/InventoryItem";
 import { navigate } from "@/functions/NavigationService";
