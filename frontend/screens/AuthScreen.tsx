@@ -3,40 +3,67 @@ import {
   View,
   Text,
   TextInput,
-  Button,
+  TouchableOpacity,
   Keyboard,
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
   Alert,
+  useWindowDimensions,
+  Image,
+  useColorScheme,
+  ImageBackground,
+  StyleSheet,
 } from "react-native";
+import Icon from "react-native-vector-icons/Ionicons"; 
 import { loginUser } from "@/api/apiCalls";
-import { navigate} from "@/functions/NavigationService";
+import { navigate } from "@/functions/NavigationService";
 
 export default function AuthScreen() {
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+  const scheme = useColorScheme();
+
+  // Colores BAMX + adaptativos
+  const colors = {
+    light: {
+      background: "#E30613",
+      card: "#fff",
+      border: "#ccc",
+      text: "#333",
+      placeholder: "#999",
+      buttonText: "#fff",
+    },
+    dark: {
+      background: "#121212",
+      card: "#1e1e1e",
+      border: "#444",
+      text: "#f5f5f5",
+      placeholder: "#888",
+      buttonText: "#fff",
+    },
+    brand: {
+      red: "#E30613",
+      green: "#6FB544",
+    },
+  };
+
+  const theme = scheme === "dark" ? colors.dark : colors.light;
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{
-    username: string;
-    password: string;
-  }>({
-    username: "",
-    password: "",
-  });
+  const [errors, setErrors] = useState<{ username: string; password: string }>(
+    { username: "", password: "" }
+  );
+  const [showPassword, setShowPassword] = useState(false); // 👈 toggle
 
   const handleLogin = async () => {
-    let validationErrors = {
-      username: "",
-      password: "",
-    };
-    if (!username) {
-      validationErrors.username = "El username es requerido";
-    }
-    if (!password) {
-      validationErrors.password = "La contraseña es requerida";
-    }
+    let validationErrors = { username: "", password: "" };
+
+    if (!username) validationErrors.username = "El username es requerido";
+    if (!password) validationErrors.password = "La contraseña es requerida";
 
     if (validationErrors.username || validationErrors.password) {
       setErrors(validationErrors);
@@ -45,22 +72,13 @@ export default function AuthScreen() {
 
     try {
       setLoading(true);
-      setErrors({
-        username: "",
-        password: "",
-      });
-
       await loginUser(username, password);
       navigate("Dashboard");
     } catch (error: any) {
       Alert.alert("Error", "Las credenciales son incorrectas");
       setUsername("");
       setPassword("");
-      setErrors({
-        username: "",
-        password: "",
-      });
-      console.error(error.response);
+      setErrors({ username: "", password: "" });
     } finally {
       setLoading(false);
     }
@@ -74,42 +92,157 @@ export default function AuthScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <View className="flex-1 justify-center p-6 bg-white">
-          {loading && <ActivityIndicator size="large" />}
-          <View className="items-center mb-8">
-            <Text className="text-3xl font-bold mb-2">Iniciar Sesión</Text>
+        <ImageBackground
+          source={require("@/assets/bg-bamx.jpeg")} 
+          style={{ flex: 1 }}
+          resizeMode="cover"
+        >
+          {/* Overlay */}
+          <View
+            style={[
+              StyleSheet.absoluteFillObject,
+              {
+                backgroundColor:
+                  scheme === "dark"
+                    ? "rgba(0,0,0,0.6)"
+                    : "rgba(227,6,19,0.7)", // Rojo BAMX
+              },
+            ]}
+          />
+
+          {/* Header con logo */}
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              paddingTop: 40,
+            }}
+          >
+            <Image
+              source={require("@/assets/logo.png")}
+              style={{
+                width: isTablet ? 160 : 120,
+                height: isTablet ? 160 : 120,
+                resizeMode: "contain",
+              }}
+            />
+            <Text
+              style={{
+                fontSize: isTablet ? 26 : 20,
+                fontWeight: "bold",
+                color: "#fff",
+                marginTop: 15,
+              }}
+            >
+              ¡Bienvenido de nuevo!
+            </Text>
           </View>
 
-          <View className="space-y-4">
+          {/* Card del formulario */}
+          <View
+            style={{
+              flex: 2,
+              backgroundColor: theme.card,
+              borderTopLeftRadius: 40,
+              borderTopRightRadius: 40,
+              padding: isTablet ? 40 : 20,
+              shadowColor: "#000",
+              shadowOpacity: 0.15,
+              shadowRadius: 8,
+              elevation: 5,
+            }}
+          >
+            {/* Username */}
             <TextInput
               placeholder="Username"
-              placeholderTextColor="#A0A0A0"
+              placeholderTextColor={theme.placeholder}
               value={username}
               onChangeText={setUsername}
-              className="h-12 border border-gray-300 px-4 rounded-full"
               autoCapitalize="none"
+              style={{
+                borderBottomWidth: 1,
+                borderBottomColor: theme.border,
+                paddingVertical: 12,
+                fontSize: isTablet ? 18 : 16,
+                marginBottom: 25,
+                color: theme.text,
+              }}
             />
             {errors.username && (
-              <Text style={{ color: "red" }}>{errors.username}</Text>
+              <Text style={{ color: "red", fontSize: 14 }}>
+                {errors.username}
+              </Text>
             )}
-            <TextInput
-              placeholder="Password"
-              placeholderTextColor="#A0A0A0"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              className="h-12 border border-gray-300 px-4 rounded-full"
-            />
+
+            {/* Password con botón de ver */}
+            <View style={{ position: "relative", marginBottom: 30 }}>
+              <TextInput
+                placeholder="Password"
+                placeholderTextColor={theme.placeholder}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword} 
+                style={{
+                  borderBottomWidth: 1,
+                  borderBottomColor: theme.border,
+                  paddingVertical: 12,
+                  fontSize: isTablet ? 18 : 16,
+                  color: theme.text,
+                  paddingRight: 40, 
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: 8,
+                  padding: 4,
+                }}
+              >
+                <Icon
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={22}
+                  color={theme.placeholder}
+                />
+              </TouchableOpacity>
+            </View>
             {errors.password && (
-              <Text style={{ color: "red" }}>{errors.password}</Text>
+              <Text style={{ color: "red", fontSize: 14 }}>
+                {errors.password}
+              </Text>
             )}
-            <Button
-              title={loading ? "Cargando..." : "Iniciar sesión"}
+
+            {/* Botón Login */}
+            <TouchableOpacity
               onPress={handleLogin}
               disabled={loading}
-            />
+              style={{
+                backgroundColor: colors.brand.red,
+                padding: 15,
+                borderRadius: 30,
+                alignItems: "center",
+                marginTop: 10,
+                opacity: loading ? 0.7 : 1,
+              }}
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color={theme.buttonText}  testID="ActivityIndicator"  />
+              ) : (
+                <Text
+                  style={{
+                    color: theme.buttonText,
+                    fontWeight: "bold",
+                    fontSize: isTablet ? 18 : 16,
+                  }}
+                >
+                  INICIAR SESIÓN
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
-        </View>
+        </ImageBackground>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
