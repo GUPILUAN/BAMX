@@ -1,4 +1,4 @@
-import DetailsScreen from '../screens/DetailsScreen';
+import DetailsScreen from '@/screens/DetailsScreen';
 
 
 export default function DetailsPage() {

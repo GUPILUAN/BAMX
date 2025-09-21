@@ -1,6 +1,6 @@
 import React from "react";
 import { ScrollView, View } from "react-native";
-import { contenedoresDummy } from "../constants/Stores";
+import { contenedoresDummy } from "@/constants/Stores";
 import Contenedor from "./Contenedor";
 
 export default function Refrigeradores() {

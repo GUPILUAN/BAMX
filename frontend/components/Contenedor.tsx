@@ -9,7 +9,7 @@ import {
 import { StackedBarChart } from "./StackedBarChart";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
-import { selectTheme } from "../slices/themeSlice";
+import { selectTheme } from "@/slices/themeSlice";
 import { Container } from "@/types/Container";
 import { themeColors } from "@/theme";
 

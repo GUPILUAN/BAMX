@@ -14,7 +14,7 @@ import {
 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
-import { selectTheme } from "../slices/themeSlice";
+import { selectTheme } from "@/slices/themeSlice";
 
 type SearchHeaderProps = {
   onDataChange: (data: any[]) => void;

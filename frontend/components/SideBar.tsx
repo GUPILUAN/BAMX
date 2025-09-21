@@ -18,9 +18,9 @@ import {
   Feather,
 } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
-import { selectTheme } from "../slices/themeSlice";
+import { selectTheme } from "@/slices/themeSlice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loadSettings } from "../slices/settingsSlice";
+import { loadSettings } from "@/slices/settingsSlice";
 import { DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer";
 import { navigate } from "@/functions/NavigationService";
 import { retrieveData } from "@/api/apiCalls";
