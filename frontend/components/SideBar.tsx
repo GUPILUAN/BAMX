@@ -7,8 +7,9 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  Alert,
 } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from "react-native-safe-area-context";
 import React, { use, useEffect } from "react";
 import {
   FontAwesome6,
@@ -17,13 +18,16 @@ import {
   AntDesign,
   Feather,
 } from "@expo/vector-icons";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { loadSettings } from "@/slices/settingsSlice";
-import { DrawerContentComponentProps, useDrawerStatus } from "@react-navigation/drawer";
+
+import {
+  DrawerContentComponentProps,
+  useDrawerStatus,
+} from "@react-navigation/drawer";
 import { navigate } from "@/functions/NavigationService";
-import { retrieveData } from "@/api/apiCalls";
+import { logOut, retrieveData } from "@/api/apiCalls";
+import ThemeSelector from "./ThemeSelector";
 
 export default function SideBar({ navigation }: DrawerContentComponentProps) {
   const isIOS = Platform.OS === "ios";
@@ -55,40 +59,56 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
     backgroundTailwind: isDark ? "bg-gray-900" : "bg-gray-50",
     textTailwind: isDark ? "text-gray-300" : "text-gray-900",
   };
-  const dispatch = useDispatch();
-
-  useEffect(() => {
-    const loadStoredSettings = async () => {
-      try {
-        const savedSettings = await AsyncStorage.getItem("userSettings");
-        if (savedSettings !== null) {
-          const parsedSettings = JSON.parse(savedSettings);
-          dispatch(loadSettings(parsedSettings));
-        }
-      } catch (e) {
-        console.error("Error loading settings:", e);
-      }
-    };
-
-    loadStoredSettings();
-  }, [dispatch]);
 
   const [user, setUser] = React.useState<any>(null);
   useEffect(() => {
-
     const fetchUser = async () => {
       try {
         const response = await retrieveData("api/auth/info");
-        
+
         setUser(response.user);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
     };
     fetchUser();
-    
   }, []);
 
+  const showLogoutAlert = () => {
+    if (Platform.OS === "web") {
+      const confirmed = window.confirm(
+        "¿Estás seguro de que deseas cerrar sesión?"
+      );
+      if (confirmed) {
+        loggingOut();
+      }
+    } else {
+      Alert.alert(
+        "Confirmar Logout",
+        "¿Estás seguro de que deseas cerrar sesión?",
+        [
+          {
+            text: "Cancelar",
+            onPress: () => console.log("Cancel pressed"),
+            style: "cancel",
+          },
+          {
+            text: "OK",
+            onPress: () => loggingOut(),
+          },
+        ],
+        { cancelable: false }
+      );
+    }
+  };
+
+  const loggingOut = async () => {
+    try {
+      await logOut();
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
   return (
     <SafeAreaView
       className={"flex-1 w-full h-full border-gray-400 border-r"}
@@ -107,7 +127,9 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
             borderRadius: 25,
             elevation: 5,
           }}
-          onPress={() => isDrawerOpen ? navigation.closeDrawer() : navigation.openDrawer()}
+          onPress={() =>
+            isDrawerOpen ? navigation.closeDrawer() : navigation.openDrawer()
+          }
         >
           <AntDesign
             name={isDrawerOpen ? "menu-unfold" : "menu-fold"}
@@ -217,7 +239,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
                 </View>
               </TouchableOpacity>
             </View>
-
+            <ThemeSelector />
             <View
               className={
                 "flex-row items-center justify-between px-5 pt-10 " +
@@ -227,7 +249,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
               <TouchableOpacity className="flex-row items-center">
                 <Image
                   source={{
-                   // blob de la imagen en base64 o URL
+                    // blob de la imagen en base64 o URL
                     uri: user?.profile_picture
                       ? `data:image/jpeg;base64,${user.profile_picture}`
                       : "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png",
@@ -240,11 +262,12 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
                   {user ? user.name : "Usuario"}
                 </Text>
               </TouchableOpacity>
+
               <TouchableOpacity
                 className="flex-row items-center"
-                onPress={() => navigate("Configuracion")}
+                onPress={showLogoutAlert}
               >
-                <Ionicons name="settings-outline" size={40} color="#e1a244" />
+                <Ionicons name="log-out-outline" size={40} color="#e1a244" />
               </TouchableOpacity>
             </View>
           </View>

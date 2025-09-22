@@ -3,19 +3,19 @@ import { deleteData, getData, saveData } from "../functions/userKey";
 import { replace } from "../functions/NavigationService";
 
 const instance = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:5000',
+  baseURL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000",
 });
 
 instance.interceptors.request.use(
   async (config) => {
     if (
       config.url === "/api/auth/login" ||
-     // config.url === "/api/auth/register" ||
+      // config.url === "/api/auth/register" ||
       config.url === "/api/auth/token/refresh"
     ) {
       return config;
     }
-    
+
     let access = await getData("access");
     if (!access || tokenExpired(access)) {
       try {
@@ -59,15 +59,15 @@ const refreshToken = async () => {
     if (!refresh_token) {
       throw new Error("No refresh token found");
     }
-    const response = await instance.post("/api/auth/token/refresh",null, {
+    const response = await instance.post("/api/auth/token/refresh", null, {
       headers: {
         Authorization: `Bearer ${refresh_token}`,
       },
-      });
+    });
     const { access, refresh } = response.data;
     await saveData("access", access);
     if (refresh) {
-    await saveData("refresh", refresh);
+      await saveData("refresh", refresh);
     }
     return access;
   } catch (error) {
