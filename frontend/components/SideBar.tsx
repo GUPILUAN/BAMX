@@ -10,7 +10,6 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import React, { use, useEffect } from "react";
 import {
   FontAwesome6,
   Ionicons,
@@ -28,6 +27,7 @@ import {
 import { navigate } from "@/functions/NavigationService";
 import { logOut, retrieveData } from "@/api/apiCalls";
 import ThemeSelector from "./ThemeSelector";
+import { useFetchUser } from "@/hooks/useFetchUser";
 
 export default function SideBar({ navigation }: DrawerContentComponentProps) {
   const isIOS = Platform.OS === "ios";
@@ -60,20 +60,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
     textTailwind: isDark ? "text-gray-300" : "text-gray-900",
   };
 
-  const [user, setUser] = React.useState<any>(null);
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await retrieveData("api/auth/info");
-
-        setUser(response.user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-  }, []);
-
+  const { user } = useFetchUser();
   const showLogoutAlert = () => {
     if (Platform.OS === "web") {
       const confirmed = window.confirm(
@@ -246,7 +233,10 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
                 (!isWeb ? "absolute w-full bottom-0" : "")
               }
             >
-              <TouchableOpacity className="flex-row items-center">
+              <TouchableOpacity
+                className="flex-row items-center"
+                onPress={() => navigate("Usuario")}
+              >
                 <Image
                   source={{
                     // blob de la imagen en base64 o URL
