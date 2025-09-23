@@ -1,12 +1,12 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import ProductRow from "../../components/ProductRow";
-import { InventoryItem } from "../../types/InventoryItem";
+import ProductRow from "@/components/ProductRow";
+import { InventoryItem } from "@/types/InventoryItem";
 import { addDays } from "../utils/dateUtils";
 
 // Mock NavigationService
-jest.mock("../../functions/NavigationService", () => ({
+jest.mock("@/functions/NavigationService", () => ({
   navigate: jest.fn(),
 }));
 
@@ -19,7 +19,6 @@ jest.mock("@react-navigation/native", () => ({
   }),
 }));
 
-
 // Test wrapper component
 const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   return <NavigationContainer>{children}</NavigationContainer>;
@@ -27,28 +26,28 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 
 describe("ProductRow", () => {
   const mockProduct: InventoryItem = {
-    product_id: "123",                       // Inve01.CVE_ART
-    product_name: "Test Product",            // Inve01.DESCR
-    lot: "L-001",                            // Ltpd01.LOTE
-    available_quantity: 10,                  // Ltpd01.CANTIDAD
+    product_id: "123", // Inve01.CVE_ART
+    product_name: "Test Product", // Inve01.DESCR
+    lot: "L-001", // Ltpd01.LOTE
+    available_quantity: 10, // Ltpd01.CANTIDAD
     production_date: "2025-08-01", // Ltpd01.FEC_PROD_LT
     expiration_date: "2025-08-30", // Ltpd01.FCHCADUC
-    last_movement: "2025-08-15",   // Ltpd01.FCHULTMOV
-    warehouse: 1,                            // Ltpd01.CVE_ALM
-    status: "A",                             // Ltpd01.STATUS
-    type: "fruit",                           // Inve01.LINEA
-    image: "https://example.com/test-image.jpg"                 
+    last_movement: "2025-08-15", // Ltpd01.FCHULTMOV
+    warehouse: 1, // Ltpd01.CVE_ALM
+    status: "A", // Ltpd01.STATUS
+    type: "fruit", // Inve01.LINEA
+    image: "https://example.com/test-image.jpg",
   };
 
   const formatearFecha = (date: string) => {
-  const [year, month, day] = date.split("-").map(Number);
-  const fecha = new Date(year, month - 1, day); // 👈 esta sí es local
-  return fecha.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
+    const [year, month, day] = date.split("-").map(Number);
+    const fecha = new Date(year, month - 1, day); // 👈 esta sí es local
+    return fecha.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
 
   const mockProps = {
     index: 0,
@@ -77,8 +76,12 @@ describe("ProductRow", () => {
 
     expect(getByText("Test Product")).toBeTruthy();
     expect(getByText("10\nunidades")).toBeTruthy();
-    expect(getByText(formatearFecha(mockProduct.production_date!))).toBeTruthy();
-    expect(getByText("CAD: " + formatearFecha(mockProduct.expiration_date!))).toBeTruthy();
+    expect(
+      getByText(formatearFecha(mockProduct.production_date!))
+    ).toBeTruthy();
+    expect(
+      getByText("CAD: " + formatearFecha(mockProduct.expiration_date!))
+    ).toBeTruthy();
   });
 
   it("displays correct quantity units for different product types", () => {
@@ -248,7 +251,7 @@ describe("ProductRow", () => {
   });
 
   it("applies correct background colors for different status states", () => {
-    const criticalProduct = { ...mockProduct, expiration_date: "2025-08-23"};
+    const criticalProduct = { ...mockProduct, expiration_date: "2025-08-23" };
     const { getByTestId } = render(
       <TestWrapper>
         <ProductRow {...mockProps} product={criticalProduct} />

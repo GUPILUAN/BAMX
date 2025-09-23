@@ -2,30 +2,34 @@ import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import AnimatedSwitch from "../../components/AnimatedSwitch";
-import themeReducer from "../../slices/themeSlice";
+import AnimatedSwitch from "@/components/AnimatedSwitch";
+import themeReducer from "@/slices/themeSlice";
 import { Animated } from "react-native";
 
 // Use fake timers for animations
 // Mock Animated API
 beforeAll(() => {
   jest.useFakeTimers();
-  jest.spyOn(Animated, "timing").mockImplementation((value: any, config: any) => ({
-    start: (callback?: (result: { finished: boolean }) => void) => {
-      value.setValue(config.toValue); // instantaneously set value
-      if (callback) callback({ finished: true });
-    },
-    stop: () => {},
-    reset: () => {},
-  }));
-  jest.spyOn(Animated, "spring").mockImplementation((value: any, config: any) => ({
-    start: (callback?: (result: { finished: boolean }) => void) => {
-      value.setValue(config.toValue);
-      if (callback) callback({ finished: true });
-    },
-    stop: () => {},
-    reset: () => {},
-  }));
+  jest
+    .spyOn(Animated, "timing")
+    .mockImplementation((value: any, config: any) => ({
+      start: (callback?: (result: { finished: boolean }) => void) => {
+        value.setValue(config.toValue); // instantaneously set value
+        if (callback) callback({ finished: true });
+      },
+      stop: () => {},
+      reset: () => {},
+    }));
+  jest
+    .spyOn(Animated, "spring")
+    .mockImplementation((value: any, config: any) => ({
+      start: (callback?: (result: { finished: boolean }) => void) => {
+        value.setValue(config.toValue);
+        if (callback) callback({ finished: true });
+      },
+      stop: () => {},
+      reset: () => {},
+    }));
 });
 
 afterAll(() => {

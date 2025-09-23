@@ -4,6 +4,9 @@ import AuthScreen from "@/screens/AuthScreen";
 import { loginUser } from "@/api/apiCalls";
 import { navigate } from "@/functions/NavigationService";
 import { Alert } from "react-native";
+import themeReducer from "@/slices/themeSlice";
+import { Provider } from "react-redux";
+import { configureStore } from "@reduxjs/toolkit";
 
 jest.mock("@/api/apiCalls", () => ({
   loginUser: jest.fn(),
@@ -15,13 +18,40 @@ jest.mock("@/functions/NavigationService", () => ({
 
 jest.spyOn(Alert, "alert");
 
+// Create a mock store
+const createMockStore = (theme = "light") => {
+  return configureStore({
+    reducer: {
+      theme: themeReducer,
+    },
+    preloadedState: {
+      theme: { theme: theme },
+    },
+  });
+};
+// Test wrapper component
+const TestWrapper = ({
+  children,
+  theme = "light",
+}: {
+  children: React.ReactNode;
+  theme?: string;
+}) => {
+  const store = createMockStore(theme);
+  return <Provider store={store}>{children}</Provider>;
+};
+
 describe("AuthScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it("renders correctly with title and inputs", () => {
-    const { getByText, getByPlaceholderText } = render(<AuthScreen />);
+    const { getByText, getByPlaceholderText } = render(
+      <TestWrapper>
+        <AuthScreen />
+      </TestWrapper>
+    );
 
     expect(getByText("¡Bienvenido de nuevo!")).toBeTruthy();
     expect(getByPlaceholderText("Username")).toBeTruthy();
@@ -29,7 +59,11 @@ describe("AuthScreen", () => {
   });
 
   it("shows error messages when fields are empty", async () => {
-    const { getByText, findByText } = render(<AuthScreen />);
+    const { getByText, findByText } = render(
+      <TestWrapper>
+        <AuthScreen />
+      </TestWrapper>
+    );
 
     fireEvent.press(getByText("INICIAR SESIÓN"));
 
@@ -39,7 +73,11 @@ describe("AuthScreen", () => {
 
   it("calls loginUser with username and password", async () => {
     (loginUser as jest.Mock).mockResolvedValueOnce({});
-    const { getByPlaceholderText, getByText } = render(<AuthScreen />);
+    const { getByPlaceholderText, getByText } = render(
+      <TestWrapper>
+        <AuthScreen />
+      </TestWrapper>
+    );
 
     fireEvent.changeText(getByPlaceholderText("Username"), "bamxUser");
     fireEvent.changeText(getByPlaceholderText("Password"), "secret123");
@@ -55,7 +93,11 @@ describe("AuthScreen", () => {
     (loginUser as jest.Mock).mockResolvedValueOnce({});
 
     const { getByPlaceholderText, getByText, getByTestId, queryByTestId } =
-      render(<AuthScreen />);
+      render(
+        <TestWrapper>
+          <AuthScreen />
+        </TestWrapper>
+      );
 
     fireEvent.changeText(getByPlaceholderText("Username"), "bamxUser");
     fireEvent.changeText(getByPlaceholderText("Password"), "secret123");
@@ -70,7 +112,11 @@ describe("AuthScreen", () => {
 
   it("shows alert when login fails", async () => {
     (loginUser as jest.Mock).mockRejectedValueOnce(new Error("Invalid creds"));
-    const { getByPlaceholderText, getByText } = render(<AuthScreen />);
+    const { getByPlaceholderText, getByText } = render(
+      <TestWrapper>
+        <AuthScreen />
+      </TestWrapper>
+    );
 
     fireEvent.changeText(getByPlaceholderText("Username"), "wrongUser");
     fireEvent.changeText(getByPlaceholderText("Password"), "wrongPass");
