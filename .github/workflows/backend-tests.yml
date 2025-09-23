@@ -5,24 +5,32 @@ on:
     branches: [main]
 
 jobs:
-  backend-tests:
+  backend:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./backend
-
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      # Detect changes in backend/
+      - uses: dorny/paths-filter@v3
+        id: filter
         with:
-          python-version: "3.13"
-        name: Set up Python
-      - run: pip install -r requirements.txt
-        name: Run Tests
-      - run: |
+          filters: |
+            backend:
+              - 'backend/**'
+
+      # Run tests only if backend changed
+      - name: Run Backend Tests
+        if: steps.filter.outputs.backend == 'true'
+        run: |
+          cd backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
           export PYTHONPATH="$PYTHONPATH:$(pwd)"
           pytest --maxfail=1 --disable-warnings -q --cov=. --cov-report=xml --cov-report=term
-      - uses: codecov/codecov-action@v4
+
+      - name: Upload Coverage to Codecov
+        if: steps.filter.outputs.backend == 'true'
+        uses: codecov/codecov-action@v4
         with:
           files: ./backend/coverage.xml
           flags: backend
