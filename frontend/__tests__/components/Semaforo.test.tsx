@@ -2,11 +2,11 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import Semaforo from "../../components/Semaforo";
-import themeReducer from "../../slices/themeSlice";
+import Semaforo from "@/components/Semaforo";
+import themeReducer from "@/slices/themeSlice";
 
 // Mock the constants
-jest.mock("../../constants/Products", () => ({
+jest.mock("@/constants/Products", () => ({
   productosDummy: {
     results: [
       {
@@ -41,7 +41,7 @@ jest.mock("../../constants/Products", () => ({
 }));
 
 // Mock FeaturedRow component
-jest.mock("../../components/FeaturedRow", () => {
+jest.mock("@/components/FeaturedRow", () => {
   const { View, Text } = require("react-native");
   return function FeaturedRow({ status, productos }: any) {
     return (
@@ -86,7 +86,7 @@ describe("Semaforo", () => {
   it("renders correctly", () => {
     const { getByText } = render(
       <TestWrapper>
-        <Semaforo />
+        <Semaforo productos={[]} />
       </TestWrapper>
     );
 
@@ -98,7 +98,7 @@ describe("Semaforo", () => {
   it("displays status numbers with correct colors", () => {
     const { getByText } = render(
       <TestWrapper>
-        <Semaforo />
+        <Semaforo productos={[]} />
       </TestWrapper>
     );
 
@@ -120,7 +120,7 @@ describe("Semaforo", () => {
   it("displays status descriptions correctly", () => {
     const { getByText } = render(
       <TestWrapper>
-        <Semaforo />
+        <Semaforo productos={[]} />
       </TestWrapper>
     );
 
@@ -132,7 +132,7 @@ describe("Semaforo", () => {
   it("renders FeaturedRow components for each status", () => {
     const { getByTestId } = render(
       <TestWrapper>
-        <Semaforo />
+        <Semaforo productos={[]} />
       </TestWrapper>
     );
 
@@ -144,7 +144,7 @@ describe("Semaforo", () => {
   it("passes correct status titles to FeaturedRow components", () => {
     const { getByTestId } = render(
       <TestWrapper>
-        <Semaforo />
+        <Semaforo productos={[]} />
       </TestWrapper>
     );
 
@@ -162,12 +162,13 @@ describe("Semaforo", () => {
   it("has gradient bar component", () => {
     const { getByTestId } = render(
       <TestWrapper>
-        <Semaforo />
+        <Semaforo productos={[]} />
       </TestWrapper>
     );
 
     // The gradient bar should be rendered
-    const semaforo = getByTestId || render(<Semaforo />).getByTestId;
+    const semaforo =
+      getByTestId || render(<Semaforo productos={[]} />).getByTestId;
     expect(semaforo).toBeTruthy();
   });
 
@@ -176,7 +177,7 @@ describe("Semaforo", () => {
       // Since lerp is an internal function, we test its behavior through the component
       const { getByText } = render(
         <TestWrapper>
-          <Semaforo />
+          <Semaforo productos={[]} />
         </TestWrapper>
       );
 
@@ -189,7 +190,7 @@ describe("Semaforo", () => {
     it("returns correct colors for different states", () => {
       const { getByText } = render(
         <TestWrapper>
-          <Semaforo />
+          <Semaforo productos={[]} />
         </TestWrapper>
       );
 

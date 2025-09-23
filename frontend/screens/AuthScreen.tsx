@@ -12,20 +12,19 @@ import {
   Alert,
   useWindowDimensions,
   Image,
-  useColorScheme,
   ImageBackground,
   StyleSheet,
 } from "react-native";
-import Icon from "react-native-vector-icons/Ionicons"; 
+import { Ionicons } from "@expo/vector-icons";
 import { loginUser } from "@/api/apiCalls";
 import { navigate } from "@/functions/NavigationService";
+import useUserColorScheme from "@/hooks/useUserColorScheme";
 
 export default function AuthScreen() {
   const { width } = useWindowDimensions();
   const isTablet = width >= 768;
-  const scheme = useColorScheme();
+  const { isDark } = useUserColorScheme();
 
-  // Colores BAMX + adaptativos
   const colors = {
     light: {
       background: "#E30613",
@@ -49,15 +48,16 @@ export default function AuthScreen() {
     },
   };
 
-  const theme = scheme === "dark" ? colors.dark : colors.light;
+  const theme = isDark ? colors.dark : colors.light;
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ username: string; password: string }>(
-    { username: "", password: "" }
-  );
-  const [showPassword, setShowPassword] = useState(false); // 👈 toggle
+  const [errors, setErrors] = useState<{ username: string; password: string }>({
+    username: "",
+    password: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     let validationErrors = { username: "", password: "" };
@@ -75,7 +75,15 @@ export default function AuthScreen() {
       await loginUser(username, password);
       navigate("Dashboard");
     } catch (error: any) {
-      Alert.alert("Error", "Las credenciales son incorrectas");
+      if (Platform.OS === "web") {
+        const confirmed = window.confirm("Las credenciales son incorrectas");
+        if (confirmed) {
+          return;
+        }
+      } else {
+        Alert.alert("Error", "Las credenciales son incorrectas");
+      }
+
       setUsername("");
       setPassword("");
       setErrors({ username: "", password: "" });
@@ -93,8 +101,8 @@ export default function AuthScreen() {
         style={{ flex: 1 }}
       >
         <ImageBackground
-          source={require("@/assets/bg-bamx.jpeg")} 
-          style={{ flex: 1 }}
+          source={require("@/assets/bg-bamx.jpeg")}
+          style={{ flex: 1, width: "100%" }}
           resizeMode="cover"
         >
           {/* Overlay */}
@@ -102,10 +110,9 @@ export default function AuthScreen() {
             style={[
               StyleSheet.absoluteFillObject,
               {
-                backgroundColor:
-                  scheme === "dark"
-                    ? "rgba(0,0,0,0.6)"
-                    : "rgba(227,6,19,0.7)", // Rojo BAMX
+                backgroundColor: isDark
+                  ? "rgba(0,0,0,0.6)"
+                  : "rgba(227,6,19,0.7)",
               },
             ]}
           />
@@ -124,6 +131,7 @@ export default function AuthScreen() {
               style={{
                 width: isTablet ? 160 : 120,
                 height: isTablet ? 160 : 120,
+                borderRadius: 50,
                 resizeMode: "contain",
               }}
             />
@@ -182,14 +190,14 @@ export default function AuthScreen() {
                 placeholderTextColor={theme.placeholder}
                 value={password}
                 onChangeText={setPassword}
-                secureTextEntry={!showPassword} 
+                secureTextEntry={!showPassword}
                 style={{
                   borderBottomWidth: 1,
                   borderBottomColor: theme.border,
                   paddingVertical: 12,
                   fontSize: isTablet ? 18 : 16,
                   color: theme.text,
-                  paddingRight: 40, 
+                  paddingRight: 40,
                 }}
               />
               <TouchableOpacity
@@ -201,7 +209,7 @@ export default function AuthScreen() {
                   padding: 4,
                 }}
               >
-                <Icon
+                <Ionicons
                   name={showPassword ? "eye-off" : "eye"}
                   size={22}
                   color={theme.placeholder}
@@ -228,7 +236,11 @@ export default function AuthScreen() {
               }}
             >
               {loading ? (
-                <ActivityIndicator size="small" color={theme.buttonText}  testID="ActivityIndicator"  />
+                <ActivityIndicator
+                  size="small"
+                  color={theme.buttonText}
+                  testID="ActivityIndicator"
+                />
               ) : (
                 <Text
                   style={{

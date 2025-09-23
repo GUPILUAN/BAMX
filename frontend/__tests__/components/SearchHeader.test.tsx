@@ -3,8 +3,8 @@ import { render, fireEvent } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
 import { configureStore } from "@reduxjs/toolkit";
-import SearchHeader from "../../components/SearchHeader";
-import themeReducer from "../../slices/themeSlice";
+import SearchHeader from "@/components/SearchHeader";
+import themeReducer from "@/slices/themeSlice";
 
 // Mock useNavigation
 const mockNavigate = jest.fn();
