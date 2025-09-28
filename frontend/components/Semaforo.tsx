@@ -5,13 +5,14 @@ import FeaturedRow from "./FeaturedRow";
 // import { productosDummy } from "../constants/Products";
 import { InventoryItem } from "@/types/InventoryItem";
 
-export default function Semaforo(
-  { productos }: { productos: InventoryItem[] }
-) {
+export default function Semaforo({
+  productos,
+}: {
+  productos: InventoryItem[];
+}) {
   const critic = 1024;
   const warning = 2048;
   const stable = 4096;
-
   const status = [
     { title: "Estado crítico", category: "crítico" },
     { title: "Estado prioritario", category: "prioritario" },
@@ -29,7 +30,6 @@ export default function Semaforo(
   };
 
   function evaluarFechaDelProducto(producto: InventoryItem) {
-
     if (!producto.expiration_date) {
       productosFiltered.crítico.push(producto);
     }
@@ -63,7 +63,6 @@ export default function Semaforo(
   productos?.forEach((producto) => {
     evaluarFechaDelProducto(producto);
   });
- 
 
   const findLocation = (
     x: number,

@@ -18,20 +18,10 @@ interface ContenedorProps {
 }
 
 export default function Contenedor({ contenedor }: ContenedorProps) {
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(contenedor.is_active);
   const screenWidth = Dimensions.get("window").width;
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
-
-  const chartConfig = {
-    backgroundGradientFrom: isDark ? "#1a1a1a" : "#fff",
-    backgroundGradientFromOpacity: 1,
-    backgroundGradientTo: isDark ? "#08130D" : "#d4d4d4",
-    backgroundGradientToOpacity: 0.5,
-    color: (opacity = 1) =>
-      isDark ? `rgba(255,255,255,${opacity})` : `rgba(0,0,0,${opacity})`,
-    barPercentage: 1.5,
-  };
 
   const toggleActiveStatus = () => {
     setIsActive((prev) => !prev);
@@ -39,12 +29,12 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
   };
 
   const getIconName = () => {
-    if (!contenedor.is_active) return "temperature-arrow-up";
+    if (!isActive || contenedor.temperature > 5) return "temperature-arrow-up";
     return contenedor.temperature < -10 ? "snowflake" : "temperature-low";
   };
 
   const getIconColor = () => {
-    if (!contenedor.is_active) return "red";
+    if (!isActive || contenedor.temperature > 5) return "red";
     return contenedor.temperature < -10 ? "#003366" : "#4193f7";
   };
 
@@ -59,17 +49,12 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
         <View style={styles.iconRow}>
           <FontAwesome6
             name={getIconName()}
-            size={contenedor.is_active ? 60 : 50}
+            size={isActive ? 60 : 50}
             color={getIconColor()}
           />
           <View style={styles.headerText}>
-            <Text
-              style={getTemperatureStyle(
-                contenedor.temperature,
-                contenedor.is_active
-              )}
-            >
-              {contenedor.temperature}°C
+            <Text style={getTemperatureStyle(contenedor.temperature, isActive)}>
+              {contenedor.temperature.toFixed(1)}°C
             </Text>
           </View>
         </View>
@@ -81,8 +66,8 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
             onPress={toggleActiveStatus}
             style={styles.statusButton}
           >
-            <Text style={getStatusStyle(contenedor.is_active)}>
-              {contenedor.is_active ? "Activo" : "Off"}
+            <Text style={getStatusStyle(isActive)}>
+              {isActive ? "Activo" : "Off"}
             </Text>
           </TouchableOpacity>
           <Text style={styles.lastUpdate}>
@@ -110,7 +95,12 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
 
 const getTemperatureStyle = (temperature: number, isActive: boolean) => ({
   fontSize: 36,
-  color: !isActive ? "red" : temperature < -10 ? "#003366" : "#4193f7",
+  color:
+    !isActive || temperature > 5
+      ? "red"
+      : temperature < -10
+        ? "#003366"
+        : "#4193f7",
 });
 
 const getStatusStyle = (isActive: boolean) => ({

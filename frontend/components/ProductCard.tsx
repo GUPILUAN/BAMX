@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
 import { navigate } from "@/functions/NavigationService";
@@ -20,21 +19,16 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ item }: ProductCardProps) {
-  const navigation = useNavigation();
   const theme = useSelector(selectTheme);
   const isDarkMode = theme === "dark";
 
   const bgColor = isDarkMode ? "bg-gray-800" : "bg-white";
 
-  const [imageUri, setImageUri] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    const imageUrl = item.image ? `data:image/jpeg;base64,${item.image}` : "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-    setImageUri(imageUrl);
-    setLoading(true);
-  }, []);
-
+  const imageUri = item.image
+    ? `data:image/jpeg;base64,${item.image}`
+    : "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
 
   return (
     <View
@@ -42,24 +36,24 @@ export default function ProductCard({ item }: ProductCardProps) {
       className={"mr-8 rounded-3xl shadow-lg w-48 h-48 " + bgColor}
     >
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-  {item.image && item.image.trim() !== "" ? (
-    <>
-      <Image
-        source={{ uri: imageUri }}
-        style={styles.image}
-        resizeMode="cover"
-        onLoad={() => setLoading(false)}
-      />
-      {loading && (
-        <View testID="loading-indicator" style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" />
-        </View>
-      )}
-    </>
-  ) : (
-    <Text>{item.product_name} No Image</Text>
-  )}
-</View>
+        {item.image && item.image.trim() !== "" ? (
+          <>
+            <Image
+              source={{ uri: imageUri }}
+              style={styles.image}
+              resizeMode="cover"
+              onLoad={() => setLoading(false)}
+            />
+            {loading && (
+              <View testID="loading-indicator" style={styles.loadingOverlay}>
+                <ActivityIndicator size="large" />
+              </View>
+            )}
+          </>
+        ) : (
+          <Text>{item.product_name} No Image</Text>
+        )}
+      </View>
 
       <View className="flex-1 justify-center border-t border-gray-300">
         <View className="flex-row justify-evenly items-center rounded-b-3xl">
@@ -89,7 +83,7 @@ export default function ProductCard({ item }: ProductCardProps) {
           className="rounded-bl-3xl w-1/2 h-8 justify-center shadow-sm"
           style={buttonStyle(true)}
         >
-          <Text style={cartText(true)}>Entregar</Text>
+          <Text style={cartText()}>Entregar</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -97,7 +91,7 @@ export default function ProductCard({ item }: ProductCardProps) {
           className="rounded-br-3xl w-1/2 h-8 justify-center shadow-sm"
           style={buttonStyle(false)}
         >
-          <Text style={cartText(false)}>Desechar</Text>
+          <Text style={cartText()}>Desechar</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -134,7 +128,7 @@ const buttonStyle = (good: boolean) => ({
   elevation: 10,
 });
 
-const cartText = (good: boolean) => ({
+const cartText = () => ({
   color: "#fbfbfb",
   fontFamily: "SF-Pro-Semibold",
   fontSize: Dimensions.get("window").width * 0.013,
