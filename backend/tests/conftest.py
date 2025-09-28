@@ -1,6 +1,6 @@
 import datetime
 from types import SimpleNamespace
-from typing import Generator
+from typing import Iterator
 from flask.testing import FlaskClient
 import pytest
 from flask import Flask
@@ -11,7 +11,7 @@ from tests.helpers import patch_repo_method
 
 
 @pytest.fixture
-def app() -> Generator[Flask]:
+def app() -> Iterator[Flask]:
     app = create_app("development")
     app.config.update(
         {
