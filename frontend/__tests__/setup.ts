@@ -1,5 +1,4 @@
 import "react-native-gesture-handler/jestSetup";
-
 // Mock react-native-reanimated
 jest.mock("react-native-reanimated", () => {
   const Reanimated = require("react-native-reanimated/mock");
@@ -50,7 +49,7 @@ afterEach(() => {
 });
 
 // Mock Expo Router
-jest.mock('expo-router', () => ({
+jest.mock("expo-router", () => ({
   useRouter: () => ({
     push: jest.fn(),
     replace: jest.fn(),

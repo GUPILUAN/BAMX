@@ -19,13 +19,19 @@ jobs:
               - 'backend/**'
 
       # Run tests only if backend changed
-      - name: Run Backend Tests
+
+      - name: Install Dependencies
         if: steps.filter.outputs.backend == 'true'
         run: |
           cd backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           export PYTHONPATH="$PYTHONPATH:$(pwd)"
+
+      - name: Run Backend Tests
+        if: steps.filter.outputs.backend == 'true'
+        run: |
+          cd backend
           pytest --maxfail=1 --disable-warnings -q --cov=. --cov-report=xml --cov-report=term
 
       - name: Upload Coverage to Codecov

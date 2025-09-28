@@ -7,7 +7,7 @@ import {
   Keyboard,
   Text,
 } from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { selectTheme } from "../slices/themeSlice";
 import { useSelector } from "react-redux";
@@ -39,7 +39,7 @@ export default function InventoryScreen() {
       const searchValueLower = searchValue.toLowerCase();
       return (
         item.product_name.toLowerCase().includes(searchValueLower) ||
-        item.type?.toLowerCase().includes(searchValueLower) || 
+        item.type?.toLowerCase().includes(searchValueLower) ||
         item.product_id.toLowerCase().includes(searchValueLower)
       );
     });
@@ -121,17 +121,18 @@ export default function InventoryScreen() {
     setIndexes(newData);
   };
 
-
   const handleOrder = (order: boolean, filter: string) => {
-    const sortedData = [...filteredResults].sort((a: InventoryItem, b: InventoryItem) => {
-      const dateA = new Date(
-        a[filter as "expiration_date" | "last_movement"] ?? ""
-      ).getTime();
-      const dateB = new Date(
-        b[filter as "expiration_date" | "last_movement"] ?? ""
-      ).getTime();
-      return order ? dateA - dateB : dateB - dateA;
-    });
+    const sortedData = [...filteredResults].sort(
+      (a: InventoryItem, b: InventoryItem) => {
+        const dateA = new Date(
+          a[filter as "expiration_date" | "last_movement"] ?? ""
+        ).getTime();
+        const dateB = new Date(
+          b[filter as "expiration_date" | "last_movement"] ?? ""
+        ).getTime();
+        return order ? dateA - dateB : dateB - dateA;
+      }
+    );
     setFilteredResults(sortedData);
   };
 

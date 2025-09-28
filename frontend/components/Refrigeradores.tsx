@@ -1,10 +1,15 @@
 import React from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView } from "react-native";
 import { contenedoresDummy } from "@/constants/Stores";
 import Contenedor from "./Contenedor";
+import { useTemperatureSensors } from "@/hooks/useTemperatureSensors";
 
 export default function Refrigeradores() {
-  const contenedores = contenedoresDummy.results;
+  const { latestBySensor } = useTemperatureSensors();
+  const contenedores = contenedoresDummy.results.map((item) => ({
+    ...item,
+    temperature: latestBySensor[item.id]?.temperature ?? item.temperature,
+  }));
 
   return (
     <ScrollView

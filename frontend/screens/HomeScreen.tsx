@@ -1,4 +1,4 @@
-import React, {  useState } from "react";
+import React, { useState } from "react";
 import { View, Platform } from "react-native";
 import { selectTheme } from "@/slices/themeSlice";
 import { useSelector } from "react-redux";
@@ -6,7 +6,7 @@ import Semaforo from "@/components/Semaforo";
 import AnimatedSwitch from "@/components/AnimatedSwitch";
 import Refrigeradores from "@/components/Refrigeradores";
 import useFetchProducts from "@/hooks/useFetchProducts";
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HomeScreen() {
   const theme = useSelector(selectTheme);
@@ -23,7 +23,6 @@ export default function HomeScreen() {
   };
   const products = useFetchProducts();
 
- 
   return (
     <SafeAreaView
       className={`${themeColorsTailwind.backgroundTailwind} w-full h-full flex-1 `}
@@ -35,7 +34,11 @@ export default function HomeScreen() {
       >
         <AnimatedSwitch onValueChange={handlePanelChange} />
         <View className="flex flex-row p-5">
-          {panel === "Semaforo" ? <Semaforo productos={products} /> : <Refrigeradores />}
+          {panel === "Semaforo" ? (
+            <Semaforo productos={products} />
+          ) : (
+            <Refrigeradores />
+          )}
         </View>
       </View>
     </SafeAreaView>

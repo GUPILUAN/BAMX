@@ -18,11 +18,15 @@ jobs:
               - 'frontend/**'
 
       # Run tests only if frontend changed
-      - name: Run Frontend Tests
+      - name: Install Dependencies
         if: steps.filter.outputs.frontend == 'true'
         run: |
           cd frontend
           npm install
+      - name: Run Frontend Tests
+        if: steps.filter.outputs.frontend == 'true'
+        run: |
+          cd frontend
           npm run test
 
       - name: Upload Coverage to Codecov
