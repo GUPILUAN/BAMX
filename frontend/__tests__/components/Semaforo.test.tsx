@@ -2,7 +2,7 @@ import React from "react";
 import { render } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import Semaforo from "@/components/Semaforo";
+import Semaforo from "@/components/Semaforo/Semaforo";
 import themeReducer from "@/slices/themeSlice";
 
 // Mock the constants
@@ -41,7 +41,7 @@ jest.mock("@/constants/Products", () => ({
 }));
 
 // Mock FeaturedRow component
-jest.mock("@/components/FeaturedRow", () => {
+jest.mock("@/components/FeaturedRow/FeaturedRow", () => {
   const { View, Text } = require("react-native");
   return function FeaturedRow({ status, productos }: any) {
     return (

@@ -1,20 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { View, ActivityIndicator } from "react-native";
-import { getData } from "@/functions/userKey";
-import { navigate, replace } from "@/functions/NavigationService";
+import useCheckLoginStatus from "@/hooks/useCheckLoginStatus";
 
 export default function AuthLoadingScreen() {
-  useEffect(() => {
-    const checkLoginStatus = async () => {
-      const token = await getData("access");
-      if (token) {
-        navigate("Dashboard");
-      } else {
-        replace("Auth");
-      }
-    };
-    checkLoginStatus(); 
-  }, []);
+  useCheckLoginStatus();
 
   return (
     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>

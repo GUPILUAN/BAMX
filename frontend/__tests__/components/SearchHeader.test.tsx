@@ -3,7 +3,7 @@ import { render, fireEvent } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
 import { configureStore } from "@reduxjs/toolkit";
-import SearchHeader from "@/components/SearchHeader";
+import SearchHeader from "@/components/SearchHeader/SearchHeader";
 import themeReducer from "@/slices/themeSlice";
 
 // Mock useNavigation

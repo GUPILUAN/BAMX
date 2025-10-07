@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { View, Platform } from "react-native";
 import { selectTheme } from "@/slices/themeSlice";
 import { useSelector } from "react-redux";
-import Semaforo from "@/components/Semaforo";
-import AnimatedSwitch from "@/components/AnimatedSwitch";
-import Refrigeradores from "@/components/Refrigeradores";
+import Semaforo from "@/components/Semaforo/Semaforo";
+import AnimatedSwitch from "@/components/AnimatedSwitch/AnimatedSwitch";
+import Refrigeradores from "@/components/Refrigeradores/Refrigeradores";
 import useFetchProducts from "@/hooks/useFetchProducts";
 import { SafeAreaView } from "react-native-safe-area-context";
 
