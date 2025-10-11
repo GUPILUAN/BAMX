@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   View,
   FlatList,
@@ -28,8 +28,8 @@ interface FeaturedRowProps {
 export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
-  const navigation = useNavigation();
-  const products = useFetchProducts();
+  // const navigation = useNavigation();
+  // const products = useFetchProducts();
   const isWeb = Platform.OS === "web";
   const iconColor = (category: string) =>
     category === "crítico"

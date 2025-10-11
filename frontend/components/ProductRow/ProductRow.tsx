@@ -6,6 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 import { InventoryItem } from "@/types/InventoryItem";
 import { navigate } from "@/functions/NavigationService";
 import styles from "./styles";
+import getColor from "./utils/getColor";
 
 interface ProductRowProps {
   index: number;
@@ -57,16 +58,6 @@ const formatearFecha = (date: string) => {
       return "estable";
     }
   }
-
-  const getColor = (state: string) => {
-    if (state === "crítico") {
-      return "#FF4D4F";
-    } else if (state === "prioritario") {
-      return "#FFC107";
-    } else {
-      return "#52C41A";
-    }
-  };
 
   const estado = evaluarFecha(product.expiration_date || "");
 

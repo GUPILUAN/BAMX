@@ -5,15 +5,13 @@ import {
   TouchableOpacity,
   Image,
   ActivityIndicator,
-  StyleSheet,
-  Dimensions,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
 import { navigate } from "@/functions/NavigationService";
 import { InventoryItem } from "@/types/InventoryItem";
-import styles from "./styles";
+import { styles, buttonStyle, cartText } from "./styles";
 
 interface ProductCardProps {
   item: InventoryItem;
@@ -99,15 +97,3 @@ export default function ProductCard({ item }: ProductCardProps) {
   );
 }
 
-const buttonStyle = (good: boolean) => ({
-  backgroundColor: good ? "#78af6d" : "#d65f61",
-  shadowColor: "#000",
-  elevation: 10,
-});
-
-const cartText = () => ({
-  color: "#fbfbfb",
-  fontFamily: "SF-Pro-Semibold",
-  fontSize: Dimensions.get("window").width * 0.013,
-  textAlign: "center" as "center",
-});

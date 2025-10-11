@@ -9,6 +9,7 @@ import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
 import { LinearGradient } from "expo-linear-gradient";
 import styles from "./styles";
+import getSwitchContainerStyle from "./utils/getSwitchContainerStyle";
 
 type AnimatedSwitchProps = {
   onValueChange: (value: string) => void;
@@ -20,6 +21,11 @@ export default function AnimatedSwitch({ onValueChange }: AnimatedSwitchProps) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
+  const interpolatedLeft = animatedValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0%", "50%"],
+  });
+
   const handlePress = (button: string) => {
     setActive(button);
     onValueChange(button);
@@ -28,12 +34,7 @@ export default function AnimatedSwitch({ onValueChange }: AnimatedSwitchProps) {
       duration: 200,
       useNativeDriver: false,
     }).start();
-  };
-
-  const interpolatedLeft = animatedValue.interpolate({
-    inputRange: [0, 1],
-    outputRange: ["0%", "50%"],
-  });
+};
 
   return (
     <View className={"items-center justify-start "}>
@@ -91,13 +92,3 @@ export default function AnimatedSwitch({ onValueChange }: AnimatedSwitchProps) {
     </View>
   );
 }
-
-const getSwitchContainerStyle = (isDark: boolean) => ({
-  flexDirection: "row" as "row",
-  backgroundColor: isDark ? "#362e1d" : "#fff",
-  borderRadius: 25,
-  width: 400,
-  height: 50,
-  position: "relative" as "relative",
-  overflow: "hidden" as "hidden",
-});

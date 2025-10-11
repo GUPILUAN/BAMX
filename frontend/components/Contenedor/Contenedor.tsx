@@ -12,6 +12,8 @@ import { selectTheme } from "@/slices/themeSlice";
 import { Container } from "@/types/Container";
 import { themeColors } from "@/theme";
 import styles from "./styles";
+import getTemperatureStyle from "./utils/getTemperatureStyle";
+import getStatusStyle from "./utils/getStatusStyle";
 
 interface ContenedorProps {
   contenedor: Container;
@@ -92,18 +94,3 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
     </View>
   );
 }
-
-const getTemperatureStyle = (temperature: number, isActive: boolean) => ({
-  fontSize: 36,
-  color:
-    !isActive || temperature > 5
-      ? "red"
-      : temperature < -10
-        ? "#003366"
-        : "#4193f7",
-});
-
-const getStatusStyle = (isActive: boolean) => ({
-  color: isActive ? "green" : "red",
-  fontWeight: "bold" as "bold",
-});
