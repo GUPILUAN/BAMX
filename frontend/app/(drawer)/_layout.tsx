@@ -2,7 +2,7 @@ import { Drawer } from 'expo-router/drawer';
 import { useSelector } from 'react-redux';
 import { selectTheme } from '@/slices/themeSlice';
 import { themeColors } from '@/theme';
-import SideBar from '@/components/SideBar';
+import SideBar from '@/components/SideBar/SideBar';
 
 export default function DrawerLayout() {
   const theme = useSelector(selectTheme);

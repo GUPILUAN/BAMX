@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
-import AuthScreen from "@/screens/AuthScreen";
+import AuthScreen from "@/screens/AuthScreen/AuthScreen";
 import { loginUser } from "@/api/apiCalls";
 import { navigate } from "@/functions/NavigationService";
 import { Alert } from "react-native";

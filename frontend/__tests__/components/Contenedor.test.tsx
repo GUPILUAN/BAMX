@@ -2,13 +2,13 @@ import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import Contenedor from "@/components/Contenedor";
+import Contenedor from "@/components/Contenedor/Contenedor";
 import themeReducer from "@/slices/themeSlice";
 import { Container } from "@/types/Container";
 import { NativeModules } from "react-native";
 
 // Mock StackedBarChart component
-jest.mock("@/components/StackedBarChart", () => ({
+jest.mock("@/components/StackedBarChart/StackedBarChart", () => ({
   StackedBarChart: jest.fn(({ data, width, height, isDark }) => {
     const React = require("react");
     const { View, Text } = require("react-native");

@@ -1,0 +1,504 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1760218775988" clover="3.2.0">
+  <project timestamp="1760218775988" name="All files">
+    <metrics statements="339" coveredstatements="142" conditionals="307" coveredconditionals="123" methods="111" coveredmethods="40" elements="757" coveredelements="305" complexity="0" loc="339" ncloc="339" packages="21" files="32" classes="32"/>
+    <package name="components.AnimatedSwitch">
+      <metrics statements="13" coveredstatements="13" conditionals="10" coveredconditionals="10" methods="4" coveredmethods="4"/>
+      <file name="AnimatedSwitch.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\AnimatedSwitch\AnimatedSwitch.tsx">
+        <metrics statements="12" coveredstatements="12" conditionals="10" coveredconditionals="10" methods="4" coveredmethods="4"/>
+        <line num="19" count="12" type="stmt"/>
+        <line num="20" count="12" type="stmt"/>
+        <line num="21" count="12" type="stmt"/>
+        <line num="22" count="12" type="stmt"/>
+        <line num="24" count="12" type="stmt"/>
+        <line num="29" count="12" type="stmt"/>
+        <line num="30" count="4" type="stmt"/>
+        <line num="31" count="4" type="stmt"/>
+        <line num="32" count="4" type="stmt"/>
+        <line num="39" count="12" type="stmt"/>
+        <line num="62" count="1" type="stmt"/>
+        <line num="78" count="3" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\AnimatedSwitch\styles.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.AnimatedSwitch.utils">
+      <metrics statements="5" coveredstatements="1" conditionals="4" coveredconditionals="2" methods="2" coveredmethods="1"/>
+      <file name="getSwitchContainerStyle.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\AnimatedSwitch\utils\getSwitchContainerStyle.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
+        <line num="1" count="12" type="stmt"/>
+      </file>
+      <file name="handlePress.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\AnimatedSwitch\utils\handlePress.ts">
+        <metrics statements="4" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="2" count="0" type="stmt"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+        <line num="5" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.Contenedor">
+      <metrics statements="15" coveredstatements="15" conditionals="16" coveredconditionals="16" methods="5" coveredmethods="5"/>
+      <file name="Contenedor.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\Contenedor\Contenedor.tsx">
+        <metrics statements="14" coveredstatements="14" conditionals="16" coveredconditionals="16" methods="5" coveredmethods="5"/>
+        <line num="23" count="26" type="stmt"/>
+        <line num="24" count="26" type="stmt"/>
+        <line num="25" count="26" type="stmt"/>
+        <line num="26" count="26" type="stmt"/>
+        <line num="28" count="26" type="stmt"/>
+        <line num="29" count="2" type="stmt"/>
+        <line num="30" count="2" type="stmt"/>
+        <line num="33" count="26" type="stmt"/>
+        <line num="34" count="26" type="cond" truecount="4" falsecount="0"/>
+        <line num="35" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="38" count="26" type="stmt"/>
+        <line num="39" count="26" type="cond" truecount="4" falsecount="0"/>
+        <line num="40" count="10" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="26" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\Contenedor\styles.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="3" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.Contenedor.utils">
+      <metrics statements="2" coveredstatements="2" conditionals="8" coveredconditionals="8" methods="2" coveredmethods="2"/>
+      <file name="getStatusStyle.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\Contenedor\utils\getStatusStyle.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="2" coveredconditionals="2" methods="1" coveredmethods="1"/>
+        <line num="1" count="26" type="stmt"/>
+      </file>
+      <file name="getTemperatureStyle.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\Contenedor\utils\getTemperatureStyle.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="6" coveredconditionals="6" methods="1" coveredmethods="1"/>
+        <line num="1" count="26" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.FeaturedRow">
+      <metrics statements="14" coveredstatements="0" conditionals="22" coveredconditionals="0" methods="7" coveredmethods="0"/>
+      <file name="FeaturedRow.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\FeaturedRow\FeaturedRow.tsx">
+        <metrics statements="12" coveredstatements="0" conditionals="18" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="66" count="0" type="stmt"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\FeaturedRow\styles.ts">
+        <metrics statements="2" coveredstatements="0" conditionals="4" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="3" count="0" type="stmt"/>
+        <line num="4" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.ProductCard">
+      <metrics statements="11" coveredstatements="10" conditionals="14" coveredconditionals="14" methods="7" coveredmethods="6"/>
+      <file name="ProductCard.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\ProductCard\ProductCard.tsx">
+        <metrics statements="8" coveredstatements="7" conditionals="12" coveredconditionals="12" methods="5" coveredmethods="4"/>
+        <line num="21" count="8" type="stmt"/>
+        <line num="22" count="8" type="stmt"/>
+        <line num="24" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="26" count="8" type="stmt"/>
+        <line num="28" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="32" count="8" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="68" count="1" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\ProductCard\styles.ts">
+        <metrics statements="3" coveredstatements="3" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="25" count="16" type="stmt"/>
+        <line num="31" count="16" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.ProductList">
+      <metrics statements="11" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="6" coveredmethods="0"/>
+      <file name="ProductList.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\ProductList\ProductList.tsx">
+        <metrics statements="11" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <line num="18" count="0" type="stmt"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="32" count="0" type="stmt"/>
+        <line num="33" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.ProductRow">
+      <metrics statements="20" coveredstatements="20" conditionals="14" coveredconditionals="11" methods="5" coveredmethods="5"/>
+      <file name="ProductRow.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\ProductRow\ProductRow.tsx">
+        <metrics statements="19" coveredstatements="19" conditionals="14" coveredconditionals="11" methods="5" coveredmethods="5"/>
+        <line num="24" count="19" type="stmt"/>
+        <line num="25" count="19" type="stmt"/>
+        <line num="35" count="19" type="stmt"/>
+        <line num="36" count="38" type="stmt"/>
+        <line num="37" count="38" type="stmt"/>
+        <line num="38" count="38" type="stmt"/>
+        <line num="46" count="19" type="stmt"/>
+        <line num="47" count="19" type="stmt"/>
+        <line num="49" count="19" type="stmt"/>
+        <line num="51" count="19" type="stmt"/>
+        <line num="53" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="54" count="16" type="stmt"/>
+        <line num="55" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="58" count="2" type="stmt"/>
+        <line num="62" count="19" type="cond" truecount="1" falsecount="1"/>
+        <line num="64" count="19" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="81" count="1" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\ProductRow\styles.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.ProductRow.utils">
+      <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="4" methods="1" coveredmethods="1"/>
+      <file name="getColor.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\ProductRow\utils\getColor.tsx">
+        <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="4" methods="1" coveredmethods="1"/>
+        <line num="1" count="1" type="stmt"/>
+        <line num="2" count="19" type="cond" truecount="2" falsecount="0"/>
+        <line num="3" count="16" type="stmt"/>
+        <line num="4" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="7" count="2" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.Refrigeradores">
+      <metrics statements="4" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="3" coveredmethods="0"/>
+      <file name="Refrigeradores.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\Refrigeradores\Refrigeradores.tsx">
+        <metrics statements="4" coveredstatements="0" conditionals="2" coveredconditionals="0" methods="3" coveredmethods="0"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="9" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.SearchHeader">
+      <metrics statements="24" coveredstatements="23" conditionals="26" coveredconditionals="26" methods="10" coveredmethods="9"/>
+      <file name="SearchHeader.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\SearchHeader\SearchHeader.tsx">
+        <metrics statements="23" coveredstatements="22" conditionals="26" coveredconditionals="26" methods="10" coveredmethods="9"/>
+        <line num="33" count="14" type="stmt"/>
+        <line num="34" count="14" type="stmt"/>
+        <line num="35" count="14" type="stmt"/>
+        <line num="36" count="14" type="stmt"/>
+        <line num="37" count="14" type="stmt"/>
+        <line num="38" count="14" type="stmt"/>
+        <line num="39" count="14" type="stmt"/>
+        <line num="40" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="41" count="14" type="cond" truecount="2" falsecount="0"/>
+        <line num="43" count="14" type="stmt"/>
+        <line num="44" count="14" type="stmt"/>
+        <line num="50" count="14" type="stmt"/>
+        <line num="51" count="2" type="stmt"/>
+        <line num="53" count="14" type="stmt"/>
+        <line num="54" count="1" type="stmt"/>
+        <line num="57" count="14" type="stmt"/>
+        <line num="58" count="3" type="stmt"/>
+        <line num="61" count="14" type="stmt"/>
+        <line num="81" count="1" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="113" count="2" type="stmt"/>
+        <line num="166" count="1" type="stmt"/>
+        <line num="183" count="4" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\SearchHeader\styles.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.Semaforo">
+      <metrics statements="36" coveredstatements="24" conditionals="12" coveredconditionals="4" methods="7" coveredmethods="5"/>
+      <file name="Semaforo.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\Semaforo\Semaforo.tsx">
+        <metrics statements="35" coveredstatements="23" conditionals="12" coveredconditionals="4" methods="7" coveredmethods="5"/>
+        <line num="14" count="8" type="stmt"/>
+        <line num="15" count="8" type="stmt"/>
+        <line num="16" count="8" type="stmt"/>
+        <line num="17" count="8" type="stmt"/>
+        <line num="24" count="8" type="stmt"/>
+        <line num="27" count="8" type="stmt"/>
+        <line num="34" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="45" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="46" count="0" type="stmt"/>
+        <line num="47" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="48" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="54" count="8" type="stmt"/>
+        <line num="55" count="24" type="cond" truecount="2" falsecount="0"/>
+        <line num="56" count="8" type="stmt"/>
+        <line num="57" count="16" type="cond" truecount="2" falsecount="0"/>
+        <line num="58" count="8" type="stmt"/>
+        <line num="60" count="8" type="stmt"/>
+        <line num="64" count="8" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="68" count="8" type="stmt"/>
+        <line num="73" count="8" type="stmt"/>
+        <line num="74" count="8" type="stmt"/>
+        <line num="75" count="8" type="stmt"/>
+        <line num="76" count="8" type="stmt"/>
+        <line num="78" count="8" type="stmt"/>
+        <line num="85" count="8" type="stmt"/>
+        <line num="88" count="8" type="stmt"/>
+        <line num="90" count="8" type="stmt"/>
+        <line num="139" count="24" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\Semaforo\styles.ts">
+        <metrics statements="1" coveredstatements="1" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.SideBar">
+      <metrics statements="34" coveredstatements="0" conditionals="32" coveredconditionals="0" methods="12" coveredmethods="0"/>
+      <file name="SideBar.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\SideBar\SideBar.tsx">
+        <metrics statements="33" coveredstatements="0" conditionals="32" coveredconditionals="0" methods="12" coveredmethods="0"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="41" count="0" type="stmt"/>
+        <line num="42" count="0" type="stmt"/>
+        <line num="56" count="0" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="59" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="66" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="70" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="74" count="0" type="stmt"/>
+        <line num="80" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="95" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="100" count="0" type="stmt"/>
+        <line num="119" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="154" count="0" type="stmt"/>
+        <line num="166" count="0" type="stmt"/>
+        <line num="239" count="0" type="stmt"/>
+        <line num="271" count="0" type="stmt"/>
+        <line num="275" count="0" type="stmt"/>
+        <line num="281" count="0" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\SideBar\styles.ts">
+        <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.StackedBarChart">
+      <metrics statements="11" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="6" coveredmethods="0"/>
+      <file name="StackedBarChart.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\StackedBarChart\StackedBarChart.tsx">
+        <metrics statements="11" coveredstatements="0" conditionals="10" coveredconditionals="0" methods="6" coveredmethods="0"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="31" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="43" count="0" type="stmt"/>
+        <line num="44" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+        <line num="64" count="0" type="stmt"/>
+        <line num="71" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="components.ThemeSelector">
+      <metrics statements="7" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="1" coveredmethods="0"/>
+      <file name="ThemeSelector.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\components\ThemeSelector\ThemeSelector.tsx">
+        <metrics statements="7" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="7" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="11" count="0" type="cond" truecount="0" falsecount="4"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="49" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="screens.AuthLoadingScreen">
+      <metrics statements="2" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+      <file name="AuthLoadingScreen.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\screens\AuthLoadingScreen\AuthLoadingScreen.tsx">
+        <metrics statements="2" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="6" count="0" type="stmt"/>
+        <line num="8" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="screens.AuthScreen">
+      <metrics statements="33" coveredstatements="28" conditionals="44" coveredconditionals="28" methods="4" coveredmethods="2"/>
+      <file name="AuthScreen.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\screens\AuthScreen\AuthScreen.tsx">
+        <metrics statements="33" coveredstatements="28" conditionals="44" coveredconditionals="28" methods="4" coveredmethods="2"/>
+        <line num="24" count="18" type="stmt"/>
+        <line num="25" count="18" type="stmt"/>
+        <line num="26" count="18" type="stmt"/>
+        <line num="28" count="18" type="stmt"/>
+        <line num="51" count="18" type="cond" truecount="1" falsecount="1"/>
+        <line num="53" count="18" type="stmt"/>
+        <line num="54" count="18" type="stmt"/>
+        <line num="55" count="18" type="stmt"/>
+        <line num="56" count="18" type="stmt"/>
+        <line num="60" count="18" type="stmt"/>
+        <line num="62" count="18" type="stmt"/>
+        <line num="63" count="4" type="stmt"/>
+        <line num="65" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="66" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="68" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="70" count="1" type="stmt"/>
+        <line num="73" count="3" type="stmt"/>
+        <line num="74" count="3" type="stmt"/>
+        <line num="75" count="3" type="stmt"/>
+        <line num="76" count="2" type="stmt"/>
+        <line num="78" count="1" type="cond" truecount="1" falsecount="1"/>
+        <line num="79" count="0" type="stmt"/>
+        <line num="80" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="1" type="stmt"/>
+        <line num="87" count="1" type="stmt"/>
+        <line num="88" count="1" type="stmt"/>
+        <line num="89" count="1" type="stmt"/>
+        <line num="91" count="3" type="stmt"/>
+        <line num="95" count="18" type="stmt"/>
+        <line num="97" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="204" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="screens.DetailsScreen">
+      <metrics statements="6" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="2" coveredmethods="0"/>
+      <file name="DetailsScreen.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\screens\DetailsScreen\DetailsScreen.tsx">
+        <metrics statements="5" coveredstatements="0" conditionals="6" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="8" count="0" type="stmt"/>
+        <line num="11" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="17" count="0" type="stmt"/>
+      </file>
+      <file name="styles.ts" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\screens\DetailsScreen\styles.ts">
+        <metrics statements="1" coveredstatements="0" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
+        <line num="2" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="screens.HomeScreen">
+      <metrics statements="9" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="2" coveredmethods="0"/>
+      <file name="HomeScreen.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\screens\HomeScreen\HomeScreen.tsx">
+        <metrics statements="9" coveredstatements="0" conditionals="8" coveredconditionals="0" methods="2" coveredmethods="0"/>
+        <line num="12" count="0" type="stmt"/>
+        <line num="13" count="0" type="stmt"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="15" count="0" type="stmt"/>
+        <line num="19" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="24" count="0" type="stmt"/>
+        <line num="26" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="screens.InventoryScreen">
+      <metrics statements="70" coveredstatements="0" conditionals="41" coveredconditionals="0" methods="23" coveredmethods="0"/>
+      <file name="InventoryScreen.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\screens\InventoryScreen\InventoryScreen.tsx">
+        <metrics statements="70" coveredstatements="0" conditionals="41" coveredconditionals="0" methods="23" coveredmethods="0"/>
+        <line num="20" count="0" type="stmt"/>
+        <line num="21" count="0" type="stmt"/>
+        <line num="22" count="0" type="stmt"/>
+        <line num="23" count="0" type="stmt"/>
+        <line num="28" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+        <line num="30" count="0" type="stmt"/>
+        <line num="34" count="0" type="stmt"/>
+        <line num="35" count="0" type="stmt"/>
+        <line num="36" count="0" type="stmt"/>
+        <line num="37" count="0" type="stmt"/>
+        <line num="38" count="0" type="stmt"/>
+        <line num="39" count="0" type="stmt"/>
+        <line num="40" count="0" type="stmt"/>
+        <line num="47" count="0" type="stmt"/>
+        <line num="50" count="0" type="stmt"/>
+        <line num="53" count="0" type="stmt"/>
+        <line num="54" count="0" type="stmt"/>
+        <line num="55" count="0" type="stmt"/>
+        <line num="59" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="60" count="0" type="stmt"/>
+        <line num="62" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="67" count="0" type="stmt"/>
+        <line num="70" count="0" type="stmt"/>
+        <line num="72" count="0" type="stmt"/>
+        <line num="73" count="0" type="stmt"/>
+        <line num="75" count="0" type="stmt"/>
+        <line num="76" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="77" count="0" type="stmt"/>
+        <line num="78" count="0" type="stmt"/>
+        <line num="81" count="0" type="stmt"/>
+        <line num="84" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="86" count="0" type="stmt"/>
+        <line num="90" count="0" type="stmt"/>
+        <line num="91" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="92" count="0" type="stmt"/>
+        <line num="93" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="98" count="0" type="stmt"/>
+        <line num="99" count="0" type="stmt"/>
+        <line num="102" count="0" type="stmt"/>
+        <line num="103" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="104" count="0" type="stmt"/>
+        <line num="105" count="0" type="stmt"/>
+        <line num="106" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="107" count="0" type="stmt"/>
+        <line num="109" count="0" type="stmt"/>
+        <line num="113" count="0" type="stmt"/>
+        <line num="114" count="0" type="stmt"/>
+        <line num="115" count="0" type="stmt"/>
+        <line num="118" count="0" type="stmt"/>
+        <line num="120" count="0" type="stmt"/>
+        <line num="121" count="0" type="stmt"/>
+        <line num="124" count="0" type="stmt"/>
+        <line num="125" count="0" type="stmt"/>
+        <line num="127" count="0" type="stmt"/>
+        <line num="130" count="0" type="stmt"/>
+        <line num="133" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="136" count="0" type="stmt"/>
+        <line num="139" count="0" type="stmt"/>
+        <line num="140" count="0" type="stmt"/>
+        <line num="141" count="0" type="stmt"/>
+        <line num="143" count="0" type="stmt"/>
+        <line num="144" count="0" type="stmt"/>
+        <line num="148" count="0" type="stmt"/>
+        <line num="157" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="192" count="0" type="stmt"/>
+        <line num="201" count="0" type="stmt"/>
+      </file>
+    </package>
+    <package name="screens.UserScreen">
+      <metrics statements="6" coveredstatements="0" conditionals="24" coveredconditionals="0" methods="1" coveredmethods="0"/>
+      <file name="UserScreen.tsx" path="C:\Users\alexi\Desktop\Folders\Projects\BAMX\frontend\screens\UserScreen\UserScreen.tsx">
+        <metrics statements="6" coveredstatements="0" conditionals="24" coveredconditionals="0" methods="1" coveredmethods="0"/>
+        <line num="10" count="0" type="stmt"/>
+        <line num="11" count="0" type="stmt"/>
+        <line num="13" count="0" type="cond" truecount="0" falsecount="2"/>
+        <line num="14" count="0" type="stmt"/>
+        <line num="25" count="0" type="stmt"/>
+        <line num="29" count="0" type="stmt"/>
+      </file>
+    </package>
+  </project>
+</coverage>
