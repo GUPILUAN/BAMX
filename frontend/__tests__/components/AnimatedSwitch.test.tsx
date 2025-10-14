@@ -2,7 +2,7 @@ import React from "react";
 import { render, fireEvent, act } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
-import AnimatedSwitch from "@/components/AnimatedSwitch";
+import AnimatedSwitch from "@/components/AnimatedSwitch/AnimatedSwitch";
 import themeReducer from "@/slices/themeSlice";
 import { Animated } from "react-native";
 

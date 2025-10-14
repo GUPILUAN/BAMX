@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import ProductRow from "@/components/ProductRow";
+import ProductRow from "@/components/ProductRow/ProductRow";
 import { InventoryItem } from "@/types/InventoryItem";
 import { addDays } from "../utils/dateUtils";
 

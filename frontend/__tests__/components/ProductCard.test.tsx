@@ -3,7 +3,7 @@ import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import { Provider } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
 import { configureStore } from "@reduxjs/toolkit";
-import ProductCard from "@/components/ProductCard";
+import ProductCard from "@/components/ProductCard/ProductCard";
 import themeReducer from "@/slices/themeSlice";
 import { InventoryItem } from "@/types/InventoryItem";
 
