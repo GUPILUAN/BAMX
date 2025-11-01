@@ -8,42 +8,33 @@ import themeReducer from "@/slices/themeSlice";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 
-jest.mock("@/api/apiCalls", () => ({
-  loginUser: jest.fn(),
-}));
-
-jest.mock("@/functions/NavigationService", () => ({
-  navigate: jest.fn(),
-}));
+jest.mock("@/api/apiCalls", () => ({ loginUser: jest.fn() }));
+jest.mock("@/functions/NavigationService", () => ({ navigate: jest.fn() }));
 
 jest.spyOn(Alert, "alert");
 
-// Create a mock store
-const createMockStore = (theme = "light") => {
-  return configureStore({
-    reducer: {
-      theme: themeReducer,
-    },
-    preloadedState: {
-      theme: { theme: theme },
-    },
+const createMockStore = (theme = "light") =>
+  configureStore({
+    reducer: { theme: themeReducer },
+    preloadedState: { theme: { theme } },
   });
-};
-// Test wrapper component
+
 const TestWrapper = ({
   children,
   theme = "light",
 }: {
   children: React.ReactNode;
   theme?: string;
-}) => {
-  const store = createMockStore(theme);
-  return <Provider store={store}>{children}</Provider>;
-};
+}) => <Provider store={createMockStore(theme)}>{children}</Provider>;
 
 describe("AuthScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers(); 
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it("renders correctly with title and inputs", () => {
@@ -73,6 +64,7 @@ describe("AuthScreen", () => {
 
   it("calls loginUser with username and password", async () => {
     (loginUser as jest.Mock).mockResolvedValueOnce({});
+
     const { getByPlaceholderText, getByText } = render(
       <TestWrapper>
         <AuthScreen />
@@ -90,20 +82,36 @@ describe("AuthScreen", () => {
   });
 
   it("shows ActivityIndicator while loading", async () => {
-    (loginUser as jest.Mock).mockResolvedValueOnce({});
+    (loginUser as jest.Mock).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve({}), 50);
+        })
+    );
 
-    const { getByPlaceholderText, getByText, getByTestId, queryByTestId } =
-      render(
-        <TestWrapper>
-          <AuthScreen />
-        </TestWrapper>
-      );
+    const {
+      getByPlaceholderText,
+      getByText,
+      findByTestId,
+      queryByTestId,
+    } = render(
+      <TestWrapper>
+        <AuthScreen />
+      </TestWrapper>
+    );
 
     fireEvent.changeText(getByPlaceholderText("Username"), "bamxUser");
     fireEvent.changeText(getByPlaceholderText("Password"), "secret123");
     fireEvent.press(getByText("INICIAR SESIÓN"));
 
-    expect(getByTestId("ActivityIndicator")).toBeTruthy();
+    await findByTestId("ActivityIndicator");
+
+    jest.runOnlyPendingTimers();
+
+    await waitFor(() => {
+      expect(loginUser).toHaveBeenCalledWith("bamxUser", "secret123");
+      expect(navigate).toHaveBeenCalledWith("Dashboard");
+    });
 
     await waitFor(() => {
       expect(queryByTestId("ActivityIndicator")).toBeNull();
@@ -112,6 +120,7 @@ describe("AuthScreen", () => {
 
   it("shows alert when login fails", async () => {
     (loginUser as jest.Mock).mockRejectedValueOnce(new Error("Invalid creds"));
+
     const { getByPlaceholderText, getByText } = render(
       <TestWrapper>
         <AuthScreen />
