@@ -12,7 +12,7 @@ const HIVE_HOST =
 const HIVE_USER = process.env.EXPO_PUBLIC_MQTT_USERNAME || "username123";
 const HIVE_PASS = process.env.EXPO_PUBLIC_MQTT_PASSWORD || "password123";
 
-export const useTemperatureSensors = () => {
+const useTemperatureSensors = () => {
   const [latestBySensor, setLatestBySensor] = useState<
     Record<number, { temperature: number; ts: string }>
   >({});
@@ -130,3 +130,5 @@ export const useTemperatureSensors = () => {
   }
   return { latestBySensor };
 };
+
+export default useTemperatureSensors;

@@ -1,5 +1,4 @@
-from ..models import Inve01
-from ..models import Ltpd01
+from ..models import Inve01, Ltpd01
 
 
 class InventoryRepository:

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 
-export const useUserSettings = () => {
+const useUserSettings = () => {
   const colorScheme = useColorScheme();
   const dispatch = useDispatch();
   const settings = useSelector(selectSettings);
@@ -37,3 +37,4 @@ export const useUserSettings = () => {
 
   return { settings };
 };
+export default useUserSettings;

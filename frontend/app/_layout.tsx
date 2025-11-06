@@ -3,7 +3,7 @@ import { Provider } from "react-redux";
 import { store } from "@/store";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import { useUserSettings } from "@/hooks/useUserSettings";
+import useUserSettings from "@/hooks/useUserSettings";
 import { useFonts } from "expo-font";
 
 import "@/global.css";

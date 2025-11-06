@@ -3,8 +3,7 @@ import { selectUser, setUser } from "@/slices/userSlice";
 
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
-export const useFetchUser = () => {
+const useFetchUser = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     const fetchUser = async () => {
@@ -20,3 +19,4 @@ export const useFetchUser = () => {
   const user = useSelector(selectUser);
   return { user };
 };
+export default useFetchUser;

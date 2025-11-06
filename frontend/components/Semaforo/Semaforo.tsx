@@ -11,9 +11,6 @@ export default function Semaforo({
 }: {
   productos: InventoryItem[];
 }) {
-  const critic = 1024;
-  const warning = 2048;
-  const stable = 4096;
   const status = [
     { title: "Estado crítico", category: "crítico" },
     { title: "Estado prioritario", category: "prioritario" },
@@ -65,6 +62,10 @@ export default function Semaforo({
     evaluarFechaDelProducto(producto);
   });
 
+  const critic = productosFiltered.crítico.length;
+  const warning = productosFiltered.prioritario.length;
+  const stable = productosFiltered.estable.length;
+
   const findLocation = (
     x: number,
     y: number,
@@ -74,6 +75,7 @@ export default function Semaforo({
     const locCritic = x / total;
     const locStable = locCritic + y / total;
     const locWarning = lerp(locCritic, locStable, 0.5);
+
     // Ensure the return type is a tuple with at least two elements
     const location: [number, number, ...number[]] = [
       0,

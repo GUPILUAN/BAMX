@@ -1,4 +1,3 @@
-from base64 import b64encode
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required
 from ..repositories.inventory_repository import InventoryRepository

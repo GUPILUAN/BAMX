@@ -3,6 +3,7 @@ from flask import Flask
 from config import config_by_name, Config
 from .controllers.auth_controller import auth_bp
 from .controllers.inventory_controller import inventario_bp
+from .controllers.warehouse_controller import warehouse_bp
 from .extensions import jwt, db, cors
 from sqlalchemy.dialects import registry
 
@@ -24,5 +25,6 @@ def create_app(config_name: str = "development") -> Flask:
     # ---------- Blueprints ----------
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(inventario_bp, url_prefix="/api/inventario")
+    app.register_blueprint(warehouse_bp, url_prefix="/api/almacenes")
 
     return app

@@ -28,7 +28,7 @@ import {
 import { navigate } from "@/functions/NavigationService";
 import { logOut, retrieveData } from "@/api/apiCalls";
 import ThemeSelector from "../ThemeSelector/ThemeSelector";
-import { useFetchUser } from "@/hooks/useFetchUser";
+import useFetchUser from "@/hooks/useFetchUser";
 
 export default function SideBar({ navigation }: DrawerContentComponentProps) {
   const isIOS = Platform.OS === "ios";

@@ -38,7 +38,7 @@ export default function ProductCard({ item }: ProductCardProps) {
         {item.image && item.image.trim() !== "" ? (
           <>
             <Image
-              source={{ uri: imageUri }}
+              source={{ uri: item.image }}
               style={styles.image}
               resizeMode="cover"
               onLoad={() => setLoading(false)}
@@ -96,4 +96,3 @@ export default function ProductCard({ item }: ProductCardProps) {
     </View>
   );
 }
-
