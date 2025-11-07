@@ -21,3 +21,15 @@ class InventoryRepository:
             .order_by(Inve01.CVE_ART, Ltpd01.LOTE)
             .all()
         )
+
+    def save_product(self, inventory_item: Inve01) -> None:
+        try:
+            Inve01.query.session.add(inventory_item)
+            Inve01.query.session.commit()
+        except Exception as e:
+            Inve01.query.session.rollback()
+            print(f"Error saving product: {e}")
+            raise e
+
+    def get_products(self) -> list[Inve01]:
+        return Inve01.query.all()
