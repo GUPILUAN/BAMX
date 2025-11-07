@@ -37,7 +37,7 @@ public class AuthDbConfig {
     HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 
     Map<String, Object> props = new HashMap<>();
-    props.put("hibernate.hbm2ddl.auto", "validate");
+
     props.put("hibernate.dialect", "org.hibernate.community.dialect.FirebirdDialect");
 
     LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();

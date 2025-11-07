@@ -1,7 +1,7 @@
 package com.bamx.backend.auth.controllers;
 
+import com.bamx.backend.auth.dtos.InfoUsuario;
 import com.bamx.backend.auth.services.UsuarioService;
-import com.bamx.backend.dtos.InfoUsuario;
 import com.bamx.backend.dtos.request.LoginRequest;
 import com.bamx.backend.dtos.response.ApiResponse;
 import com.bamx.backend.dtos.response.LoginResponse;

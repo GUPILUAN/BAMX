@@ -1,4 +1,4 @@
-package com.bamx.backend.dtos;
+package com.bamx.backend.auth.dtos;
 
 import lombok.*;
 

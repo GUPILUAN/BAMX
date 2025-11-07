@@ -37,7 +37,6 @@ public class EmpresaDbConfig {
     HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 
     Map<String, Object> props = new HashMap<>();
-    props.put("hibernate.hbm2ddl.auto", "validate");
     props.put(
         "hibernate.physical_naming_strategy",
         "com.bamx.backend.config.EmpresaPhysicalNamingStrategy");

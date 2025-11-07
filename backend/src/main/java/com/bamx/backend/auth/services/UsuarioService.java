@@ -1,5 +1,6 @@
 package com.bamx.backend.auth.services;
 
+import com.bamx.backend.auth.dtos.InfoUsuario;
 import com.bamx.backend.auth.models.FotoUsuario;
 import com.bamx.backend.auth.models.Rol1005;
 import com.bamx.backend.auth.models.TokenBlockList;
@@ -13,7 +14,6 @@ import com.bamx.backend.auth.repositories.UsuarioRepository;
 import com.bamx.backend.auth.utils.AspelHash;
 import com.bamx.backend.auth.utils.TokenDecoder;
 import com.bamx.backend.dtos.DecodedToken;
-import com.bamx.backend.dtos.InfoUsuario;
 import com.bamx.backend.dtos.request.LoginRequest;
 import com.bamx.backend.dtos.response.LoginResponse;
 import com.bamx.backend.exception.Exception.InvalidCredentialsException;
