@@ -7,10 +7,10 @@ on:
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      # Detect changes in backend/
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -18,26 +18,25 @@ jobs:
             backend:
               - 'backend/**'
 
-      # Run tests only if backend changed
-
-      - name: Install Dependencies
+      - name: Set up JDK 25
         if: steps.filter.outputs.backend == 'true'
-        run: |
-          cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          export PYTHONPATH="$PYTHONPATH:$(pwd)"
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "25"
 
+      # Ejecutar tests con Maven
       - name: Run Backend Tests
         if: steps.filter.outputs.backend == 'true'
         run: |
           cd backend
-          pytest --maxfail=1 --disable-warnings -q --cov=. --cov-report=xml --cov-report=term
+          mvn -B test
 
+      # Subir cobertura a Codecov
       - name: Upload Coverage to Codecov
         if: steps.filter.outputs.backend == 'true'
         uses: codecov/codecov-action@v4
         with:
-          files: ./backend/coverage.xml
+          files: ./backend/target/site/jacoco/jacoco.xml
           flags: backend
           fail_ci_if_error: true
