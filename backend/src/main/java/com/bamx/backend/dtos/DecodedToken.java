@@ -10,6 +10,7 @@ public record DecodedToken(
     @NotNull String usuario,
     @NotBlank String rol,
     @NotBlank String empresa,
+    @NotNull Integer status,
     @NotNull LocalDateTime issuedAt,
     @NotNull LocalDateTime expiration,
     @NotNull @NotBlank String jti,

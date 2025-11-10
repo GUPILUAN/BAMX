@@ -1,7 +1,8 @@
 package com.bamx.backend.dtos;
 
 import java.time.LocalDateTime;
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
 
 @Data
 @Builder

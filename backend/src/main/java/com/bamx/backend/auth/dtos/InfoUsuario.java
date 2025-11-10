@@ -5,13 +5,14 @@ import lombok.*;
 @Data
 @Builder
 public class InfoUsuario {
-  private Integer idUsr;
-  private String nombre;
-  private String usuario;
-  private String mail;
-  private byte[] fotografia;
-  private String rol;
-  private Integer empresa;
-  private String puesto;
-  private String depto;
+  private Integer id;
+  private String name;
+  private String username;
+  private String email;
+  private String role;
+  private Integer company;
+  private String position;
+  private String department;
+  private Integer status;
+  private String profile_picture;
 }

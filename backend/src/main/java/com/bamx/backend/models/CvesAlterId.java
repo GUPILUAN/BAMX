@@ -1,7 +1,9 @@
 package com.bamx.backend.models;
 
 import java.io.Serializable;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor

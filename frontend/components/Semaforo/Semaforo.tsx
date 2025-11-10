@@ -1,91 +1,25 @@
 import { View, Text, ScrollView } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { LinearGradient } from "expo-linear-gradient";
 import FeaturedRow from "../FeaturedRow/FeaturedRow";
-// import { productosDummy } from "../constants/Products";
 import { InventoryItem } from "@/types/InventoryItem";
 import styles from "./styles";
+import useSemaforoStats from "@/hooks/useSemaforoStats";
 
 export default function Semaforo({
   productos,
 }: {
   productos: InventoryItem[];
 }) {
-  const critic = 1024;
-  const warning = 2048;
-  const stable = 4096;
-  const status = [
-    { title: "Estado crítico", category: "crítico" },
-    { title: "Estado prioritario", category: "prioritario" },
-    { title: "Estado estable", category: "estable" },
-  ];
-
-  function lerp(a: number, b: number, t: number) {
-    return a + t * (b - a);
-  }
-
-  const productosFiltered: { [key: string]: InventoryItem[] } = {
-    crítico: [],
-    prioritario: [],
-    estable: [],
-  };
-
-  function evaluarFechaDelProducto(producto: InventoryItem) {
-    if (!producto.expiration_date) {
-      productosFiltered.crítico.push(producto);
-    }
-
-    const hoy = new Date();
-    const fecha = new Date(producto.expiration_date || "");
-
-    const diferenciaTiempo = fecha.getTime() - hoy.getTime();
-
-    const diferenciaDias = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
-
-    if (diferenciaDias <= 2) {
-      productosFiltered.crítico.push(producto);
-    } else if (diferenciaDias <= 5) {
-      productosFiltered.prioritario.push(producto);
-    } else {
-      productosFiltered.estable.push(producto);
-    }
-  }
-
-  const getColor = (state: string) => {
-    if (state === "crítico") {
-      return "#FF4D4F";
-    } else if (state === "prioritario") {
-      return "#FFC107";
-    } else {
-      return "#52C41A";
-    }
-  };
-
-  productos?.forEach((producto) => {
-    evaluarFechaDelProducto(producto);
-  });
-
-  const findLocation = (
-    x: number,
-    y: number,
-    z: number
-  ): [number, number, ...number[]] => {
-    const total = x + y + z;
-    const locCritic = x / total;
-    const locStable = locCritic + y / total;
-    const locWarning = lerp(locCritic, locStable, 0.5);
-    // Ensure the return type is a tuple with at least two elements
-    const location: [number, number, ...number[]] = [
-      0,
-      locCritic,
-      locWarning,
-      locStable,
-      1,
-    ];
-    return location;
-  };
-
-  const locations = findLocation(critic, warning, stable);
+  const {
+    productsFiltered,
+    status,
+    getColor,
+    critic,
+    warning,
+    stable,
+    locations,
+  } = useSemaforoStats(productos);
 
   return (
     <View className="flex-1 justify-end items-center w-full">
@@ -140,7 +74,7 @@ export default function Semaforo({
               <FeaturedRow
                 key={index}
                 status={s}
-                productos={productosFiltered[s.category]}
+                productos={productsFiltered[s.category]}
               />
             );
           })}

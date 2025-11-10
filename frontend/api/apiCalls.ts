@@ -3,15 +3,16 @@ import { deleteData, getData, saveData } from "../functions/userKey";
 import { replace } from "../functions/NavigationService";
 
 const instance = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:5000",
+  baseURL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080",
 });
 
 instance.interceptors.request.use(
   async (config) => {
     if (
-      config.url === "/api/auth/login" ||
+      config.url === "/api/usuarios/login" ||
       // config.url === "/api/auth/register" ||
-      config.url === "/api/auth/token/refresh"
+      config.url === "/api/usuarios/refresh-token" ||
+      config.url === "/api/usuarios/logout"
     ) {
       return config;
     }
@@ -42,14 +43,25 @@ export const tokenExpired = (token: string) => {
 
 export const logOut = async () => {
   try {
+    const refresh_token = await getData("refresh");
+    if (!refresh_token) {
+      throw new Error("No refresh token found");
+    }
+    const response = await instance.post("/api/usuarios/logout", null, {
+      headers: {
+        Authorization: `Bearer ${refresh_token}`,
+      },
+    });
     await deleteData("access");
     await deleteData("refresh");
 
-    console.log("Sesión expirada, redirigiendo al login...");
-
-    replace("Auth");
+    if (response.status === 200) {
+      console.log("Sesión cerrada correctamente.");
+    }
   } catch (error) {
     console.error("Error al cerrar sesión:", error);
+  } finally {
+    replace("Auth");
   }
 };
 
@@ -59,7 +71,7 @@ const refreshToken = async () => {
     if (!refresh_token) {
       throw new Error("No refresh token found");
     }
-    const response = await instance.post("/api/auth/token/refresh", null, {
+    const response = await instance.post("/api/usuarios/refresh-token", null, {
       headers: {
         Authorization: `Bearer ${refresh_token}`,
       },
@@ -71,13 +83,14 @@ const refreshToken = async () => {
     }
     return access;
   } catch (error) {
+    replace("Auth");
     console.log("Error al refrescar el token:", error);
     throw error;
   }
 };
 
 export const loginUser = async (username: string, password: string) => {
-  const response = await instance.post("/api/auth/login", {
+  const response = await instance.post("/api/usuarios/login", {
     username: username,
     password: password,
   });
@@ -92,6 +105,23 @@ export const retrieveData = async (route: string) => {
     console.log("Server response:", response.data.message);
     return response.data.data;
   } catch (error) {
-    console.log("Error al obtener datos:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      console.error(
+        `Error ${error.response.status}:`,
+        error.response.data.message
+      );
+    }
+  }
+};
+
+export const getImage = async (url: string) => {
+  try {
+    const response = await instance.get(url, { responseType: "arraybuffer" });
+    const base64 = Buffer.from(response.data, "binary").toString("base64");
+    const uri = `data:image/jpeg;base64,${base64}`;
+    return uri;
+  } catch (e) {
+    console.error(e);
+    return null;
   }
 };

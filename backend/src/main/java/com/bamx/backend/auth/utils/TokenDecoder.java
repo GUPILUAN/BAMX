@@ -40,15 +40,18 @@ public class TokenDecoder {
       String type = claims.get("type", String.class);
       String rol = "";
       String empresa = "";
+      Integer status = 0;
       List<String> permissions = List.of();
       if (!type.equals("refresh")) {
         rol = claims.get("rol").toString();
         empresa = "0" + claims.get("empresa").toString();
+        status = Integer.parseInt(claims.get("status").toString());
       }
       return new DecodedToken(
           claims.getSubject(),
           rol,
           empresa,
+          status,
           claims.getIssuedAt().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
           claims.getExpiration().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime(),
           jti,
@@ -76,6 +79,39 @@ public class TokenDecoder {
 
     if (decodedToken.isExpired()) {
       throw new TokenDecodeException("Token has expired");
+    }
+
+    if (decodedToken.jti() == null || decodedToken.jti().isBlank()) {
+      throw new TokenDecodeException("Token jti is missing");
+    }
+
+    if (decodedToken.usuario() == null || decodedToken.usuario().isBlank()) {
+      throw new TokenDecodeException("Token subject is missing");
+    }
+
+    if (decodedToken.type() == null || decodedToken.type().isBlank()) {
+      throw new TokenDecodeException("Token type is missing");
+    }
+
+    if (decodedToken.issuedAt() == null) {
+      throw new TokenDecodeException("Token issuedAt is missing");
+    }
+
+    if (decodedToken.expiration() == null) {
+      throw new TokenDecodeException("Token expiration is missing");
+    }
+
+    if (decodedToken.type().equals("access")
+        && (decodedToken.rol() == null || decodedToken.rol().isBlank())) {
+      throw new TokenDecodeException("Token role is missing");
+    }
+    if (decodedToken.type().equals("access")
+        && (decodedToken.empresa() == null || decodedToken.empresa().isBlank())) {
+      throw new TokenDecodeException("Token company is missing");
+    }
+
+    if (decodedToken.type().equals("access") && decodedToken.status() == 0) {
+      throw new TokenDecodeException("Status is inactive");
     }
 
     tokenBlockListRepository

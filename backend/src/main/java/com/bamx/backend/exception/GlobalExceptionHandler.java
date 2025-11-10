@@ -25,6 +25,14 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(errorResponse, status);
   }
 
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+      ResourceNotFoundException ex) {
+    HttpStatus status = HttpStatus.NOT_FOUND;
+    ErrorResponse errorResponse = new ErrorResponse(status.value(), ex.getMessage());
+    return new ResponseEntity<>(errorResponse, status);
+  }
+
   @ExceptionHandler(InvalidCredentialsException.class)
   public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(
       InvalidCredentialsException ex) {

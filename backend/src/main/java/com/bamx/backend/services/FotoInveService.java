@@ -16,4 +16,10 @@ public class FotoInveService {
   public List<FotoInveDto> getAllFotoInve() {
     return fotoInveMapper.toDtoList(fotoInveRepository.findAll());
   }
+
+  public byte[] getFotoByCveArt(String cveArt) {
+    return cveArt == null
+        ? null
+        : fotoInveRepository.findById(cveArt).map(fotoInve -> fotoInve.getFoto()).orElse(null);
+  }
 }

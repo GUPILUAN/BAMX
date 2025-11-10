@@ -8,6 +8,7 @@ import {
   ScrollView,
   Dimensions,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -61,7 +62,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
     textTailwind: isDark ? "text-gray-300" : "text-gray-900",
   };
 
-  const { user } = useFetchUser();
+  const { user, userImage, loading, setLoading } = useFetchUser();
   const showLogoutAlert = () => {
     if (Platform.OS === "web") {
       const confirmed = window.confirm(
@@ -230,7 +231,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
             <ThemeSelector />
             <View
               className={
-                "flex-row items-center justify-between px-5 pt-10 " +
+                "flex-row items-center justify-evenly px-5 pt-10 " +
                 (!isWeb ? "absolute w-full bottom-0" : "")
               }
             >
@@ -238,19 +239,31 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
                 className="flex-row items-center"
                 onPress={() => navigate("Usuario")}
               >
-                <Image
-                  source={{
-                    // blob de la imagen en base64 o URL
-                    uri: user?.profile_picture
-                      ? `data:image/jpeg;base64,${user.profile_picture}`
-                      : "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png",
-                  }}
-                  style={{ width: 50, height: 50, borderRadius: 20 }}
-                />
+                {userImage && (
+                  <>
+                    <Image
+                      source={{
+                        // blob de the image in base64 or URL
+                        uri: userImage,
+                      }}
+                      onLoad={() => setLoading(false)}
+                      style={{ width: 50, height: 50, borderRadius: 20 }}
+                    />
+                    {loading && (
+                      <View testID="loading-indicator">
+                        <ActivityIndicator
+                          size="small"
+                          style={{ borderRadius: 20 }}
+                        />
+                      </View>
+                    )}
+                  </>
+                )}
+
                 <Text
                   className={`${themeColorsTailwind.textTailwind} ml-2 text-lg`}
                 >
-                  {user ? user.name : "Usuario"}
+                  {user?.name || "Usuario"}
                 </Text>
               </TouchableOpacity>
 

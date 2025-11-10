@@ -25,10 +25,6 @@ export default function ProductCard({ item }: ProductCardProps) {
 
   const [loading, setLoading] = useState<boolean>(true);
 
-  const imageUri = item.image
-    ? `data:image/jpeg;base64,${item.image}`
-    : "https://upload.wikimedia.org/wikipedia/commons/a/a3/Image-not-found.png";
-
   return (
     <View
       style={styles.cardContainer}
@@ -38,7 +34,7 @@ export default function ProductCard({ item }: ProductCardProps) {
         {item.image && item.image.trim() !== "" ? (
           <>
             <Image
-              source={{ uri: imageUri }}
+              source={{ uri: item.image }}
               style={styles.image}
               resizeMode="cover"
               onLoad={() => setLoading(false)}
@@ -96,4 +92,3 @@ export default function ProductCard({ item }: ProductCardProps) {
     </View>
   );
 }
-

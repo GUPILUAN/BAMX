@@ -1,12 +1,10 @@
 package com.bamx.backend.auth.services;
 
 import com.bamx.backend.auth.dtos.InfoUsuario;
-import com.bamx.backend.auth.models.FotoUsuario;
 import com.bamx.backend.auth.models.Rol1005;
 import com.bamx.backend.auth.models.TokenBlockList;
 import com.bamx.backend.auth.models.UsrEmp;
 import com.bamx.backend.auth.models.Usuario;
-import com.bamx.backend.auth.repositories.FotoUsuarioRepository;
 import com.bamx.backend.auth.repositories.Rol1005Repository;
 import com.bamx.backend.auth.repositories.TokenBlockListRepository;
 import com.bamx.backend.auth.repositories.UsrEmpRepository;
@@ -26,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -35,8 +32,11 @@ public class UsuarioService {
   private final UsuarioRepository usuarioRepository;
   private final TokenBlockListRepository tokenBlockListRepository;
   private final UsrEmpRepository usrEmpRepository;
-  private final FotoUsuarioRepository fotoUsuarioRepository;
   private final Rol1005Repository rol1005Repository;
+  private final FotoUsuarioService fotoUsuarioService;
+
+  @Value("${app.host.url}")
+  private String hostUrl;
 
   @Value("${jwt.secret}")
   private String jwtSecret;
@@ -56,13 +56,15 @@ public class UsuarioService {
     this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
   }
 
-  public InfoUsuario findById(@NonNull Integer id) {
+  public InfoUsuario findById(Integer id) {
+    if (id == null) {
+      throw new UserNotFoundException("User ID cannot be null.");
+    }
     Usuario usuario =
         usuarioRepository
             .findById(id)
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
-    FotoUsuario fotoUsuario = fotoUsuarioRepository.findById(id).orElse(null);
-    byte[] foto = fotoUsuario != null ? fotoUsuario.getFotografia() : null;
+
     UsrEmp usrEmp =
         usrEmpRepository
             .findByIdUsr(id)
@@ -77,16 +79,23 @@ public class UsuarioService {
             .findById(idRol)
             .orElseThrow(() -> new UserNotFoundException("No role found for the user."));
 
+    boolean hasProfilePicture = fotoUsuarioService.hasProfilePicture(id);
+    String profilePictureUrl =
+        hasProfilePicture
+            ? hostUrl + "/api/foto-usuario/"
+            : "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png";
+
     return InfoUsuario.builder()
-        .idUsr(usuario.getIdUsr())
-        .usuario(usuario.getUsuario())
-        .nombre(usuario.getNombre())
-        .mail(usuario.getMail())
-        .puesto(usuario.getPuesto())
-        .depto(usuario.getDepto())
-        .empresa(usrEmp.getEmpresa())
-        .rol(rol1005.getNombre())
-        .fotografia(foto)
+        .id(usuario.getIdUsr())
+        .username(usuario.getUsuario())
+        .name(usuario.getNombre())
+        .email(usuario.getMail())
+        .position(usuario.getPuesto())
+        .department(usuario.getDepto())
+        .company(usrEmp.getEmpresa())
+        .role(rol1005.getNombre())
+        .status(usrEmp.getStatus())
+        .profile_picture(profilePictureUrl)
         .build();
   }
 
@@ -164,6 +173,7 @@ public class UsuarioService {
         .claim("type", "access")
         .claim("rol", rol1005.getNombre())
         .claim("empresa", usrEmp.getEmpresa().toString().trim())
+        .claim("status", usrEmp.getStatus().toString().trim())
         .signWith(key)
         .compact();
   }

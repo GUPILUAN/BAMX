@@ -7,6 +7,12 @@ public class Exception {
     }
   }
 
+  public static class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String message) {
+      super(message);
+    }
+  }
+
   public static class InvalidCredentialsException extends RuntimeException {
     public InvalidCredentialsException(String message) {
       super(message);

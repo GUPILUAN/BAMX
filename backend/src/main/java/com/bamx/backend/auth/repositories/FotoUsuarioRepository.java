@@ -5,4 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface FotoUsuarioRepository extends JpaRepository<FotoUsuario, Integer> {}
+public interface FotoUsuarioRepository extends JpaRepository<FotoUsuario, Integer> {
+  boolean existsByIdUsr(Integer idUsr);
+}

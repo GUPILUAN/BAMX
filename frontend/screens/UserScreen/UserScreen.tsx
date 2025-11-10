@@ -1,13 +1,14 @@
 import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
 import { useSelector } from "react-redux";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { selectUser } from "@/slices/userSlice";
+import { selectUser, selectUserImage } from "@/slices/userSlice";
 import useUserColorScheme from "@/hooks/useUserColorScheme";
 import { User } from "@/types/User";
 import { themeColors } from "@/theme";
 
 export default function ProfileScreen() {
   const user: User | undefined = useSelector(selectUser);
+  const userImage: string | undefined = useSelector(selectUserImage);
   const { isDark } = useUserColorScheme();
 
   if (!user) {
@@ -37,12 +38,10 @@ export default function ProfileScreen() {
           className="items-center mb-6 p-6 rounded-2xl"
           style={{ backgroundColor: themeColors.headerBackground(isDark) }}
         >
-          {user.profile_picture ? (
+          {userImage ? (
             <Image
               source={{
-                uri: user?.profile_picture
-                  ? `data:image/jpeg;base64,${user.profile_picture}`
-                  : "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png",
+                uri: userImage,
               }}
               className="w-32 h-32 rounded-full border-4 border-white"
             />
@@ -81,9 +80,6 @@ export default function ProfileScreen() {
           </Text>
           <Text style={{ color: themeColors.text(isDark), opacity: 0.8 }}>
             E-mail: {user.email ?? "No disponible"} 📧
-          </Text>
-          <Text style={{ color: themeColors.text(isDark), opacity: 0.8 }}>
-            Teléfono: {user.phone ?? "No disponible"} 📱
           </Text>
         </View>
 

@@ -1,7 +1,14 @@
 package com.bamx.backend.models;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "ENLACE_LTPD")
@@ -14,7 +21,7 @@ public class EnlaceLtpd {
 
   @Id
   @Column(name = "E_LTPD", nullable = false)
-  private Integer eLtpd; // Enlace LTPD Key
+  private Integer e_Ltpd; // Enlace LTPD Key
 
   @Id
   @Column(name = "REG_LTPD")
