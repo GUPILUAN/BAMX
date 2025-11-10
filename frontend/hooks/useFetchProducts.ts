@@ -8,6 +8,7 @@ const useFetchProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       const data = await retrieveData("/api/lotes/");
+
       setProducts(data?.content || productosDummy.items);
     };
     fetchProducts();

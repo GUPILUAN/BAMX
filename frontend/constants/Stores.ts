@@ -6,7 +6,7 @@ export const contenedoresDummy = {
     {
       id: 1,
       name: "Congelador 1",
-      is_active: true,
+      active: true,
       last_opened: "18 de agosto 2025- 11:22am",
       temperature: -18,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
@@ -21,7 +21,7 @@ export const contenedoresDummy = {
     {
       id: 2,
       name: "Refrigerador 1",
-      is_active: true,
+      active: true,
       last_opened: "16 de agosto 2025 - 10:45am",
       temperature: -2,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
@@ -36,7 +36,7 @@ export const contenedoresDummy = {
     {
       id: 3,
       name: "Refrigerador 2",
-      is_active: false,
+      active: false,
       last_opened: "4 de agosto 2025 - 5:01am",
       temperature: -1,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
@@ -51,7 +51,7 @@ export const contenedoresDummy = {
     {
       id: 4,
       name: "Refrigerador 3",
-      is_active: true,
+      active: true,
       last_opened: "6 de agosto 2025 - 8:05am",
       temperature: -3,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],

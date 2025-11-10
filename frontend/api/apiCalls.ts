@@ -103,6 +103,7 @@ export const retrieveData = async (route: string) => {
   try {
     const response = await instance.get(route);
     console.log("Server response:", response.data.message);
+
     return response.data.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

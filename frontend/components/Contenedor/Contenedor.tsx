@@ -1,33 +1,28 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, Dimensions, TouchableOpacity } from "react-native";
 import { StackedBarChart } from "../StackedBarChart/StackedBarChart";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
-import { Container } from "@/types/Container";
 import { themeColors } from "@/theme";
 import styles from "./styles";
 import getTemperatureStyle from "./utils/getTemperatureStyle";
 import getStatusStyle from "./utils/getStatusStyle";
+import { Warehouse } from "@/types/Warehouse";
 
 interface ContenedorProps {
-  contenedor: Container;
+  contenedor: Warehouse;
 }
 
 export default function Contenedor({ contenedor }: ContenedorProps) {
-  const [isActive, setIsActive] = useState(contenedor.is_active);
+  const [isActive, setIsActive] = useState(contenedor.active);
   const screenWidth = Dimensions.get("window").width;
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
   const toggleActiveStatus = () => {
     setIsActive((prev) => !prev);
-    contenedor.is_active = !contenedor.is_active;
+    contenedor.active = !contenedor.active;
   };
 
   const getIconName = () => {

@@ -61,7 +61,7 @@ export default function ProductCard({ item }: ProductCardProps) {
           </Text>
           <TouchableOpacity
             testID="info-button"
-            onPress={() => navigate("Details", { item })}
+            onPress={() => navigate("Details", { item: JSON.stringify(item) })}
           >
             <Ionicons
               name="information-circle-outline"

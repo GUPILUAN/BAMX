@@ -63,7 +63,7 @@ export default function Semaforo({
           />
         </View>
       </View>
-      <View className="flex-auto mb-12 pt-4">
+      <View className="flex-auto mb-24 pt-4">
         <ScrollView
           bounces={true}
           nestedScrollEnabled={true}

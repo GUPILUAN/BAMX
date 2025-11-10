@@ -12,36 +12,15 @@ const useSemaforoStats = (productos: InventoryItem[]) => {
   });
 
   useEffect(() => {
-    const críticos: InventoryItem[] = [];
-    const prioritarios: InventoryItem[] = [];
-    const estables: InventoryItem[] = [];
-
-    const evaluarFechaDelProducto = (producto: InventoryItem) => {
-      if (!producto.expiration_date) {
-        críticos.push(producto);
-        return;
-      }
-
-      const hoy = new Date();
-      const fecha = new Date(producto.expiration_date || "");
-
-      const diferenciaTiempo = fecha.getTime() - hoy.getTime();
-
-      const diferenciaDias = Math.ceil(
-        diferenciaTiempo / (1000 * 60 * 60 * 24)
-      );
-
-      if (diferenciaDias <= 2) {
-        críticos.push(producto);
-      } else if (diferenciaDias <= 5) {
-        prioritarios.push(producto);
-      } else {
-        estables.push(producto);
-      }
-    };
-    productos?.forEach((producto) => {
-      evaluarFechaDelProducto(producto);
-    });
+    const críticos: InventoryItem[] = productos.filter(
+      (producto) => producto.status === "critical"
+    );
+    const prioritarios: InventoryItem[] = productos.filter(
+      (producto) => producto.status === "warning"
+    );
+    const estables: InventoryItem[] = productos.filter(
+      (producto) => producto.status === "good"
+    );
     setProductsFiltered({
       crítico: críticos,
       prioritario: prioritarios,
@@ -53,9 +32,9 @@ const useSemaforoStats = (productos: InventoryItem[]) => {
     title: string;
     category: "crítico" | "prioritario" | "estable";
   }[] = [
-    { title: "Estado crítico", category: "crítico" },
-    { title: "Estado prioritario", category: "prioritario" },
-    { title: "Estado estable", category: "estable" },
+    { title: "Lotes en estado crítico", category: "crítico" },
+    { title: "Lotes en estado prioritario", category: "prioritario" },
+    { title: "Lotes en estado estable", category: "estable" },
   ];
 
   function lerp(a: number, b: number, t: number) {
@@ -72,9 +51,15 @@ const useSemaforoStats = (productos: InventoryItem[]) => {
     }
   };
 
-  const critic = productsFiltered["crítico"].length;
-  const warning = productsFiltered["prioritario"].length;
-  const stable = productsFiltered["estable"].length;
+  const critic = productsFiltered["crítico"]
+    .map((p) => p.available_quantity)
+    .reduce((a, b) => a + b, 0);
+  const warning = productsFiltered["prioritario"]
+    .map((p) => p.available_quantity)
+    .reduce((a, b) => a + b, 0);
+  const stable = productsFiltered["estable"]
+    .map((p) => p.available_quantity)
+    .reduce((a, b) => a + b, 0);
 
   const findLocation = (
     x: number,
