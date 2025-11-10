@@ -14,53 +14,53 @@ public class Ltpd {
 
   @Id
   @Column(name = "REG_LTPD", nullable = false)
-  private Integer regLtpd;
+  private Integer regLtpd; // Registro LTPD Key, [Table ID = 48 in TBLCONTROL for new records]
 
   @Column(name = "CVE_ART", length = 16, nullable = false)
-  private String cveArt;
+  private String cveArt; // Article Key
 
   @Column(name = "LOTE", length = 12)
-  private String lote;
+  private String lote; // Lot
 
   @Column(name = "PEDIMENTO", length = 21)
-  private String pedimento;
+  private String pedimento; // Customs Declaration
 
   @Column(name = "CVE_ALM")
-  private Integer cveAlm;
+  private Integer cveAlm; // Warehouse Key
 
   @Column(name = "FCHCADUC")
-  private LocalDateTime fchCaduc;
+  private LocalDateTime fchCaduc; // Expiration Date
 
   @Column(name = "FCHADUANA")
-  private LocalDateTime fchAduana;
+  private LocalDateTime fchAduana; // Customs Date
 
   @Column(name = "FCHULTMOV")
-  private LocalDateTime fchUltMov;
+  private LocalDateTime fchUltMov; // Last Movement Date
 
   @Column(name = "NOM_ADUAN", length = 40)
-  private String nomAduan;
+  private String nomAduan; // Customs Name
 
   @Column(name = "CANTIDAD")
-  private Double cantidad;
+  private Double cantidad; // Quantity
 
   @Column(name = "CVE_OBS")
-  private Integer cveObs;
+  private Integer cveObs; // Observation Key
 
   @Column(name = "CIUDAD", length = 60)
-  private String ciudad;
+  private String ciudad; // City
 
   @Column(name = "FRONTERA", length = 60)
-  private String frontera;
+  private String frontera; // Border
 
   @Column(name = "FEC_PROD_LT")
-  private LocalDateTime fecProdLt;
+  private LocalDateTime fecProdLt; // Production Date LT
 
   @Column(name = "GLN", length = 13)
-  private String gln;
+  private String gln; // Global Location Number
 
   @Column(name = "STATUS", length = 1)
-  private String status;
+  private String status; // Status (A=Active, B=Inactive)
 
   @Column(name = "PEDIMENTOSAT", length = 21)
-  private String pedimentoSat;
+  private String pedimentoSat; // Customs Declaration SAT
 }

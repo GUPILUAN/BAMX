@@ -13,9 +13,9 @@ public class FotoInve {
 
   @Id
   @Column(name = "CVE_ART", length = 16, nullable = false)
-  private String cveArt;
+  private String cveArt; // Article Key
 
   @Lob
   @Column(name = "FOTO")
-  private byte[] foto;
+  private byte[] foto; // Photo (image data)
 }

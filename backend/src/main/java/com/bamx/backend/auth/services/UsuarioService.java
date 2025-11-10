@@ -157,7 +157,7 @@ public class UsuarioService {
             .orElseThrow(() -> new UserNotFoundException("No role found for the user."));
 
     return Jwts.builder()
-        .setId(UUID.randomUUID().toString())
+        .setId(UUID.randomUUID().toString().toUpperCase())
         .setSubject(usuario.getUsuario())
         .setIssuedAt(new java.util.Date(now))
         .setExpiration(new java.util.Date(now + jwtExpiration))
@@ -171,7 +171,7 @@ public class UsuarioService {
   private String generateRefreshJwtToken(Usuario usuario) {
     long now = System.currentTimeMillis();
     return Jwts.builder()
-        .setId(UUID.randomUUID().toString())
+        .setId(UUID.randomUUID().toString().toUpperCase())
         .setSubject(usuario.getUsuario())
         .setIssuedAt(new java.util.Date(now))
         .setExpiration(new java.util.Date(now + jwtRefreshExpiration))
