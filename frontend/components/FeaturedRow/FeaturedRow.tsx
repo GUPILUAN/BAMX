@@ -28,8 +28,6 @@ interface FeaturedRowProps {
 export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
-  // const navigation = useNavigation();
-  // const products = useFetchProducts();
   const isWeb = Platform.OS === "web";
   const iconColor = (category: string) =>
     category === "crítico"
@@ -70,7 +68,7 @@ export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
           horizontal
           bounces={false}
           ListFooterComponent={
-            productos.length > 10 ? (
+            productos.length > 0 ? (
               <TouchableOpacity
                 className="items-center justify-center p-3"
                 onPress={() => {
@@ -97,16 +95,31 @@ export default function FeaturedRow({ status, productos }: FeaturedRowProps) {
                       (isDark ? "text-white" : "text-black")
                     }
                   >
-                    Ver más
+                    Ver inventario
                   </Text>
                 </View>
               </TouchableOpacity>
-            ) : null
+            ) : (
+              <View
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 5 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 7,
+                }}
+                className="mr-8 rounded-3xl shadow-lg w-48 h-48 border-2 border-gray-300 justify-center items-center"
+              >
+                <Text
+                  style={{ color: isDark ? "white" : "black" }}
+                  className="text-center"
+                >
+                  No hay productos disponibles
+                </Text>
+              </View>
+            )
           }
         />
       </View>
     </View>
   );
 }
-
-

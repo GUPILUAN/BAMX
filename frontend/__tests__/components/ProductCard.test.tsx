@@ -59,9 +59,10 @@ describe("ProductCard", () => {
     expiration_date: "2025-08-30", // Ltpd01.FCHCADUC
     last_movement: "2025-08-15", // Ltpd01.FCHULTMOV
     warehouse: 1, // Ltpd01.CVE_ALM
-    status: "A", // Ltpd01.STATUS
+    status: "critical", // Ltpd01.STATUS
     type: "fruit", // Inve01.LINEA
     image: "https://example.com/test-image.jpg",
+    type_id: "fruit01", // Inve01.CVE_LINEA
   };
 
   beforeEach(() => {
@@ -140,9 +141,10 @@ describe("ProductCard", () => {
       expiration_date: "2025-08-30", // Ltpd01.FCHCADUC
       last_movement: "2025-08-15", // Ltpd01.FCHULTMOV
       warehouse: 1, // Ltpd01.CVE_ALM
-      status: "A", // Ltpd01.STATUS
+      status: "critical", // Ltpd01.STATUS
       type: "fruit", // Inve01.LINEA
       image: null,
+      type_id: "fruit01", // Inve01.CVE_LINEA
     };
 
     const { getByText } = render(
@@ -170,7 +172,9 @@ describe("ProductCard", () => {
       fireEvent.press(infoButton);
     });
 
-    expect(navigate).toHaveBeenCalledWith("Details", { item: mockProduct });
+    expect(navigate).toHaveBeenCalledWith("Details", {
+      item: JSON.stringify(mockProduct),
+    });
   });
 
   it("handles button presses without errors", async () => {

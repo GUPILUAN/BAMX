@@ -51,7 +51,7 @@ describe("Contenedor", () => {
   const mockContainerActive: Container = {
     id: 1,
     name: "Refrigerador Principal",
-    is_active: true,
+    active: true,
     last_opened: "2025-09-27 10:30:00",
     temperature: -5.5,
     labels: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"],
@@ -66,7 +66,7 @@ describe("Contenedor", () => {
 
   const mockContainerInactive: Container = {
     ...mockContainerActive,
-    is_active: false,
+    active: false,
   };
 
   const mockContainerHotTemp: Container = {
@@ -226,7 +226,7 @@ describe("Contenedor", () => {
       });
 
       // Verify the container object itself was updated
-      expect(mockContainerActive.is_active).toBe(false);
+      expect(mockContainerActive.active).toBe(false);
     });
 
     it("applies correct styling to inactive status", () => {
@@ -260,7 +260,7 @@ describe("Contenedor", () => {
       });
 
       // Verify the container object itself was updated
-      expect(mockContainerInactive.is_active).toBe(true);
+      expect(mockContainerInactive.active).toBe(true);
     });
   });
 
@@ -342,7 +342,7 @@ describe("Contenedor", () => {
       const zeroTempContainer: Container = {
         ...mockContainerActive,
         temperature: 0,
-        is_active: true,
+        active: true,
       };
 
       const { getByText } = render(
@@ -358,7 +358,7 @@ describe("Contenedor", () => {
       const lowTempContainer: Container = {
         ...mockContainerActive,
         temperature: -50.3,
-        is_active: true,
+        active: true,
       };
 
       const { getByText } = render(
@@ -375,7 +375,7 @@ describe("Contenedor", () => {
       const highTempContainer: Container = {
         ...mockContainerActive,
         temperature: 50.7,
-        is_active: true,
+        active: true,
       };
 
       const { getByText } = render(

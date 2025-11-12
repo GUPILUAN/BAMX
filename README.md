@@ -15,14 +15,14 @@
 ## Prerequisites
 
 - Node.js >= 18
-- Python >= 3.11
+- Java >= 21
 - Expo account (for frontend testing)
 
 ---
 
 ## Project Structure
 
-- backend/ # Flask API
+- backend/ # Spring Boot REST API
 - frontend/ # React Native + Expo app
 
 ---
@@ -48,26 +48,13 @@ To install the backend dependencies you can use this commands:
 
 ```bash
 cd backend
-
-# Using venv to create a virtual environment
-python -m venv venv
-source venv/bin/activate # Use this for macOS or Linux
-venv\Scripts\activate # Use this for Windows or Git bash
-
-# There is a requirements text file in the backend folder, we shall use it to get all the dependencies
-pip install -r requirements.txt
-
 ```
 
-> [!NOTE]
-> If you are using Visual Studio Code as your IDE, you can easily create and select a virtual environment and install depedencies without using the terminal.
->
-> 1. Open VS Code in BAMX folder.
-> 2. Press Command + Shift + P (for Mac) or Ctrl + Shift + P (for Windows/ Linux) to open the Command Palette.
-> 3. Type “Python: Select Interpreter” and press Enter.
-> 4. In the list, select Create Virtual Environment.
-> 5. Choose .venv as the environment name and select the Python version.
-> 6. When prompted, select the `requirements.txt` file located in the backend directory. → VS Code will automatically install all dependencies.
+And ensure you have Maven installed, then run:
+
+```bash
+mvn clean install
+```
 
 ### Frontend installation
 
@@ -96,21 +83,27 @@ npx expo login -u [youremail] -p [yourpassword]
 Copy .env.example into .env (you need to create this file) for environment variables working on the backend.
 
 ```bash
-# --- Flask ---
-FLASK_ENV=development
+JWT_SECRET=jwt_secret_key_example_please_change_this_to_a_secure_random_value
+ACCESS_TOKEN_EXPIRATION=600000
+REFRESH_TOKEN_EXPIRATION=2592000000
+APP_HOST_URL=http://api_url:8080
+APP_IMAGES_PATH=C:/Program Files (x86)/Common Files/Aspel/Sistemas Aspel/SAE8.00/Empresa01/Imagenes/
+DATABASE_PORT_EMPRESA=3050
+DATABASE_HOST_EMPRESA=localhost
+DATABASE_PATH_EMPRESA=C:/Program Files (x86)/Common Files/Aspel/Sistemas Aspel/SAE8.00/Ejemplos/Ejemplos.fdb
+DATABASE_USERNAME_EMPRESA=sysdba
+DATABASE_PASSWORD_EMPRESA=masterkey
+DATABASE_PORT_AUTH=3050
+DATABASE_HOST_AUTH=localhost
+DATABASE_PATH_AUTH=C:/Program Files (x86)/Common Files/Aspel/Perfiles/PERFILES.FDB
+DATABASE_USERNAME_AUTH=sysdba
+DATABASE_PASSWORD_AUTH=masterkey
+```
 
-# --- JWT ---
-JWT_SECRET_KEY=super-jwt-secret
-JWT_ACCESS_TOKEN_EXPIRES=3600
+Then you must run this command to load the environment variables, use a bash terminal (you must be in the backend folder and every time you open a new terminal):
 
-# --- Database (Firebird) ---
-# Format: firebird+fdb://usuario:password@host:port/route/base.fdb
-# using fdb driver  firebird+fdb://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
-# using firebird-driver firebird+firebird://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
-SQLALCHEMY_DATABASE_URI=firebird+fdb://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
-
-SQLALCHEMY_ECHO=false
-SQLALCHEMY_TRACK_MODIFICATIONS=false
+```bash
+source loadenv.sh
 ```
 
 ### Frontend environment variables
@@ -120,28 +113,28 @@ Copy the flask server ip address (you get it when you start flask), make sure no
 ```bash
 EXPO_PUBLIC_API_URL=http://your_computer_ip:5000
 EXPO_PUBLIC_ENV=development
+EXPO_PUBLIC_MQTT_BROKER_URL=wss://localhost:1883/mqtt
+EXPO_PUBLIC_MQTT_USERNAME=user
+EXPO_PUBLIC_MQTT_PASSWORD=password
 ```
 
 ---
 
 ## Database Initialization
 
-In the backend environment variables you can find the SQLALCHEMY_DATABASE_URI it's using the URI for firebird+fdb (banco de alimentos legacy system)
-
 You must have installed Firebird Server. BAMX uses Firebird 2.5. You can found it here: [Firebird(2.5)](https://firebirdsql.org/en/firebird-2-5/)
 
 > [!WARNING]
 > For Mac users: Apple 'M' Family Chips are not supported
 
-```bash
-# --- Database (Firebird) ---
-# Format: firebird+fdb://usuario:password@host:port/route/base.fdb
-# using fdb driver  firebird+fdb://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
-# using firebird-driver firebird+firebird://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
-SQLALCHEMY_DATABASE_URI=firebird+fdb://sysdba:masterkey@localhost///home/testuser/projects/databases/my_project.fdb
-```
+In the backend environment variables you can find 2 diferent variables for database connection:
 
----
+- **DATABASE_PATH_EMPRESA**: Path to the empresa database (where inventory of banco de alimentos is stored)
+- **DATABASE_PATH_AUTH**: Path to the auth database (where aspel profiles are stored)
+
+The default values are set to the example databases that comes with Aspel SAE installation. You can change them to your own database paths. It is using the sysdba user with masterkey password by default, you can change it too if needed.
+
+The default port is 3050 because is the default port for Firebird and the host is localhost, you can change them too if needed.
 
 ## Run the Project in Dev Mode
 
@@ -149,21 +142,8 @@ SQLALCHEMY_DATABASE_URI=firebird+fdb://sysdba:masterkey@localhost///home/testuse
 
 ```bash
 cd backend
-#Start Flask server
-export FLASK_APP=app # macOS or Linux
-export FLASK_ENV=development
-flask run
-
-set FLASK_APP=app # Windows
-set FLASK_ENV=development
-flask run
-```
-
-or
-
-```bash
-cd backend
-python run.py # Try python3 if that line does not work
+source loadenv.sh # if you open a new terminal or haven't loaded the env variables yet
+mvn spring-boot:run
 ```
 
 ### Frontend dev mode
@@ -173,11 +153,13 @@ cd frontend
 npx expo start
 ```
 
+> [!IMPORTANT]
+> For both the backend and frontend you must ensure that the environment variables are loaded correctly.
+> Find more info about environment variables in the [Environment Variables](#environment-variables) section.
+
 ---
 
 ## Test Running
-
-The tests are located in frontend/**tests**, the test must run perfectly to create pull requests
 
 - Use this command to run tests in the frontend.
 
@@ -190,5 +172,8 @@ npm run test
 
 ```bash
 cd backend
-pytest
+mvn test
 ```
+
+> [!IMPORTANT]
+> Since the backend uses testcontainers for testing, ensure that you have Docker installed and running on your machine before executing the tests.

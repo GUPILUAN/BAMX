@@ -7,8 +7,9 @@ const useFetchProducts = () => {
   const [products, setProducts] = useState<InventoryItem[]>([]);
   useEffect(() => {
     const fetchProducts = async () => {
-      const data = await retrieveData("/api/inventario/");
-      setProducts( data?.items || productosDummy.items);
+      const data = await retrieveData("/api/lotes/");
+
+      setProducts(data?.content || productosDummy.items);
     };
     fetchProducts();
   }, []);

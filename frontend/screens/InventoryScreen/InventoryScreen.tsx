@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   View,
   Platform,
@@ -15,6 +15,7 @@ import SearchHeader from "@/components/SearchHeader/SearchHeader";
 import ProductList from "@/components/ProductList/ProductList";
 import { TouchableOpacity } from "react-native";
 import { InventoryItem } from "@/types/InventoryItem";
+import useFetchProducts from "@/hooks/useFetchProducts";
 
 export default function InventoryScreen() {
   const theme = useSelector(selectTheme);
@@ -25,7 +26,7 @@ export default function InventoryScreen() {
     textTailwind: isDark ? "text-gray-300" : "text-gray-900",
   };
 
-  const [products, setProducts] = useState<InventoryItem[]>([]);
+  const products = useFetchProducts();
   const [query, setQuery] = useState("");
   const [filteredResults, setFilteredResults] = useState(
     products.length > 0 ? products : []
@@ -140,10 +141,6 @@ export default function InventoryScreen() {
   const handleSelect = (newData: number) => {
     setSelectedNumber(newData);
   };
-  useEffect(
-    () => setProducts(showProducts(selectedNumber)),
-    [selectedNumber, filteredResults]
-  );
 
   return (
     <SafeAreaView
@@ -175,6 +172,7 @@ export default function InventoryScreen() {
                   productos={products}
                   test={tt}
                   getIndexes={handleAction}
+                  isDark={isDark}
                 />
 
                 {data.length > 0 && (

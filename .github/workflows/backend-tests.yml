@@ -7,10 +7,14 @@ on:
 jobs:
   backend-tests:
     runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
     steps:
       - uses: actions/checkout@v4
 
-      # Detect changes in backend/
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -18,26 +22,32 @@ jobs:
             backend:
               - 'backend/**'
 
-      # Run tests only if backend changed
+      - name: Set up JDK 25
+        if: contains(steps.filter.outputs.changes, 'backend')
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "25"
 
-      - name: Install Dependencies
-        if: steps.filter.outputs.backend == 'true'
-        run: |
-          cd backend
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          export PYTHONPATH="$PYTHONPATH:$(pwd)"
+      - name: Cache Maven dependencies
+        if: contains(steps.filter.outputs.changes, 'backend')
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Run Backend Tests
-        if: steps.filter.outputs.backend == 'true'
+        if: contains(steps.filter.outputs.changes, 'backend')
         run: |
           cd backend
-          pytest --maxfail=1 --disable-warnings -q --cov=. --cov-report=xml --cov-report=term
+          mvn -B test
 
       - name: Upload Coverage to Codecov
-        if: steps.filter.outputs.backend == 'true'
+        if: contains(steps.filter.outputs.changes, 'backend')
         uses: codecov/codecov-action@v4
         with:
-          files: ./backend/coverage.xml
+          files: ./backend/target/site/jacoco/jacoco.xml
           flags: backend
           fail_ci_if_error: true

@@ -1,7 +1,6 @@
 import { themeColors } from "@/theme";
 import { useFont } from "@shopify/react-native-skia";
 import React from "react";
-import { View, StyleSheet } from "react-native";
 import { CartesianChart, StackedBar } from "victory-native";
 
 type Props = {
@@ -26,13 +25,17 @@ export const StackedBarChart: React.FC<Props> = ({
   style,
   isDark = false,
 }) => {
-  // Mapear los datos a objetos { x, y1, y2, y3 } para el StackedBar
-  const mappedData = data.data.map((values, index) => {
+  const ys = (values: number[]) =>
+    values.reduce(
+      (acc, val, index) => ({ ...acc, [`y${index + 1}`]: val }),
+      {} as { [key: string]: number }
+    );
+
+  const mappedData = data.data.map((values, index): any => {
+    const x = data.labels[index];
     return {
-      x: data.labels[index],
-      y1: values[0],
-      y2: values[1],
-      y3: values[2],
+      x,
+      ...ys(values),
     };
   });
 
@@ -45,46 +48,57 @@ export const StackedBarChart: React.FC<Props> = ({
     require("@/assets/fonts/SF-Pro-Rounded-Bold.otf"),
     fontSize
   );
+  const yKeys = Object.keys(mappedData[0]).filter((key) => key.startsWith("y"));
+  if (!font) return null;
+  const xPadding = 0.5;
 
   return (
     <CartesianChart
+      viewport={{
+        y: [0, maxY * 1.15],
+        x: [-xPadding, data.labels.length - 0.5],
+      }}
+      domainPadding={xPadding}
       data={mappedData}
       xKey="x"
-      yKeys={["y1", "y2", "y3"]}
+      yKeys={yKeys}
       domain={{ y: fromZero ? [0, maxY] : undefined }}
-      domainPadding={{ left: 50, right: 50, top: 10 }}
       axisOptions={{
         font,
         lineColor: isDark ? "#71717a" : "#d4d4d8",
         labelColor: themeColors.headerText(isDark),
+        axisSide: { x: "bottom", y: "left" },
+        formatYLabel: (label) => (label ? `${label}` : ""),
+        formatXLabel: (label) => (label ? `${label}` : ""),
       }}
-      padding={5}
     >
-      {({ points, chartBounds }) => (
-        <StackedBar
-          animate={{ type: "spring" }}
-          points={[points.y1, points.y2, points.y3]}
-          chartBounds={chartBounds}
-          innerPadding={0.6}
-          colors={data.barColors}
-          barOptions={({ isBottom, isTop }) => {
-            const roundedCorner = 5;
-            return {
-              roundedCorners: isTop
-                ? {
-                    topLeft: roundedCorner,
-                    topRight: roundedCorner,
-                  }
-                : isBottom
+      {({ points, chartBounds }) => {
+        return (
+          <StackedBar
+            animate={{ type: "spring" }}
+            points={yKeys.map((key) => points[key])}
+            chartBounds={chartBounds}
+            innerPadding={0.7}
+            colors={data.barColors}
+            barOptions={({ isBottom, isTop }) => {
+              const roundedCorner = 5;
+              return {
+                roundedCorners: isTop
                   ? {
-                      bottomRight: 0,
-                      bottomLeft: 0,
+                      topLeft: roundedCorner,
+                      topRight: roundedCorner,
                     }
-                  : undefined,
-            };
-          }}
-        />
-      )}
+                  : isBottom
+                    ? {
+                        bottomRight: 0,
+                        bottomLeft: 0,
+                      }
+                    : undefined,
+              };
+            }}
+          />
+        );
+      }}
     </CartesianChart>
   );
 };
