@@ -174,3 +174,6 @@ npm run test
 cd backend
 mvn test
 ```
+
+> [!IMPORTANT]
+> Since the backend uses testcontainers for testing, ensure that you have Docker installed and running on your machine before executing the tests.
