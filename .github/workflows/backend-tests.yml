@@ -23,14 +23,14 @@ jobs:
               - 'backend/**'
 
       - name: Set up JDK 25
-        if: steps.filter.outputs.backend == 'true'
+        if: contains(steps.filter.outputs.changes, 'backend')
         uses: actions/setup-java@v4
         with:
           distribution: "temurin"
           java-version: "25"
 
       - name: Cache Maven dependencies
-        if: steps.filter.outputs.backend == 'true'
+        if: contains(steps.filter.outputs.changes, 'backend')
         uses: actions/cache@v4
         with:
           path: ~/.m2
@@ -39,13 +39,13 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Run Backend Tests
-        if: steps.filter.outputs.backend == 'true'
+        if: contains(steps.filter.outputs.changes, 'backend')
         run: |
           cd backend
           mvn -B test
 
       - name: Upload Coverage to Codecov
-        if: always()
+        if: contains(steps.filter.outputs.changes, 'backend')
         uses: codecov/codecov-action@v4
         with:
           files: ./backend/target/site/jacoco/jacoco.xml

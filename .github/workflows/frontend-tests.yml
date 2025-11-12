@@ -17,20 +17,19 @@ jobs:
             frontend:
               - 'frontend/**'
 
-      # Run tests only if frontend changed
       - name: Install Dependencies
-        if: steps.filter.outputs.frontend == 'true'
+        if: contains(steps.filter.outputs.changes, 'frontend')
         run: |
           cd frontend
           npm install
       - name: Run Frontend Tests
-        if: steps.filter.outputs.frontend == 'true'
+        if: contains(steps.filter.outputs.changes, 'frontend')
         run: |
           cd frontend
           npm run test
 
       - name: Upload Coverage to Codecov
-        if: steps.filter.outputs.frontend == 'true'
+        if: contains(steps.filter.outputs.changes, 'frontend')
         uses: codecov/codecov-action@v4
         with:
           directory: ./frontend/coverage
