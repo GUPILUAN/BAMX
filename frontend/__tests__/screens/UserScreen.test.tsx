@@ -23,11 +23,12 @@ jest.mock("@/theme", () => ({
 
 jest.mock("@/slices/userSlice", () => ({
   selectUser: jest.fn(),
+  selectUserImage: jest.fn(),
 }));
 
 import { useSelector } from "react-redux";
 import useUserColorScheme from "@/hooks/useUserColorScheme";
-import { selectUser } from "@/slices/userSlice";
+import { selectUser, selectUserImage } from "@/slices/userSlice";
 
 describe("UserScreen", () => {
   let currentUser: any;
@@ -37,12 +38,18 @@ describe("UserScreen", () => {
 
     (useUserColorScheme as jest.Mock).mockReturnValue({ isDark: false });
 
-    (useSelector as unknown as jest.Mock).mockImplementation((selector: any) => {
-      if (selector === selectUser) return currentUser;
-      return undefined;
-    });
+    (useSelector as unknown as jest.Mock).mockImplementation(
+      (selector: any) => {
+        if (selector === selectUser) return currentUser;
+        if (selector === selectUserImage)
+          return currentUser && currentUser.profile_picture
+            ? `data:image/png;base64,${currentUser.profile_picture}`
+            : null;
+        return undefined;
+      }
+    );
 
-    currentUser = undefined; 
+    currentUser = undefined;
   });
 
   it("shows loading UI when user is undefined", () => {
@@ -58,7 +65,6 @@ describe("UserScreen", () => {
       department: "R&D",
       profile_picture: "BASE64STRING",
       email: "john@company.com",
-      phone: "555-1234",
       company: "Acme Corp",
       role: "Admin",
       status: 0,
@@ -70,7 +76,6 @@ describe("UserScreen", () => {
     expect(getByText("Engineer · R&D")).toBeTruthy();
 
     expect(getByText(/E-mail: john@company\.com/i)).toBeTruthy();
-    expect(getByText(/Teléfono: 555-1234/i)).toBeTruthy();
 
     expect(getByText(/Empresa Acme Corp/i)).toBeTruthy();
     expect(getByText(/Rol: Admin/i)).toBeTruthy();
@@ -86,7 +91,7 @@ describe("UserScreen", () => {
       position: "Designer",
       department: "UX",
       email: "maria@company.com",
-      phone: "555-0000",
+
       company: "Acme Corp",
       role: "User",
       status: 1,
@@ -107,10 +112,9 @@ describe("UserScreen", () => {
       department: null,
       profile_picture: null,
       email: null,
-      phone: null,
       company: null,
       role: null,
-      status: undefined, 
+      status: undefined,
     };
 
     const { getByText } = render(<UserScreen />);
@@ -118,7 +122,6 @@ describe("UserScreen", () => {
     expect(getByText("anonuser")).toBeTruthy();
     expect(getByText("No position · No department")).toBeTruthy();
     expect(getByText(/E-mail: No disponible/i)).toBeTruthy();
-    expect(getByText(/Teléfono: No disponible/i)).toBeTruthy();
     expect(getByText(/Empresa No disponible/i)).toBeTruthy();
     expect(getByText(/Rol: No disponible/i)).toBeTruthy();
     expect(getByText(/Estado: ❌ Inactivo/i)).toBeTruthy();

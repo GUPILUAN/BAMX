@@ -37,6 +37,7 @@ describe("ProductRow", () => {
     status: "A", // Ltpd01.STATUS
     type: "fruit", // Inve01.LINEA
     image: "https://example.com/test-image.jpg",
+    type_id: "fruit01", // Inve01.CVE_LINEA
   };
 
   const formatearFecha = (date: string) => {

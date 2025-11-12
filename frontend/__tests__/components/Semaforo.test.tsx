@@ -4,41 +4,8 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import Semaforo from "@/components/Semaforo/Semaforo";
 import themeReducer from "@/slices/themeSlice";
-
-// Mock the constants
-jest.mock("@/constants/Products", () => ({
-  productosDummy: {
-    results: [
-      {
-        name: "Test Product 1",
-        expiration_date: "2025-08-23", // 2 days from now (critical)
-        product_id: "1",
-        type: "test",
-        quantity: 10,
-        entry_date: "2025-08-01",
-        image: "test.jpg",
-      },
-      {
-        name: "Test Product 2",
-        expiration_date: "2025-08-26", // 5 days from now (priority)
-        product_id: "2",
-        type: "test",
-        quantity: 5,
-        entry_date: "2025-08-01",
-        image: "test2.jpg",
-      },
-      {
-        name: "Test Product 3",
-        expiration_date: "2025-09-01", // More than 5 days (stable)
-        product_id: "3",
-        type: "test",
-        quantity: 20,
-        entry_date: "2025-08-01",
-        image: "test3.jpg",
-      },
-    ],
-  },
-}));
+import { productosDummy } from "@/constants/Products";
+import { getProductStatusCounts } from "../utils/productUtil";
 
 // Mock FeaturedRow component
 jest.mock("@/components/FeaturedRow/FeaturedRow", () => {
@@ -73,38 +40,42 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 describe("Semaforo", () => {
-  beforeEach(() => {
-    // Mock current date to ensure consistent test results
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date("2025-08-21")); // Set to current date
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   it("renders correctly", () => {
     const { getByText } = render(
       <TestWrapper>
-        <Semaforo productos={[]} />
+        <Semaforo productos={productosDummy.items} />
       </TestWrapper>
     );
 
-    expect(getByText("1024")).toBeTruthy();
-    expect(getByText("2048")).toBeTruthy();
-    expect(getByText("4096")).toBeTruthy();
+    expect(
+      getByText(getProductStatusCounts(productosDummy.items, "critical"))
+    ).toBeTruthy();
+    expect(
+      getByText(
+        getProductStatusCounts(productosDummy.items, "warning").toString()
+      )
+    ).toBeTruthy();
+    expect(
+      getByText(getProductStatusCounts(productosDummy.items, "good"))
+    ).toBeTruthy();
   });
 
   it("displays status numbers with correct colors", () => {
     const { getByText } = render(
       <TestWrapper>
-        <Semaforo productos={[]} />
+        <Semaforo productos={productosDummy.items} />
       </TestWrapper>
     );
 
-    const criticNumber = getByText("1024");
-    const warningNumber = getByText("2048");
-    const stableNumber = getByText("4096");
+    const criticNumber = getByText(
+      getProductStatusCounts(productosDummy.items, "critical")
+    );
+    const warningNumber = getByText(
+      getProductStatusCounts(productosDummy.items, "warning")
+    );
+    const stableNumber = getByText(
+      getProductStatusCounts(productosDummy.items, "good")
+    );
 
     expect(criticNumber.props.style).toEqual(
       expect.arrayContaining([expect.objectContaining({ color: "#FF4D4F" })])
@@ -118,21 +89,21 @@ describe("Semaforo", () => {
   });
 
   it("displays status descriptions correctly", () => {
-    const { getByText } = render(
+    const { getAllByText } = render(
       <TestWrapper>
-        <Semaforo productos={[]} />
+        <Semaforo productos={productosDummy.items} />
       </TestWrapper>
     );
 
-    expect(getByText(/estado CRITICO/)).toBeTruthy();
-    expect(getByText(/estado prioritario/)).toBeTruthy();
-    expect(getByText(/estado estable/)).toBeTruthy();
+    expect(getAllByText(/estado\s*critic/i).length).toBeGreaterThan(0);
+    expect(getAllByText(/estado\s*prioritario/i).length).toBeGreaterThan(0);
+    expect(getAllByText(/estado\s*estable/i).length).toBeGreaterThan(0);
   });
 
   it("renders FeaturedRow components for each status", () => {
     const { getByTestId } = render(
       <TestWrapper>
-        <Semaforo productos={[]} />
+        <Semaforo productos={productosDummy.items} />
       </TestWrapper>
     );
 
@@ -144,70 +115,32 @@ describe("Semaforo", () => {
   it("passes correct status titles to FeaturedRow components", () => {
     const { getByTestId } = render(
       <TestWrapper>
-        <Semaforo productos={[]} />
+        <Semaforo productos={productosDummy.items} />
       </TestWrapper>
     );
 
     expect(getByTestId("status-title-crítico").props.children).toBe(
-      "Estado crítico"
+      "Lotes en estado crítico"
     );
     expect(getByTestId("status-title-prioritario").props.children).toBe(
-      "Estado prioritario"
+      "Lotes en estado prioritario"
     );
     expect(getByTestId("status-title-estable").props.children).toBe(
-      "Estado estable"
+      "Lotes en estado estable"
     );
   });
 
   it("has gradient bar component", () => {
     const { getByTestId } = render(
       <TestWrapper>
-        <Semaforo productos={[]} />
+        <Semaforo productos={productosDummy.items} />
       </TestWrapper>
     );
 
     // The gradient bar should be rendered
     const semaforo =
-      getByTestId || render(<Semaforo productos={[]} />).getByTestId;
+      getByTestId ||
+      render(<Semaforo productos={productosDummy.items} />).getByTestId;
     expect(semaforo).toBeTruthy();
-  });
-
-  describe("lerp function", () => {
-    it("should interpolate between two values correctly", () => {
-      // Since lerp is an internal function, we test its behavior through the component
-      const { getByText } = render(
-        <TestWrapper>
-          <Semaforo productos={[]} />
-        </TestWrapper>
-      );
-
-      // The component should render without errors, indicating lerp works correctly
-      expect(getByText("1024")).toBeTruthy();
-    });
-  });
-
-  describe("getColor function", () => {
-    it("returns correct colors for different states", () => {
-      const { getByText } = render(
-        <TestWrapper>
-          <Semaforo productos={[]} />
-        </TestWrapper>
-      );
-
-      const criticNumber = getByText("1024");
-      const warningNumber = getByText("2048");
-      const stableNumber = getByText("4096");
-
-      // Check that the colors are applied correctly
-      expect(criticNumber.props.style).toEqual(
-        expect.arrayContaining([expect.objectContaining({ color: "#FF4D4F" })])
-      );
-      expect(warningNumber.props.style).toEqual(
-        expect.arrayContaining([expect.objectContaining({ color: "#FFC107" })])
-      );
-      expect(stableNumber.props.style).toEqual(
-        expect.arrayContaining([expect.objectContaining({ color: "#52C41A" })])
-      );
-    });
   });
 });

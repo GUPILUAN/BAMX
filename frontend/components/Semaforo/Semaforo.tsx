@@ -39,7 +39,7 @@ export default function Semaforo({
               {warning}
             </Text>
             <Text style={styles.description}>
-              Productos se {"\n"} encuentra en {"\n"} estado prioritario
+              Productos se {"\n"} encuentran en {"\n"} estado prioritario
             </Text>
           </View>
           <View style={styles.separatorV} />

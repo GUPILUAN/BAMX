@@ -9,13 +9,16 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L001",
       available_quantity: 50,
       production_date: "2024-10-10T00:00:00Z",
-      expiration_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // < 3 días
-      last_movement: new Date().toISOString() ,
+      expiration_date: new Date(
+        Date.now() + 2 * 24 * 60 * 60 * 1000
+      ).toISOString(), // < 3 días
+      last_movement: new Date().toISOString(),
       warehouse: 1,
-      status: "A",
+      status: "critical",
       type: "fruit",
       image:
         "https://manzanaswashington.com/wp-content/uploads/2021/02/Nuestras-manzanas-portada1.jpg",
+      type_id: "fruit01",
     },
     {
       product_id: "PROD002",
@@ -23,11 +26,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L002",
       available_quantity: 30,
       production_date: "2024-10-11T00:00:00Z",
-      expiration_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // < 3 días
+      expiration_date: new Date(
+        Date.now() + 1 * 24 * 60 * 60 * 1000
+      ).toISOString(), // < 3 días
       last_movement: new Date().toISOString(),
       warehouse: 1,
-      status: "A",
+      status: "critical",
       type: "fruit",
+      type_id: "fruit02",
       image:
         "https://www.lavanguardia.com/files/image_990_484/files/fp/uploads/2022/05/24/628ca146101ce.r_d.983-618.jpeg",
     },
@@ -37,11 +43,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L003",
       available_quantity: 20,
       production_date: new Date("2024-10-12T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // 3-5 días
+      expiration_date: new Date(
+        Date.now() + 4 * 24 * 60 * 60 * 1000
+      ).toISOString(), // 3-5 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "warning",
       type: "bottle",
+      type_id: "bottle01",
       image:
         "https://i5.walmartimages.com.mx/gr/images/product-images/img_large/00750102054704L.jpg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
     },
@@ -51,11 +60,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L004",
       available_quantity: 40,
       production_date: new Date("2024-10-13T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // < 3 días
+      expiration_date: new Date(
+        Date.now() + 2 * 24 * 60 * 60 * 1000
+      ).toISOString(), // < 3 días
       last_movement: new Date().toISOString(),
       warehouse: 1,
       status: "A",
-      type: "fruit",
+      type: "critical",
+      type_id: "fruit03",
       image:
         "http://www.frutas-hortalizas.com/img/fruites_verdures/presentacio/26.jpg",
     },
@@ -65,11 +77,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L005",
       available_quantity: 25,
       production_date: new Date("2024-10-14T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3-5 días
+      expiration_date: new Date(
+        Date.now() + 3 * 24 * 60 * 60 * 1000
+      ).toISOString(), // 3-5 días
       last_movement: new Date().toISOString(),
       warehouse: 1,
-      status: "A",
+      status: "warning",
       type: "fruit",
+      type_id: "fruit04",
       image:
         "https://cdn.clinicabaviera.com/blog/wp-content/uploads/2017/04/iStock-153009876.jpg",
     },
@@ -79,11 +94,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L006",
       available_quantity: 100,
       production_date: new Date("2024-10-14T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 8 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "good",
       type: "canned_food",
+      type_id: "canned_food01",
       image:
         "https://i5.walmartimages.com.mx/gr/images/product-images/img_large/00750105242042L.jpg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
     },
@@ -93,11 +111,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L007",
       available_quantity: 80,
       production_date: new Date("2024-10-15T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 9 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "good",
       type: "canned_food",
+      type_id: "canned_food02",
       image:
         "https://upload.wikimedia.org/wikipedia/commons/c/c4/Campbell_tomato_soup_cans.jpg",
     },
@@ -107,11 +128,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L008",
       available_quantity: 200,
       production_date: new Date("2024-10-14T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), // < 3 días
+      expiration_date: new Date(
+        Date.now() + 1 * 24 * 60 * 60 * 1000
+      ).toISOString(), // < 3 días
       last_movement: new Date().toISOString(),
       warehouse: 3,
-      status: "A",
+      status: "critical",
       type: "bottle",
+      type_id: "bottle02",
       image:
         "https://oneiconn.vtexassets.com/arquivos/ids/196680-1600-auto?v=638518423522700000&width=1600&height=auto&aspect=true",
     },
@@ -121,11 +145,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L009",
       available_quantity: 60,
       production_date: new Date("2024-10-13T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 15 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 3,
-      status: "A",
+      status: "good",
       type: "bottle",
+      type_id: "bottle03",
       image:
         "https://www.mayoreototal.mx/cdn/shop/products/000643365m_1080x.jpg?v=1563810943",
     },
@@ -135,11 +162,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L010",
       available_quantity: 150,
       production_date: new Date("2024-10-15T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // < 3 días
+      expiration_date: new Date(
+        Date.now() + 2 * 24 * 60 * 60 * 1000
+      ).toISOString(), // < 3 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "critical",
       type: "grain",
+      type_id: "grain01",
       image:
         "https://http2.mlstatic.com/D_NQ_NP_2X_934364-MLM53948384834_022023-F.webp",
     },
@@ -149,11 +179,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L011",
       available_quantity: 90,
       production_date: new Date("2024-10-16T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(), // 3-5 días
+      expiration_date: new Date(
+        Date.now() + 5 * 24 * 60 * 60 * 1000
+      ).toISOString(), // 3-5 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "warning",
       type: "grain",
+      type_id: "grain02",
       image:
         "https://i5.walmartimages.com.mx/samsmx/images/product-images/img_large/000707012l.jpg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
     },
@@ -163,11 +196,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L012",
       available_quantity: 120,
       production_date: new Date("2024-10-17T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 30 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 3,
-      status: "A",
+      status: "good",
       type: "canned_food",
+      type_id: "canned_food02",
       image:
         "https://clickabasto.com/cdn/shop/products/enlatados_dolores_atun_295g_400x400.jpg?v=1554184862",
     },
@@ -177,11 +213,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L013",
       available_quantity: 100,
       production_date: new Date("2024-10-18T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 6 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "good",
       type: "canned_food",
+      type_id: "canned_food03",
       image:
         "https://i5.walmartimages.com.mx/gr/images/product-images/img_large/00073108200100L.jpg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
     },
@@ -191,11 +230,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L014",
       available_quantity: 70,
       production_date: new Date("2024-10-19T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 20 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 3,
-      status: "A",
+      status: "good",
       type: "grain",
+      type_id: "grain03",
       image:
         "https://www.superaki.mx/cdn/shop/products/7501059295193_260821_78506687-a989-46d0-8be9-5525e742e32f_300x300.jpg?v=1654699058",
     },
@@ -205,11 +247,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L015",
       available_quantity: 150,
       production_date: new Date("2024-10-20T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3-5 días
+      expiration_date: new Date(
+        Date.now() + 3 * 24 * 60 * 60 * 1000
+      ).toISOString(), // 3-5 días
       last_movement: new Date().toISOString(),
       warehouse: 1,
-      status: "A",
+      status: "warning",
       type: "grain",
+      type_id: "grain04",
       image:
         "https://www.allservefoodservice.com/wp-content/uploads/2017/10/Spaghetti-Mediano-Barilla-25-500-gr-1.jpg",
     },
@@ -219,11 +264,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L016",
       available_quantity: 50,
       production_date: new Date("2024-10-21T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 25 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 3,
-      status: "A",
+      status: "good",
       type: "jar",
+      type_id: "jar01",
       image:
         "https://calimaxmx.vtexassets.com/arquivos/ids/162838-1600-auto?v=638050236611830000&width=1600&height=auto&aspect=true",
     },
@@ -233,11 +281,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L017",
       available_quantity: 110,
       production_date: new Date("2024-10-22T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // < 3 días
+      expiration_date: new Date(
+        Date.now() + 2 * 24 * 60 * 60 * 1000
+      ).toISOString(), // < 3 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "critical",
       type: "snack",
+      type_id: "snack01",
       image:
         "https://i5.walmartimages.com.mx/gr/images/product-images/img_large/00750100066422L.jpg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
     },
@@ -247,11 +298,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L018",
       available_quantity: 200,
       production_date: new Date("2024-10-23T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(), // 3-5 días
+      expiration_date: new Date(
+        Date.now() + 4 * 24 * 60 * 60 * 1000
+      ).toISOString(), // 3-5 días
       last_movement: new Date().toISOString(),
       warehouse: 1,
-      status: "A",
+      status: "warning",
       type: "bottle",
+      type_id: "bottle03",
       image:
         "https://calimaxmx.vtexassets.com/arquivos/ids/201027-1200-auto?v=637970501279700000&width=1200&height=auto&aspect=true",
     },
@@ -261,11 +315,14 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L019",
       available_quantity: 140,
       production_date: new Date("2024-10-24T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 40 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 40 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 2,
-      status: "A",
+      status: "good",
       type: "grain",
+      type_id: "grain03",
       image:
         "https://i5.walmartimages.com.mx/gr/images/product-images/img_large/00750107130149L.jpg?odnHeight=612&odnWidth=612&odnBg=FFFFFF",
     },
@@ -275,13 +332,15 @@ export const productosDummy: { count: number; items: InventoryItem[] } = {
       lot: "L020",
       available_quantity: 90,
       production_date: new Date("2024-10-25T00:00:00Z").toISOString(),
-      expiration_date: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(), // > 5 días
+      expiration_date: new Date(
+        Date.now() + 60 * 24 * 60 * 60 * 1000
+      ).toISOString(), // > 5 días
       last_movement: new Date().toISOString(),
       warehouse: 3,
-      status: "A",
+      status: "good",
       type: "canned_food",
-      image:
-        "https://m.media-amazon.com/images/I/81b9L3xtVgL._AC_SL1500_.jpg",
+      type_id: "canned_food03",
+      image: "https://m.media-amazon.com/images/I/81b9L3xtVgL._AC_SL1500_.jpg",
     },
   ],
 };
