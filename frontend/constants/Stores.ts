@@ -7,7 +7,7 @@ export const contenedoresDummy = {
       id: 1,
       name: "Congelador 1",
       active: true,
-      last_opened: "18 de agosto 2025- 11:22am",
+      last_update: "18 de agosto 2025- 11:22am",
       temperature: -18,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
       data: [
@@ -17,12 +17,13 @@ export const contenedoresDummy = {
         [40, 35, 25], //lácteos [verde, amarillo, rojo]
         [20, 40, 30], //otros [verde, amarillo, rojo]
       ],
+      refrigerated: true,
     },
     {
       id: 2,
       name: "Refrigerador 1",
       active: true,
-      last_opened: "16 de agosto 2025 - 10:45am",
+      last_update: "16 de agosto 2025 - 10:45am",
       temperature: -2,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
       data: [
@@ -32,12 +33,13 @@ export const contenedoresDummy = {
         [25, 60, 10],
         [50, 30, 70],
       ],
+      refrigerated: true,
     },
     {
       id: 3,
       name: "Refrigerador 2",
       active: false,
-      last_opened: "4 de agosto 2025 - 5:01am",
+      last_update: "4 de agosto 2025 - 5:01am",
       temperature: -1,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
       data: [
@@ -47,12 +49,13 @@ export const contenedoresDummy = {
         [30, 50, 60],
         [20, 90, 15],
       ],
+      refrigerated: true,
     },
     {
       id: 4,
       name: "Refrigerador 3",
       active: true,
-      last_opened: "6 de agosto 2025 - 8:05am",
+      last_update: "6 de agosto 2025 - 8:05am",
       temperature: -3,
       labels: ["Carnes", "Mariscos", "Verduras", "Lácteos", "Otros"],
       data: [
@@ -62,6 +65,7 @@ export const contenedoresDummy = {
         [35, 45, 25],
         [60, 30, 55],
       ],
+      refrigerated: true,
     },
   ],
 };

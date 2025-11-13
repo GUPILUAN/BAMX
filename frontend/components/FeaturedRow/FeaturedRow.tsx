@@ -14,15 +14,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { InventoryItem } from "@/types/InventoryItem";
 import { navigate } from "@/functions/NavigationService";
-import useFetchProducts from "@/hooks/useFetchProducts";
+import useFe from "@/hooks/useFetchLotes";
 import styles from "./styles";
+import { Lot } from "@/types/Lot";
 
 interface FeaturedRowProps {
   status: {
     title: string;
     category: string;
   };
-  productos: InventoryItem[];
+  productos: Lot[];
 }
 
 export default function FeaturedRow({ status, productos }: FeaturedRowProps) {

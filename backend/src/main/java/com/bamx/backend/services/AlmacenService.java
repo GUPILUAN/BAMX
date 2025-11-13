@@ -9,6 +9,7 @@ import com.bamx.backend.repositories.AlmacenRepository;
 import com.bamx.backend.repositories.CLinRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,8 +32,11 @@ public class AlmacenService {
 
   public List<AlmacenDashboardDto> getDashboard() {
 
-    List<Object[]> rows = almacenRepository.getDashboardData();
-
+    LocalDateTime today = LocalDateTime.now();
+    LocalDateTime criticalDate = today.plusDays(2);
+    LocalDateTime warningDate = today.plusDays(5);
+    List<Object[]> rows = almacenRepository.getDashboardData(criticalDate, warningDate);
+    System.out.println("Rows fetched: " + rows.size());
     // group by almacen ID
     Map<Integer, List<Object[]>> porAlmacen =
         rows.stream().collect(Collectors.groupingBy(r -> ((Number) r[0]).intValue()));
@@ -51,22 +55,37 @@ public class AlmacenService {
 
       // 1. Extraer todas las líneas
       List<String> codigosLineas =
-          lineas.stream().map(r -> (String) r[1]).distinct().sorted().toList();
+          lineas.stream()
+              .map(r -> r[1] != null ? (String) r[1] : null)
+              .distinct()
+              .sorted()
+              .toList();
 
       // 2. Convertir cada línea a nombre
       List<String> labels =
           codigosLineas.stream()
-              .map(codLin -> cLinRepository.findDescLinByCveLin(codLin))
+              .map(
+                  codLin ->
+                      codLin != null && !codLin.isEmpty()
+                          ? cLinRepository.findDescLinByCveLin(codLin)
+                          : null)
               .toList()
               .stream()
-              .map(cl -> cl.substring(0, 1).toUpperCase() + cl.substring(1).toLowerCase())
+              .map(
+                  cl ->
+                      cl != null
+                          ? cl.substring(0, 1).toUpperCase() + cl.substring(1).toLowerCase()
+                          : null)
+              .filter(cl -> cl != null)
               .toList();
 
       // Data
       List<List<Long>> data = new ArrayList<>();
 
       for (String linea : codigosLineas) {
-
+        if (linea == null) {
+          continue;
+        }
         Object[] fila = lineas.stream().filter(r -> linea.equals(r[1])).findFirst().orElse(null);
 
         if (fila != null) {
@@ -77,21 +96,14 @@ public class AlmacenService {
           data.add(List.of(critical, warning, good));
         } else {
 
-          data.add(List.of(0L, 0L, 0L));
         }
       }
 
       LocalDateTime lastUpdate =
-          lineas.stream()
-              .map(
-                  r -> {
-                    Object v = r[5];
-                    return (v instanceof java.sql.Timestamp)
-                        ? ((java.sql.Timestamp) v).toLocalDateTime()
-                        : null;
-                  })
+          rows.stream()
+              .map(r -> (LocalDateTime) r[5])
               .filter(Objects::nonNull)
-              .max(LocalDateTime::compareTo)
+              .max(Comparator.naturalOrder())
               .orElse(null);
 
       resultado.add(
@@ -103,10 +115,11 @@ public class AlmacenService {
                           ? " (Refrigerador)"
                           : ""))
               .active(alm != null && alm.getStatus().equalsIgnoreCase("A"))
-              .last_update(lastUpdate != null ? lastUpdate.toString() : null)
+              .last_update(lastUpdate != null ? lastUpdate : null)
               .labels(labels)
               .data(data)
-              .temperature(0)
+              .temperature(0.0)
+              .refrigerated(bamxConfig.getRefrigeradores().contains(almacenId))
               .build());
     }
 

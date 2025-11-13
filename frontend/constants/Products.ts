@@ -1,6 +1,6 @@
-import { InventoryItem } from "@/types/InventoryItem";
+import { Lot } from "@/types/Lot";
 
-export const productosDummy: { count: number; items: InventoryItem[] } = {
+export const productosDummy: { count: number; items: Lot[] } = {
   count: 20,
   items: [
     {

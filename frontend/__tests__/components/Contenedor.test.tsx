@@ -6,6 +6,7 @@ import Contenedor from "@/components/Contenedor/Contenedor";
 import themeReducer from "@/slices/themeSlice";
 import { Container } from "@/types/Container";
 import { NativeModules } from "react-native";
+import { Warehouse } from "@/types/Warehouse";
 
 // Mock StackedBarChart component
 jest.mock("@/components/StackedBarChart/StackedBarChart", () => ({
@@ -48,11 +49,11 @@ const TestWrapper = ({
 };
 
 describe("Contenedor", () => {
-  const mockContainerActive: Container = {
+  const mockContainerActive: Warehouse = {
     id: 1,
     name: "Refrigerador Principal",
     active: true,
-    last_opened: "2025-09-27 10:30:00",
+    last_update: "2025-09-27 10:30:00",
     temperature: -5.5,
     labels: ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"],
     data: [
@@ -62,19 +63,20 @@ describe("Contenedor", () => {
       [6, 9, 14],
       [9, 6, 16],
     ],
+    refrigerated: true,
   };
 
-  const mockContainerInactive: Container = {
+  const mockContainerInactive: Warehouse = {
     ...mockContainerActive,
     active: false,
   };
 
-  const mockContainerHotTemp: Container = {
+  const mockContainerHotTemp: Warehouse = {
     ...mockContainerActive,
     temperature: 10.2,
   };
 
-  const mockContainerVeryColTemp: Container = {
+  const mockContainerVeryColTemp: Warehouse = {
     ...mockContainerActive,
     temperature: -15.8,
   };
@@ -339,7 +341,7 @@ describe("Contenedor", () => {
 
   describe("Edge Cases", () => {
     it("handles zero temperature correctly", () => {
-      const zeroTempContainer: Container = {
+      const zeroTempContainer: Warehouse = {
         ...mockContainerActive,
         temperature: 0,
         active: true,
@@ -355,7 +357,7 @@ describe("Contenedor", () => {
     });
 
     it("handles very low temperature correctly", () => {
-      const lowTempContainer: Container = {
+      const lowTempContainer: Warehouse = {
         ...mockContainerActive,
         temperature: -50.3,
         active: true,
@@ -372,7 +374,7 @@ describe("Contenedor", () => {
     });
 
     it("handles very high temperature correctly", () => {
-      const highTempContainer: Container = {
+      const highTempContainer: Warehouse = {
         ...mockContainerActive,
         temperature: 50.7,
         active: true,
@@ -389,7 +391,7 @@ describe("Contenedor", () => {
     });
 
     it("handles empty labels and data arrays", () => {
-      const emptyDataContainer: Container = {
+      const emptyDataContainer: Warehouse = {
         ...mockContainerActive,
         labels: [],
         data: [],
@@ -407,7 +409,7 @@ describe("Contenedor", () => {
     });
 
     it("handles long container name", () => {
-      const longNameContainer: Container = {
+      const longNameContainer: Warehouse = {
         ...mockContainerActive,
         name: "Refrigerador Principal Con Nombre Muy Largo Para Pruebas",
       };
@@ -424,9 +426,9 @@ describe("Contenedor", () => {
     });
 
     it("handles special characters in last_opened date", () => {
-      const specialCharContainer: Container = {
+      const specialCharContainer: Warehouse = {
         ...mockContainerActive,
-        last_opened: "2025-09-27T10:30:00.000Z",
+        last_update: "2025-09-27T10:30:00.000Z",
       };
 
       const { getByText } = render(

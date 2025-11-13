@@ -5,12 +5,9 @@ import FeaturedRow from "../FeaturedRow/FeaturedRow";
 import { InventoryItem } from "@/types/InventoryItem";
 import styles from "./styles";
 import useSemaforoStats from "@/hooks/useSemaforoStats";
+import { Lot } from "@/types/Lot";
 
-export default function Semaforo({
-  productos,
-}: {
-  productos: InventoryItem[];
-}) {
+export default function Semaforo({ productos }: { productos: Lot[] }) {
   const {
     productsFiltered,
     status,

@@ -1,7 +1,7 @@
 import React from "react";
 import { render, fireEvent, waitFor } from "@testing-library/react-native";
 import AuthScreen from "@/screens/AuthScreen/AuthScreen";
-import { loginUser } from "@/api/apiCalls";
+import { loginUser } from "@/api/axiosInstance";
 import { navigate } from "@/functions/NavigationService";
 import { Alert } from "react-native";
 import themeReducer from "@/slices/themeSlice";
@@ -30,7 +30,7 @@ const TestWrapper = ({
 describe("AuthScreen", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers(); 
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
@@ -89,16 +89,12 @@ describe("AuthScreen", () => {
         })
     );
 
-    const {
-      getByPlaceholderText,
-      getByText,
-      findByTestId,
-      queryByTestId,
-    } = render(
-      <TestWrapper>
-        <AuthScreen />
-      </TestWrapper>
-    );
+    const { getByPlaceholderText, getByText, findByTestId, queryByTestId } =
+      render(
+        <TestWrapper>
+          <AuthScreen />
+        </TestWrapper>
+      );
 
     fireEvent.changeText(getByPlaceholderText("Username"), "bamxUser");
     fireEvent.changeText(getByPlaceholderText("Password"), "secret123");

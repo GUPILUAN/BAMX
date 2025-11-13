@@ -10,7 +10,9 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,12 +24,15 @@ public class LtpdService {
   @Value("${app.host.url}")
   private String hostUrl;
 
-  public Page<LoteConImagenDto> findAll(Pageable pageable) {
-    Page<LoteConImagenDto> page = ltpdRepository.findAllLotes(pageable);
-
+  public Page<LoteConImagenDto> findAll(int page, int size, String sortBy, String sortDir) {
+    Sort.Order order =
+        new Sort.Order(
+            sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC,
+            sortBy == null ? "fchCaduc" : sortBy);
+    Pageable pageable = PageRequest.of(page, size, Sort.by(order));
+    Page<LoteConImagenDto> pages = ltpdRepository.findAllLotes(pageable);
     LocalDate today = LocalDate.now();
-
-    return page.map(
+    return pages.map(
         dto -> {
           if (dto.getExpiration_date() == null) {
             dto.setStatus("critical");
