@@ -1,112 +1,292 @@
-import { View, Text, StyleSheet } from "react-native";
-import React from "react";
-import { FontAwesome6, FontAwesome5 } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleProp,
+  ViewStyle,
+} from "react-native";
+import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { InventoryItem } from "@/types/InventoryItem";
+
 import { navigate } from "@/functions/NavigationService";
-import styles from "./styles";
-import getColor from "./utils/getColor";
 
 interface ProductRowProps {
   index: number;
   isSelected: boolean;
-  handleSelect: (index: number) => void;
+  handleSelect?: (id: string) => void;
   product: InventoryItem;
+  style?: StyleProp<ViewStyle>;
+  isDark?: boolean;
 }
 
 export default function ProductRow({
   index,
-  isSelected,
-  handleSelect,
   product,
-}: ProductRowProps) {
-  const navigation = useNavigation();
-  const unidad = {
-    fruit: "unidades",
-    canned_food: "latas",
-    bottle: "botellas",
-    grain: "kilogramos",
-    dairy: "litros",
-    snack: "paquetes",
-    jar: "frasco",
+  style,
+  isDark = false,
+  isSelected = false,
+  handleSelect,
+}: ProductRowProps & {
+  isSelected?: boolean;
+  handleSelect?: (id: string) => void;
+}) {
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string | null>(
+    null
+  );
+
+  // support both new InventoryItem shape and older Lot-like objects used in tests
+  const warehouseNamesCritical = (product as any).warehouseNamesCritical || [];
+  const warehouseNamesWarning = (product as any).warehouseNamesWarning || [];
+  const warehouseNamesGood = (product as any).warehouseNamesGood || [];
+
+  const allWarehouses = Array.from(
+    new Set([
+      ...warehouseNamesCritical,
+      ...warehouseNamesWarning,
+      ...(warehouseNamesGood || []),
+    ])
+  );
+
+  // helper to read fields whether product is InventoryItem or Lot-like
+  const productId = (product as any).product_id || (product as any).id || "";
+  const productName =
+    (product as any).product_name || (product as any).name || "";
+  const available_quantity =
+    (product as any).available_quantity ??
+    (product as any).availableQuantity ??
+    0;
+  const prodType = (product as any).type || "";
+  const production_date =
+    (product as any).production_date || (product as any).productionDate;
+  const expiration_date =
+    (product as any).expiration_date ||
+    (product as any).expiration_date ||
+    (product as any).expirationDate ||
+    (product as any).expiration_date;
+
+  const toggleDropdown = () => setDropdownVisible(!dropdownVisible);
+  const selectWarehouse = (name: string) => {
+    setSelectedWarehouse(name);
+    setDropdownVisible(false);
   };
 
-const formatearFecha = (date: string) => {
-  const [year, month, day] = date.split("-").map(Number);
-  const fecha = new Date(year, month - 1, day); // 👈 esta sí es local
-  return fecha.toLocaleDateString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
+  const baseStyle: any = {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: isDark ? "#555" : "#ddd",
+    backgroundColor: isSelected
+      ? "lightblue"
+      : isDark
+        ? index % 2 === 0
+          ? "#333"
+          : "#444"
+        : index % 2 === 0
+          ? "#f2f2f2"
+          : "#fff",
+    opacity: isSelected ? 0.5 : 1,
+  };
 
-  function evaluarFecha(fechaObjetivo: string) {
-    const hoy = new Date();
-    const fecha = new Date(fechaObjetivo);
-
-    const diferenciaTiempo = fecha.getTime() - hoy.getTime();
-
-    const diferenciaDias = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
-
-    if (diferenciaDias <= 2) {
-      return "crítico";
-    } else if (diferenciaDias <= 5) {
-      return "prioritario";
-    } else {
-      return "estable";
-    }
-  }
-
-  const estado = evaluarFecha(product.expiration_date || "");
+  const mergedStyle = Object.assign({}, baseStyle, (style as any) || {});
 
   return (
-    <View className="flex-row items-center justify-evenly max-h-16">
-      <TouchableOpacity
-        className="max-w-4xl"
-        key={index}
-        onPress={() => handleSelect(product.product_id as any as number)}
+    <View
+      testID="product-row"
+      style={mergedStyle}
+      className={index % 2 === 0 ? "bg-gray-200" : "bg-white"}
+    >
+      {/* Nombre */}
+      <View
+        style={{
+          flex: 1.5,
+          justifyContent: "flex-start",
+          paddingHorizontal: 4,
+          flexDirection: "row",
+          alignItems: "center",
+        }}
       >
-        <View
-          className={
-            "flex-row border-gray-400 border p-3 items-center  " +
-            (index % 2 === 0 ? "bg-gray-200" : "bg-white")
-          }
-          testID="product-row"
-          style={isSelected ? styles.selectedItem : null}
+        <TouchableOpacity
+          testID="info-button"
+          onPress={() => navigate("Details", { product })}
+          style={{ padding: 6 }}
         >
-          <TouchableOpacity
-            className="border-gray-500 border-2 rounded-lg w-9 h-9 items-center justify-center"
-            onPress={() => navigate("Details", { product })}
-            testID="info-button"
+          <FontAwesome5 name="info-circle" size={16} color="gray" />
+        </TouchableOpacity>
+        <TouchableOpacity style={{ padding: 6 }}>
+          <FontAwesome5 name="edit" size={16} color="gray" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => handleSelect && handleSelect(productId)}
+        >
+          <Text style={{ color: isDark ? "#fff" : "#000" }}>{productName}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Cantidad */}
+      <View
+        style={{ flex: 1.5, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text style={{ color: isDark ? "#fff" : "#000" }}>
+          {available_quantity}
+          {"\n"}
+          {(() => {
+            // unit mapping based on type
+            const map: Record<string, string> = {
+              fruit: "unidades",
+              canned_food: "latas",
+              bottle: "botellas",
+              grain: "kilogramos",
+              dairy: "litros",
+              snack: "paquetes",
+              jar: "frasco",
+            };
+            return map[prodType] || "unidades";
+          })()}
+        </Text>
+      </View>
+
+      {/* Tipo */}
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <Text style={{ color: isDark ? "#fff" : "#000" }}>{prodType}</Text>
+        {production_date && (
+          <Text style={{ color: isDark ? "#fff" : "#000", fontSize: 12 }}>
+            {formatDateProduction(production_date)}
+          </Text>
+        )}
+        {expiration_date && (
+          <Text style={{ color: isDark ? "#fff" : "#000", fontSize: 12 }}>
+            CAD: {formatDateProduction(expiration_date)}
+          </Text>
+        )}
+      </View>
+
+      {/* Dropdown */}
+      <View style={{ flex: 1.5, paddingHorizontal: 4 }}>
+        <TouchableOpacity
+          onPress={toggleDropdown}
+          style={{
+            borderWidth: 1,
+            borderColor: isDark ? "#555" : "#ccc",
+            borderRadius: 6,
+            paddingHorizontal: 6,
+            paddingVertical: 4,
+            backgroundColor: isDark ? "#555" : "#fafafa",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+          disabled={allWarehouses.length === 0}
+        >
+          <Text
+            numberOfLines={1}
+            style={{
+              color: isDark ? "#fff" : "#000",
+              flexShrink: 1,
+              fontSize: 11,
+            }}
           >
-            <FontAwesome6 name="info" size={20} color="gray" />
-          </TouchableOpacity>
-          <Text className="ml-4 w-1/5">{product.product_name}</Text>
-          <Text className="ml-4 w-1/12">
-            {product.available_quantity +
-              "\n" +
-              unidad[product.type as keyof typeof unidad]}
+            {allWarehouses.length === 0
+              ? "No hay almacenes con existencia"
+              : "Mostrar almacenes con existencia"}
           </Text>
-          <Text className="ml-4 w-1/6">
-            {formatearFecha(product.production_date || "")}
-          </Text>
-          <Text className="ml-4 w-1/6">
-            CAD: {formatearFecha(product.expiration_date || "")}
-          </Text>
+          {allWarehouses.length > 0 && (
+            <FontAwesome6
+              name={dropdownVisible ? "chevron-up" : "chevron-down"}
+              size={12}
+              color={isDark ? "#fff" : "#000"}
+            />
+          )}
+        </TouchableOpacity>
+
+        {dropdownVisible && allWarehouses.length > 0 && (
           <View
-            className="flex rounded-xl ml-4 px-12 py-3 items-center justify-center w-1/4 "
-            style={{ backgroundColor: getColor(estado) }}
-            testID="status-indicator"
+            style={{
+              position: "absolute",
+              top: 32,
+              left: 0,
+              right: 0,
+              borderWidth: 1,
+              borderColor: isDark ? "#555" : "#ccc",
+              borderRadius: 6,
+              backgroundColor: isDark ? "#555" : "#fff",
+              zIndex: 10,
+            }}
           >
-            <Text className="text-white font-bold">Estado {estado}</Text>
+            {allWarehouses.map((name, i) => (
+              <TouchableOpacity
+                key={i}
+                onPress={() => selectWarehouse(name)}
+                style={{
+                  paddingHorizontal: 6,
+                  paddingVertical: 4,
+                  backgroundColor:
+                    selectedWarehouse === name
+                      ? isDark
+                        ? "#666"
+                        : "#eee"
+                      : "transparent",
+                  borderBottomWidth: i < allWarehouses.length - 1 ? 1 : 0,
+                  borderBottomColor: isDark ? "#555" : "#ddd",
+                }}
+              >
+                <Text style={{ color: isDark ? "#fff" : "#000", fontSize: 13 }}>
+                  {name}
+                </Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity className=" w-9 h-9 items-center justify-center">
-        <FontAwesome5 name="edit" size={20} color="#e1a244" />
-      </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Estado como círculos */}
+      <View
+        style={{
+          flex: 1.5,
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        {renderEstadoCirculos(product)}
+      </View>
     </View>
   );
+}
+function formatDateProduction(dateStr: string) {
+  // expected input 'YYYY-MM-DD' or similar
+  try {
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const d = new Date(year, (month || 1) - 1, day || 1);
+    return d.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch (e) {
+    return dateStr;
+  }
+}
+
+function renderEstadoCirculos(product: InventoryItem) {
+  const estados = [
+    { color: "#D32F2F", active: product.warehouseNamesCritical.length > 0 },
+    { color: "#FFA000", active: product.warehouseNamesWarning.length > 0 },
+    { color: "#388E3C", active: product.warehouseNamesGood?.length > 0 },
+  ];
+
+  return estados.map((estado, i) => (
+    <View
+      key={i}
+      style={{
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        borderWidth: 1.5,
+        borderColor: estado.color,
+        backgroundColor: estado.active ? estado.color : "transparent",
+        marginHorizontal: 3,
+      }}
+    />
+  ));
 }

@@ -36,28 +36,42 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: themeColors.background(isDark) },
+      ]}
+    >
       <View style={styles.infoContainer}>
         <Text
           style={{ color: themeColors.headerText(isDark), ...styles.title }}
         >
           {contenedor.name}
         </Text>
-        <View style={styles.iconRow}>
-          <FontAwesome6
-            name={getIconName()}
-            size={isActive ? 60 : 50}
-            color={getIconColor()}
-          />
-          <View style={styles.headerText}>
-            <Text style={getTemperatureStyle(contenedor.temperature, isActive)}>
-              {contenedor.temperature.toFixed(1)}°C
-            </Text>
+        {contenedor.refrigerated && (
+          <View style={styles.iconRow}>
+            <FontAwesome6
+              name={getIconName()}
+              size={isActive ? 60 : 50}
+              color={getIconColor()}
+            />
+            <View style={styles.headerText}>
+              <Text
+                style={getTemperatureStyle(contenedor.temperature, isActive)}
+              >
+                {contenedor.temperature.toFixed(1)}°C
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
       </View>
 
-      <View style={styles.chartContainer}>
+      <View
+        style={[
+          styles.chartContainer,
+          { backgroundColor: themeColors.headerBackground(isDark) },
+        ]}
+      >
         <View style={styles.statusRow}>
           <TouchableOpacity
             onPress={toggleActiveStatus}
@@ -68,7 +82,7 @@ export default function Contenedor({ contenedor }: ContenedorProps) {
             </Text>
           </TouchableOpacity>
           <Text style={styles.lastUpdate}>
-            Última temperatura: {contenedor.last_opened}
+            Última temperatura: {contenedor.last_update}
           </Text>
         </View>
 

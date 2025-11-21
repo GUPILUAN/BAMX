@@ -3,18 +3,20 @@ import { ScrollView } from "react-native";
 import { contenedoresDummy } from "@/constants/Stores";
 import Contenedor from "../Contenedor/Contenedor";
 import { useTemperatureSensors } from "@/hooks/useTemperatureSensors";
-import { Container } from "@/types/Container";
-import { retrieveData } from "@/api/apiCalls";
+import { Warehouse } from "@/types/Warehouse";
+import { apiService } from "@/api/apiService";
 
 export default function Refrigeradores() {
   const { latestBySensor } = useTemperatureSensors();
 
-  const [warehouses, setWarehouses] = useState<Container[]>([]);
+  const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
   useEffect(() => {
     const fetchWarehouses = async () => {
       try {
-        const response = await retrieveData("/api/almacenes/dashboard");
+        const response = await apiService.retrieveData(
+          "/api/almacenes/dashboard"
+        );
         setWarehouses(response);
       } catch (error) {
         console.error("Error fetching warehouses:", error);

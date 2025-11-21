@@ -2,8 +2,8 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import ProductRow from "@/components/ProductRow/ProductRow";
-import { InventoryItem } from "@/types/InventoryItem";
 import { addDays } from "../utils/dateUtils";
+import { Lot } from "@/types/Lot";
 
 // Mock NavigationService
 jest.mock("@/functions/NavigationService", () => ({
@@ -25,7 +25,7 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 };
 
 describe("ProductRow", () => {
-  const mockProduct: InventoryItem = {
+  const mockProduct: Lot = {
     product_id: "123", // Inve01.CVE_ART
     product_name: "Test Product", // Inve01.DESCR
     lot: "L-001", // Ltpd01.LOTE
@@ -38,6 +38,9 @@ describe("ProductRow", () => {
     type: "fruit", // Inve01.LINEA
     image: "https://example.com/test-image.jpg",
     type_id: "fruit01", // Inve01.CVE_LINEA
+    warehouseNamesCritical: [],
+    warehouseNamesWarning: [],
+    warehouseNamesGood: [],
   };
 
   const formatearFecha = (date: string) => {
@@ -112,45 +115,100 @@ describe("ProductRow", () => {
     const criticalProduct = {
       ...mockProduct,
       expiration_date: addDays(today, 2).toISOString().split("T")[0], // 2 days from current date
+      warehouseNamesCritical: ["Alm-1"],
+      warehouseNamesWarning: [],
+      warehouseNamesGood: [],
     };
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <TestWrapper>
         <ProductRow {...mockProps} product={criticalProduct} />
       </TestWrapper>
     );
 
-    expect(getByText("Estado crítico")).toBeTruthy();
+    // check the status circles background colors
+    const row = getByTestId("product-row");
+    const lastChild = row.props.children[row.props.children.length - 1];
+    const circles = lastChild.props.children;
+    const bg0 = Array.isArray(circles[0].props.style)
+      ? Object.assign({}, ...circles[0].props.style).backgroundColor
+      : circles[0].props.style.backgroundColor;
+    const bg1 = Array.isArray(circles[1].props.style)
+      ? Object.assign({}, ...circles[1].props.style).backgroundColor
+      : circles[1].props.style.backgroundColor;
+    const bg2 = Array.isArray(circles[2].props.style)
+      ? Object.assign({}, ...circles[2].props.style).backgroundColor
+      : circles[2].props.style.backgroundColor;
+
+    expect(bg0).toBe("#D32F2F");
+    expect(bg1).toBe("transparent");
+    expect(bg2).toBe("transparent");
   });
 
   it("shows priority status for products expiring in 3-5 days", () => {
     const priorityProduct = {
       ...mockProduct,
       expiration_date: addDays(today, 4).toISOString().split("T")[0], // 4 days from current date
+      warehouseNamesCritical: [],
+      warehouseNamesWarning: ["Alm-1"],
+      warehouseNamesGood: [],
     };
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <TestWrapper>
         <ProductRow {...mockProps} product={priorityProduct} />
       </TestWrapper>
     );
 
-    expect(getByText("Estado prioritario")).toBeTruthy();
+    const row = getByTestId("product-row");
+    const lastChild = row.props.children[row.props.children.length - 1];
+    const circles = lastChild.props.children;
+    const bg0 = Array.isArray(circles[0].props.style)
+      ? Object.assign({}, ...circles[0].props.style).backgroundColor
+      : circles[0].props.style.backgroundColor;
+    const bg1 = Array.isArray(circles[1].props.style)
+      ? Object.assign({}, ...circles[1].props.style).backgroundColor
+      : circles[1].props.style.backgroundColor;
+    const bg2 = Array.isArray(circles[2].props.style)
+      ? Object.assign({}, ...circles[2].props.style).backgroundColor
+      : circles[2].props.style.backgroundColor;
+
+    expect(bg0).toBe("transparent");
+    expect(bg1).toBe("#FFA000");
+    expect(bg2).toBe("transparent");
   });
 
   it("shows stable status for products expiring in more than 5 days", () => {
     const stableProduct = {
       ...mockProduct,
       expiration_date: addDays(today, 9).toISOString().split("T")[0], // 9 days from current date
+      warehouseNamesCritical: [],
+      warehouseNamesWarning: [],
+      warehouseNamesGood: ["Alm-1"],
     };
 
-    const { getByText } = render(
+    const { getByTestId } = render(
       <TestWrapper>
         <ProductRow {...mockProps} product={stableProduct} />
       </TestWrapper>
     );
 
-    expect(getByText("Estado estable")).toBeTruthy();
+    const row = getByTestId("product-row");
+    const lastChild = row.props.children[row.props.children.length - 1];
+    const circles = lastChild.props.children;
+    const bg0 = Array.isArray(circles[0].props.style)
+      ? Object.assign({}, ...circles[0].props.style).backgroundColor
+      : circles[0].props.style.backgroundColor;
+    const bg1 = Array.isArray(circles[1].props.style)
+      ? Object.assign({}, ...circles[1].props.style).backgroundColor
+      : circles[1].props.style.backgroundColor;
+    const bg2 = Array.isArray(circles[2].props.style)
+      ? Object.assign({}, ...circles[2].props.style).backgroundColor
+      : circles[2].props.style.backgroundColor;
+
+    expect(bg0).toBe("transparent");
+    expect(bg1).toBe("transparent");
+    expect(bg2).toBe("#388E3C");
   });
 
   it("calls handleSelect when row is pressed", () => {
@@ -252,19 +310,15 @@ describe("ProductRow", () => {
   });
 
   it("applies correct background colors for different status states", () => {
+    // This behaviour is already validated in the specific expiration-status tests above
+    // Ensure the component renders without crashing for a given date
     const criticalProduct = { ...mockProduct, expiration_date: "2025-08-23" };
     const { getByTestId } = render(
       <TestWrapper>
         <ProductRow {...mockProps} product={criticalProduct} />
       </TestWrapper>
     );
-
-    const statusElement = getByTestId("status-indicator");
-    expect(statusElement?.props.style).toEqual(
-      expect.objectContaining({
-        backgroundColor: "#FF4D4F",
-      })
-    );
+    expect(getByTestId("product-row")).toBeTruthy();
   });
 
   it("renders edit button", () => {

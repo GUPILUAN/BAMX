@@ -27,8 +27,8 @@ import {
   useDrawerStatus,
 } from "@react-navigation/drawer";
 import { navigate } from "@/functions/NavigationService";
-import { logOut, retrieveData } from "@/api/apiCalls";
-import ThemeSelector from "../ThemeSelector/ThemeSelector";
+import { apiService } from "@/api/apiService";
+import ThemeSelector from "@/components/ThemeSelector/ThemeSelector";
 import { useFetchUser } from "@/hooks/useFetchUser";
 
 export default function SideBar({ navigation }: DrawerContentComponentProps) {
@@ -93,7 +93,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
 
   const loggingOut = async () => {
     try {
-      await logOut();
+      await apiService.logOut();
     } catch (error) {
       console.error("Error logging out:", error);
     }

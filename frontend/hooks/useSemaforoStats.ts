@@ -1,10 +1,11 @@
 import { InventoryItem } from "@/types/InventoryItem";
+import { Lot } from "@/types/Lot";
 import { useEffect, useState } from "react";
-const useSemaforoStats = (productos: InventoryItem[]) => {
+const useSemaforoStats = (productos: Lot[]) => {
   const [productsFiltered, setProductsFiltered] = useState<{
-    crítico: InventoryItem[];
-    prioritario: InventoryItem[];
-    estable: InventoryItem[];
+    crítico: Lot[];
+    prioritario: Lot[];
+    estable: Lot[];
   }>({
     crítico: [],
     prioritario: [],
@@ -12,13 +13,13 @@ const useSemaforoStats = (productos: InventoryItem[]) => {
   });
 
   useEffect(() => {
-    const críticos: InventoryItem[] = productos.filter(
+    const críticos: Lot[] = productos.filter(
       (producto) => producto.status === "critical"
     );
-    const prioritarios: InventoryItem[] = productos.filter(
+    const prioritarios: Lot[] = productos.filter(
       (producto) => producto.status === "warning"
     );
-    const estables: InventoryItem[] = productos.filter(
+    const estables: Lot[] = productos.filter(
       (producto) => producto.status === "good"
     );
     setProductsFiltered({

@@ -47,8 +47,9 @@ describe("SearchHeader", () => {
   const mockProps = {
     onDataChange: jest.fn(),
     indexesLength: 0,
-    handleSearch: jest.fn(),
+    handleChangeQuery: jest.fn(),
     query: "",
+    handleSort: jest.fn(),
     handleOrder: jest.fn(),
   };
 
@@ -65,8 +66,8 @@ describe("SearchHeader", () => {
 
     expect(getByPlaceholderText("Buscar productos...")).toBeTruthy();
     expect(getByText("Añadir productos al inventario")).toBeTruthy();
-    expect(getByText("Ordenar por fecha de ingreso")).toBeTruthy();
-    expect(getByText("Ordenar por fecha de caducidad")).toBeTruthy();
+    expect(getByText("Existencia")).toBeTruthy();
+    expect(getByText("Línea de producto")).toBeTruthy();
   });
 
   it("calls handleSearch when text input changes", () => {
@@ -79,7 +80,7 @@ describe("SearchHeader", () => {
     const searchInput = getByPlaceholderText("Buscar productos...");
     fireEvent.changeText(searchInput, "test product");
 
-    expect(mockProps.handleSearch).toHaveBeenCalledWith("test product");
+    expect(mockProps.handleChangeQuery).toHaveBeenCalledWith("test product");
   });
 
   it("displays the query value in search input", () => {
@@ -99,19 +100,14 @@ describe("SearchHeader", () => {
         <SearchHeader {...mockProps} />
       </TestWrapper>
     );
+    const existenciaButton = getByText("Existencia");
+    const lineaButton = getByText("Línea de producto");
 
-    const ingresoButton = getByText("Ordenar por fecha de ingreso");
-    const caducidadButton = getByText("Ordenar por fecha de caducidad");
+    // Click on línea de producto
+    fireEvent.press(lineaButton);
 
-    // Initially, ingreso should be selected
-    expect(ingresoButton.parent?.props.className).toContain("bg-gray-300");
-    expect(caducidadButton.parent?.props.className).toContain("bg-white");
-
-    // Click on caducidad button
-    fireEvent.press(caducidadButton);
-
-    // Now caducidad should be selected
-    expect(caducidadButton.parent?.props.className).toContain("bg-gray-300");
+    // Should have called handleSort with the correct filter key
+    expect(mockProps.handleSort).toHaveBeenCalledWith("linProd");
   });
 
   it("toggles order type when sort button is pressed", () => {
@@ -120,20 +116,17 @@ describe("SearchHeader", () => {
         <SearchHeader {...mockProps} />
       </TestWrapper>
     );
-
     // Initially should show "descendente"
-    expect(getByText("Orden descendente")).toBeTruthy();
+    const orderText = getByText("Orden descendente");
+    expect(orderText).toBeTruthy();
 
-    // Find and press the sort button (it's a TouchableOpacity with MaterialCommunityIcons)
-    const sortButtons = getByText("Orden descendente").parent?.parent;
-    const sortButton = sortButtons?.children[1]; // The TouchableOpacity is the second child
+    // Press the order toggle and ensure handleOrder was called with the expected direction
+    const sortWrapper = orderText.parent?.parent;
+    const sortTouchable = sortWrapper?.children[1];
+    if (sortTouchable) fireEvent.press(sortTouchable);
 
-    if (sortButton) {
-      fireEvent.press(sortButton);
-    }
-
-    // After clicking, it should show "ascendente"
-    expect(getByText("Orden ascendente")).toBeTruthy();
+    // Since sortDirection prop is undefined in mockProps, pressing should request "asc"
+    expect(mockProps.handleOrder).toHaveBeenCalledWith("asc");
   });
 
   it("calls handleOrder when filter or order changes", () => {
@@ -142,18 +135,17 @@ describe("SearchHeader", () => {
         <SearchHeader {...mockProps} />
       </TestWrapper>
     );
+    // Change filter to "Línea de producto"
+    const lineaButton = getByText("Línea de producto");
+    fireEvent.press(lineaButton);
+    expect(mockProps.handleSort).toHaveBeenCalledWith("linProd");
 
-    // Initially should call handleOrder with default values
-    expect(mockProps.handleOrder).toHaveBeenCalledWith(false, "entry_date");
-
-    // Change filter to caducidad
-    const caducidadButton = getByText("Ordenar por fecha de caducidad");
-    fireEvent.press(caducidadButton);
-
-    expect(mockProps.handleOrder).toHaveBeenCalledWith(
-      false,
-      "expiration_date"
-    );
+    // Toggle order
+    const orderText = getByText("Orden descendente");
+    const sortWrapper = orderText.parent?.parent;
+    const sortTouchable = sortWrapper?.children[1];
+    if (sortTouchable) fireEvent.press(sortTouchable);
+    expect(mockProps.handleOrder).toHaveBeenCalledWith("asc");
   });
 
   it("enables action buttons when indexesLength > 0", () => {
@@ -164,8 +156,8 @@ describe("SearchHeader", () => {
       </TestWrapper>
     );
 
-    const entregarButton = getByText("Agregar para \nentrega");
-    const deshechoButton = getByText("Agregar para \ndeshecho");
+    const entregarButton = getByText("Agregar para entrega");
+    const deshechoButton = getByText("Agregar para deshecho");
 
     expect(entregarButton).toBeTruthy();
     expect(deshechoButton).toBeTruthy();
@@ -184,8 +176,8 @@ describe("SearchHeader", () => {
       </TestWrapper>
     );
 
-    const entregarButton = getByText("Agregar para \nentrega");
-    const deshechoButton = getByText("Agregar para \ndeshecho");
+    const entregarButton = getByText("Agregar para entrega");
+    const deshechoButton = getByText("Agregar para deshecho");
 
     // Buttons should be disabled, so onDataChange should not be called
     fireEvent.press(entregarButton);
@@ -224,7 +216,7 @@ describe("SearchHeader", () => {
       </TestWrapper>
     );
 
-    const entregarButton = getByText("Agregar para \nentrega");
+    const entregarButton = getByText("Agregar para entrega");
     fireEvent.press(entregarButton);
 
     expect(mockProps.onDataChange).toHaveBeenCalledWith([]);

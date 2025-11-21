@@ -1,4 +1,4 @@
-import { getImage, retrieveData } from "@/api/apiCalls";
+import { apiService } from "@/api/apiService";
 import {
   selectUser,
   selectUserImage,
@@ -17,7 +17,7 @@ export const useFetchUser = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await retrieveData(`/api/usuarios/me`);
+        const response = await apiService.retrieveData(`/api/usuarios/me`);
         dispatch(setUser(response));
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -30,7 +30,7 @@ export const useFetchUser = () => {
     const fetchUserImage = async () => {
       try {
         if (user && user.profile_picture) {
-          const response = await getImage(user?.profile_picture);
+          const response = await apiService.getImage(user?.profile_picture);
           dispatch(setNewUserImage(response));
         }
       } catch (e) {

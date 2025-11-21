@@ -5,8 +5,9 @@ import { useSelector } from "react-redux";
 import Semaforo from "@/components/Semaforo/Semaforo";
 import AnimatedSwitch from "@/components/AnimatedSwitch/AnimatedSwitch";
 import Refrigeradores from "@/components/Refrigeradores/Refrigeradores";
-import useFetchProducts from "@/hooks/useFetchProducts";
+
 import { SafeAreaView } from "react-native-safe-area-context";
+import useFetchLotes from "@/hooks/useFetchLotes";
 
 export default function HomeScreen() {
   const theme = useSelector(selectTheme);
@@ -21,7 +22,7 @@ export default function HomeScreen() {
   const handlePanelChange = (newPanel: string) => {
     setPanel(newPanel);
   };
-  const products = useFetchProducts();
+  const products = useFetchLotes();
 
   return (
     <SafeAreaView

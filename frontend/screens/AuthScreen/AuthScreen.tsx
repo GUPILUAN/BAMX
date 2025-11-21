@@ -16,9 +16,9 @@ import {
   StyleSheet,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { loginUser } from "@/api/apiCalls";
 import { navigate } from "@/functions/NavigationService";
 import useUserColorScheme from "@/hooks/useUserColorScheme";
+import { apiService } from "@/api/apiService";
 
 export default function AuthScreen() {
   const { width } = useWindowDimensions();
@@ -72,7 +72,7 @@ export default function AuthScreen() {
 
     try {
       setLoading(true);
-      await loginUser(username, password);
+      await apiService.loginUser(username, password);
       navigate("Dashboard");
     } catch (error: any) {
       if (Platform.OS === "web") {

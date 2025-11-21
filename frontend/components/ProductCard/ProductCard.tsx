@@ -10,11 +10,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
 import { navigate } from "@/functions/NavigationService";
-import { InventoryItem } from "@/types/InventoryItem";
 import { styles, buttonStyle, cartText } from "./styles";
+import { Lot } from "@/types/Lot";
 
 interface ProductCardProps {
-  item: InventoryItem;
+  item: Lot;
 }
 
 export default function ProductCard({ item }: ProductCardProps) {

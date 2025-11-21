@@ -5,7 +5,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { configureStore } from "@reduxjs/toolkit";
 import ProductCard from "@/components/ProductCard/ProductCard";
 import themeReducer from "@/slices/themeSlice";
-import { InventoryItem } from "@/types/InventoryItem";
+import { Lot } from "@/types/Lot";
 
 // Mock NavigationService
 jest.mock("@/functions/NavigationService", () => ({
@@ -50,7 +50,7 @@ const TestWrapper = ({
 };
 
 describe("ProductCard", () => {
-  const mockProduct: InventoryItem = {
+  const mockProduct: Lot = {
     product_id: "123", // Inve01.CVE_ART
     product_name: "Test Product", // Inve01.DESCR
     lot: "L-001", // Ltpd01.LOTE
