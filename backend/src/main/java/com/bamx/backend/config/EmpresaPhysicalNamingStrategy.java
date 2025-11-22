@@ -6,7 +6,7 @@ import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
 
 public class EmpresaPhysicalNamingStrategy implements PhysicalNamingStrategy {
 
-  private static final ThreadLocal<String> empresaSuffix = ThreadLocal.withInitial(() -> "01");
+  private static final ThreadLocal<String> empresaSuffix = ThreadLocal.withInitial(() -> "03");
 
   public static void setEmpresa(String sufijo) {
     empresaSuffix.set(sufijo);
