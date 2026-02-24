@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@RequiredArgsConstructor 
+@RequiredArgsConstructor
 @Slf4j
 public class UsuarioController {
   private final UsuarioService usuarioService;
 
   @PostMapping("/login")
   public ResponseEntity<?> login(@RequestBody @Valid LoginRequest loginRequest) {
-    log.info("USERNAME: {}", loginRequest.getUsername());
+    log.debug("USERNAME: {}", loginRequest.getUsername());
     LoginResponse loginResponse = usuarioService.login(loginRequest);
     return ResponseEntity.ok(loginResponse);
   }
