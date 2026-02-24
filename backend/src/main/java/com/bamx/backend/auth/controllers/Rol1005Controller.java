@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/roles")
 @RequiredArgsConstructor
-public class Rol1005Controller {
+public class Rol1005Controller { // Tiene ese nombre por la version de aspel
   private final Rol1005Service rol1005Service;
 
   @GetMapping("/")
