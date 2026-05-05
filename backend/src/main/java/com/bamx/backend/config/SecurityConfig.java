@@ -1,7 +1,7 @@
 package com.bamx.backend.config;
 
-import com.bamx.backend.auth.repositories.TokenBlockListRepository;
 import com.bamx.backend.auth.repositories.UsuarioRepository;
+import com.bamx.backend.auth.services.TokenBlockListService;
 import com.bamx.backend.auth.utils.TokenDecoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,7 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 public class SecurityConfig {
 
   private final UsuarioRepository usuarioRepository;
-  private final TokenBlockListRepository tokenBlockListRepository;
+  private final TokenBlockListService tokenBlockListService;
 
   @Value("${jwt.secret}")
   private String jwtSecret;
@@ -35,7 +35,7 @@ public class SecurityConfig {
   @Bean
   public JwtAuthenticationFilter jwtAuthenticationFilter() {
     return new JwtAuthenticationFilter(
-        new TokenDecoder(jwtSecret, tokenBlockListRepository), usuarioRepository);
+        new TokenDecoder(jwtSecret, tokenBlockListService), usuarioRepository);
   }
 
   @Bean

@@ -41,6 +41,7 @@ public class EmpresaDbConfig {
     props.put(
         "hibernate.physical_naming_strategy",
         "com.bamx.backend.config.EmpresaPhysicalNamingStrategy");
+    props.put("hibernate.session_factory.statement_inspector", new EmpresaSqlStatementInspector());
     props.put("hibernate.dialect", "org.hibernate.community.dialect.FirebirdDialect");
     LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
     emf.setDataSource(empresaDataSource());

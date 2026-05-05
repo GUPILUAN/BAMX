@@ -1,6 +1,6 @@
 package com.bamx.backend.auth.utils;
 
-import com.bamx.backend.auth.repositories.TokenBlockListRepository;
+import com.bamx.backend.auth.services.TokenBlockListService;
 import com.bamx.backend.dtos.DecodedToken;
 import com.bamx.backend.exception.Exception.RevokedJwtException;
 import com.bamx.backend.exception.Exception.TokenDecodeException;
@@ -17,11 +17,11 @@ import java.util.List;
 public class TokenDecoder {
 
   private final Key key;
-  private final TokenBlockListRepository tokenBlockListRepository;
+  private final TokenBlockListService tokenBlockListService;
 
-  public TokenDecoder(String secret, TokenBlockListRepository tokenBlockListRepository) {
+  public TokenDecoder(String secret, TokenBlockListService tokenBlockListService) {
     this.key = generateKey(secret);
-    this.tokenBlockListRepository = tokenBlockListRepository;
+    this.tokenBlockListService = tokenBlockListService;
   }
 
   private Key generateKey(String secret) {
@@ -44,7 +44,7 @@ public class TokenDecoder {
       List<String> permissions = List.of();
       if (!type.equals("refresh")) {
         rol = claims.get("rol").toString();
-        empresa = "0" + claims.get("empresa").toString();
+        empresa = normalizeEmpresa(claims.get("empresa").toString());
         status = Integer.parseInt(claims.get("status").toString());
       }
       return new DecodedToken(
@@ -64,6 +64,11 @@ public class TokenDecoder {
     } catch (Exception e) {
       throw new TokenDecodeException("Failed to decode token (unknown) : " + e.getMessage(), e);
     }
+  }
+
+  private String normalizeEmpresa(String empresa) {
+    String normalized = empresa == null ? "" : empresa.trim();
+    return normalized.length() == 1 ? "0" + normalized : normalized;
   }
 
   public DecodedToken validateAndExtractToken(String authHeader, String expectedType) {
@@ -114,12 +119,9 @@ public class TokenDecoder {
       throw new TokenDecodeException("Status is inactive");
     }
 
-    tokenBlockListRepository
-        .findByJti(decodedToken.jti())
-        .ifPresent(
-            blockedToken -> {
-              throw new RevokedJwtException("Token has been revoked");
-            });
+    if (tokenBlockListService.isRevoked(decodedToken.jti())) {
+      throw new RevokedJwtException("Token has been revoked");
+    }
 
     return decodedToken;
   }
