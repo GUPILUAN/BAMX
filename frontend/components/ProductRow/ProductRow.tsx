@@ -8,14 +8,17 @@ import {
 } from "react-native";
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { InventoryItem } from "@/types/InventoryItem";
+import { Lot } from "@/types/Lot";
 
 import { navigate } from "@/functions/NavigationService";
+
+type ProductRowProduct = InventoryItem | Lot;
 
 interface ProductRowProps {
   index: number;
   isSelected: boolean;
   handleSelect?: (id: string) => void;
-  product: InventoryItem;
+  product: ProductRowProduct;
   style?: StyleProp<ViewStyle>;
   isDark?: boolean;
 }
@@ -268,11 +271,15 @@ function formatDateProduction(dateStr: string) {
   }
 }
 
-function renderEstadoCirculos(product: InventoryItem) {
+function renderEstadoCirculos(product: ProductRowProduct) {
+  const warehouseNamesCritical = (product as any).warehouseNamesCritical || [];
+  const warehouseNamesWarning = (product as any).warehouseNamesWarning || [];
+  const warehouseNamesGood = (product as any).warehouseNamesGood || [];
+
   const estados = [
-    { color: "#D32F2F", active: product.warehouseNamesCritical.length > 0 },
-    { color: "#FFA000", active: product.warehouseNamesWarning.length > 0 },
-    { color: "#388E3C", active: product.warehouseNamesGood?.length > 0 },
+    { color: "#D32F2F", active: warehouseNamesCritical.length > 0 },
+    { color: "#FFA000", active: warehouseNamesWarning.length > 0 },
+    { color: "#388E3C", active: warehouseNamesGood.length > 0 },
   ];
 
   return estados.map((estado, i) => (
