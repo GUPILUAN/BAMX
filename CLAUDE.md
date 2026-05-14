@@ -1,114 +1,235 @@
-Proyecto: BAMX / Banco de Alimentos México
+# BAMX / Banco de Alimentos México
 
-Repo local:
-C:\Users\alexi\Desktop\Folders\Work\BAMX
+App interna para que BAMX consulte inventario, lotes, almacenes y refrigeradores conectándose a su ERP **Aspel SAE 8.00.36** (Firebird `.FDB`). El backend traduce las particularidades de Aspel a una API REST y el frontend (Expo / React Native) lo consume desde móvil y web.
 
-Branch:
-feature/code-review
+Repo local: `C:\Users\alexi\Desktop\Folders\Work\BAMX`
+Branch típica de trabajo: `feature/code-review`
 
-Stack:
-- Backend: Spring Boot 3.5.7, Java, Maven, Firebird/Jaybird, JPA/Hibernate.
-- Frontend: app JS/React/Next-ish en carpeta frontend.
-- ERP externo: Aspel SAE 8.00.36 con bases Firebird .FDB.
+---
 
-Cambios importantes hechos en backend:
-- Se arregló el Maven wrapper de Windows.
-- Se corrigió LtpdRepository: el ID de Ltpd debe ser Integer, no String.
-- Se configuró el backend para leer `.env`.
-- Se agregó `APP_EMPRESA_SUFFIX=03` para forzar que el backend use empresa 03.
-- Se agregó lógica de multiempresa para tablas SAE con sufijo:
-  - Ejemplo: INVE01 vs INVE03, CLIE01 vs CLIE03, MULT01 vs MULT03.
-- Se agregó/ajustó `EmpresaPhysicalNamingStrategy` y `EmpresaSqlStatementInspector`.
-- Se ajustó auth/JWT para incluir/usar empresa.
-- Se agregó fallback para cuando no exista `TOKEN_BLOCK_LIST` en la base de perfiles.
-- Se quitó dependencia práctica de Docker/Testcontainers para los tests actuales.
-- Tests backend pasaron con `cmd /c mvnw.cmd test`.
-- Compile backend pasó con `cmd /c mvnw.cmd -DskipTests compile`.
+## Stack
 
-Archivos backend tocados:
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\mvnw.cmd
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\resources\application.properties
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\auth\services\UsuarioService.java
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\auth\utils\TokenDecoder.java
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\auth\services\TokenBlockListService.java
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\config\EmpresaDbConfig.java
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\config\EmpresaPhysicalNamingStrategy.java
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\config\EmpresaSqlStatementInspector.java
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\config\SecurityConfig.java
-C:\Users\alexi\Desktop\Folders\Work\BAMX\backend\src\main\java\com\bamx\backend\repositories\LtpdRepository.java
+### Backend (`backend/`)
+- Spring Boot **3.5.7** sobre **Java 25** (no LTS — pendiente bajar a 21 LTS).
+- Maven, Lombok, MapStruct 1.5.5.
+- **Jaybird 5.0.10** + Hibernate community dialects (`FirebirdDialect`).
+- Spring Security + JWT (JJWT 0.11.5).
+- Tests: JUnit 5, Testcontainers + Firebird testcontainer disponibles pero hoy los pocos tests existentes corren contra H2.
 
-Config actual de DB:
-- Base empresa real BAMX:
-C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Datos\SAE80EMPRE03.FDB
+### Frontend (`frontend/`)
+- **Expo SDK ~54** + **React Native 0.81.5** + React 19.
+- **Expo Router 6** (routing basado en filesystem dentro de `app/`).
+- NativeWind / Tailwind, Redux Toolkit + react-redux, axios, expo-secure-store.
+- Skia + victory-native para gráficas; MQTT para sensores de temperatura.
+- Tests: Jest + `@testing-library/react-native`.
 
-- Base perfiles auth BAMX:
-C:\Program Files (x86)\Common Files\Aspel\Perfiles\BAMX_PERFILES.FDB
+### ERP / DB
+- Aspel SAE 8.00.36 con bases Firebird `.FDB`.
+- Aspel sufija sus tablas por empresa: `INVE01`/`INVE03`, `CLIE01`/`CLIE03`, `MULT01`/`MULT03`, etc.
+- BAMX usa la **empresa 03**; la 01 está vacía.
 
-- Imágenes:
-C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Imagenes
+---
 
-Lo aprendido de Aspel SAE:
-- Aspel SAE usa Firebird `.FDB`.
-- Las tablas están sufijadas por empresa:
-  - Empresa 01: INVE01, CLIE01, MULT01, etc.
-  - Empresa 03: INVE03, CLIE03, MULT03, etc.
-- La base grande de BAMX tiene la información real en sufijo 03.
-- La app backend funciona porque fue configurada para usar empresa 03.
-- Aspel visualmente parece vacío porque probablemente está abriendo contexto empresa 01 o una empresa inválida, no porque la base esté vacía.
+## Arquitectura del backend
 
-Datos confirmados en la base grande:
-- INVE03: 37199 productos
-- CLIE03: 1454 clientes
-- ALMACENES03: 11 almacenes
-- MULT03: 164852 registros
-- LTPD03: 3 lotes
-- MINVE03: 872588 movimientos
-- INVE01: 0 productos
-- CLIE01: 0 clientes
+### Doble DataSource
+- `EmpresaDbConfig` → `spring.datasource.empresa` → DB de Aspel (`SAE80EMPRE03.FDB`). Scanea `com.bamx.backend.models` y `com.bamx.backend.repositories`.
+- `AuthDbConfig` → `spring.datasource.auth` → DB de perfiles (`BAMX_PERFILES.FDB`). Scanea `com.bamx.backend.auth.models` y `com.bamx.backend.auth.repositories`.
+- Cada uno con su `EntityManager` y `TransactionManager` propios. Ambos `@Profile("!test")`.
 
-Ejemplos confirmados que existen en Empresa03:
-- Producto: VEDU000GR, VERDURA A GRANEL
-- Producto: FRUT000GR, FRUTA A GRANEL
-- Cliente clave 44: PUBLICO EN GENERAL
+### Multi-empresa por sufijo (truco clave)
+Funciona en dos pasos en el datasource `empresa`:
 
-Aspel instalado:
-C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00
+1. **`EmpresaPhysicalNamingStrategy.toPhysicalTableName`** siempre agrega `"01"` al nombre lógico de las entidades JPA. `INVE` → `INVE01`.
+2. **`EmpresaSqlStatementInspector.inspect`** intercepta cada SQL y, si el sufijo activo en el `ThreadLocal` no es `"01"`, hace `replaceAll("INVE01", "INVE03")` (y para las 14 tablas de empresa: `ALMACENES, CLIN, CONM, CVES_ALTER, ENLACE_LTPD, FOTO_INVE, INVE, LTPD, MINVE, MULT, NUMSER, PAIS, PROV, TBLCONTROL`).
 
-Archivo de conexiones Aspel:
-C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Conexiones.ini
+El sufijo en el ThreadLocal se setea por request en `JwtAuthenticationFilter` desde el claim `empresa` del JWT, y se limpia en el `finally`. En login, `UsuarioService.resolveEmpresa()` puede forzar el valor de `APP_EMPRESA_SUFFIX` para los JWT recién firmados.
 
-Alias relevantes:
-- [EJEMPLOS] apunta a:
-C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Ejemplos\Ejemplos.fdb
+### Auth flow
+- `UsuarioController` expone `/api/usuarios/login`, `/refresh-token`, `/logout`, `/me`.
+- `UsuarioService.login` verifica contra `Usuario` (en DB auth) usando `AspelHash` (hash propio de Aspel).
+- Emite **access** (10 min por defecto) y **refresh** (30 días). El refresh sólo se rota si está a <1 día de expirar.
+- `JwtAuthenticationFilter.shouldNotFilter` excluye: `/api/usuarios/register`, `/login`, `/refresh-token`, `/api/public/*`, swagger. Todo lo demás exige `Bearer ...`.
+- `TokenBlockListService` consulta primero `RDB$RELATIONS` para ver si existe `TOKEN_BLOCK_LIST`. Si no existe, **el logout responde 200 sin persistir nada** (el JWT sigue válido hasta su expiración natural).
 
-- [Ejemplos03] apunta a:
-C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Datos\SAE80EMPRE03.FDB
+### Endpoints REST principales
 
-Acciones hechas sobre archivos Aspel:
-- Se copió Empresa03 desde Desktop/info hacia Program Files de Aspel.
-- Se copió BAMX_PERFILES.FDB a carpeta de perfiles.
-- Se sobrescribió `Ejemplos.fdb` de Aspel con:
-C:\Users\alexi\Desktop\info\info\Ejemplos.fdb
+| Ruta | Método | Servicio | Notas |
+|------|--------|----------|-------|
+| `/api/usuarios/login` | POST | `UsuarioService.login` | Devuelve `{access, refresh}` |
+| `/api/usuarios/refresh-token` | POST | `UsuarioService.refreshToken` | Header `Authorization: Bearer <refresh>` |
+| `/api/usuarios/logout` | POST | `UsuarioService.logout` | Inserta en `TOKEN_BLOCK_LIST` si existe |
+| `/api/usuarios/me` | GET | `UsuarioService.findById` | Usa `@CurrentUser` |
+| `/api/inventarios/` | GET | `InveService.getAllInve` | Page<InventoryItem>. Soporta `page,size,sort,direction,search` |
+| `/api/lotes/` | GET | `LtpdService.findAll` | Page<LoteConImagenDto> |
+| `/api/almacenes/all` | GET | `AlmacenService.getAllAlmacenes` | Lista de almacenes |
+| `/api/almacenes/dashboard` | GET | `AlmacenService.getDashboard` | Por almacén → por línea → totales critical/warning/good |
+| `/api/foto-usuario/` | GET | `FotoUsuarioController` | PNG del usuario actual |
+| `/api/foto-inve/...` | GET | `FotoInveController` | Imágenes de producto desde `APP_IMAGES_PATH` |
 
-- Backup del Ejemplos.fdb anterior:
-C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Ejemplos\Ejemplos.fdb.bak-20260505-173919
+### Convención de "prioridades" (atención: hay inconsistencia)
+- `AlmacenService.getDashboard`: `criticalDate = today + 2 días`, `warningDate = today + 5 días` ← **correcto** (lo que caduca antes es crítico).
+- `InveService.getAllInve`: `warningDate = today + 2 días`, `criticalDate = today + 5 días` ← **invertido**. Ver BLOCKERS abajo.
 
-Problema actual:
-- Aspel SAE abre, pero muestra “EMPRESA INVÁLIDA, S.A. DE C.V.”
-- Al abrir clientes/productos no aparecen datos.
-- Salió mensaje: “Se reestructurará la base de datos, este proceso puede tardar algunos minutos.”
-- La base sí tiene datos; el problema parece ser que Aspel no está abriendo correctamente la empresa 03 o no está interpretando bien el alias/contexto de empresa.
+### Queries de almacén por urgencia (`LtpdRepository`)
+- `findWarehouseNameInCritical(cveArt, criticalDate)`: `l.fchCaduc <= :criticalDate OR fchCaduc IS NULL`.
+- `findWarehouseNameInWarning(cveArt, warningDate)`: `l.fchCaduc <= :warningDate` ← se traslapa con critical, debería excluirlo (`AND fchCaduc > :criticalDate`).
+- `findWarehouseNameInGood(cveArt, warningDate)`: `l.fchCaduc > :warningDate`.
 
-Misión siguiente:
-Lograr que Aspel SAE muestre los productos/clientes reales de BAMX dentro de la interfaz de Aspel.
+---
 
-Hipótesis principal:
-Aspel está leyendo Empresa01 o una empresa inválida, mientras que la información real está en Empresa03. Hay que hacer que Aspel abra la empresa 03 correctamente, no solo que el backend lea la `.FDB`.
+## Arquitectura del frontend
 
-Siguientes cosas a revisar:
-1. Cómo Aspel decide qué empresa abrir desde la pantalla inicial.
-2. Si la empresa 03 está registrada correctamente en archivos/configuración de Aspel.
-3. Si `[Ejemplos03]` en `Conexiones.ini` necesita copiar exactamente todas las propiedades del alias `[EJEMPLOS]`.
-4. Si hay algún archivo adicional de Aspel que mapee empresa número 03 a alias/base.
-5. Si el mensaje de “reestructurar base” modificó algo o solo intentó actualizar metadata.
-6. Verificar en Aspel buscando producto `VEDU000GR` o cliente `44`.
+### Routing (Expo Router, file-based)
+Estructura en `frontend/app/`:
+
+```
+app/
+├── _layout.tsx              # Provider Redux + fonts + Stack root
+├── index.tsx                # → AuthLoadingScreen (gating de sesión)
+├── details.tsx              # → DetailsScreen (modal)
+├── (auth)/
+│   └── login.tsx            # → AuthScreen
+└── (drawer)/
+    ├── _layout.tsx          # Drawer + SideBar
+    ├── inicio.tsx           # → HomeScreen
+    ├── inventario.tsx       # → InventoryScreen
+    └── usuario.tsx          # → UserScreen / ProfileScreen
+```
+
+Los archivos en `app/` son shims que importan de `screens/`. La lógica real vive en `screens/`, `components/`, `hooks/`, `slices/`, `api/`.
+
+### Pantallas (qué muestra cada una)
+
+| Ruta | Screen | Qué hace |
+|------|--------|----------|
+| `/` | `AuthLoadingScreen` | `useCheckLoginStatus` lee SecureStore. Si hay `access` → `/(drawer)/inicio`. Si no → `/(auth)/login` |
+| `/(auth)/login` | `AuthScreen` | Login username + password con fondo `bg-bamx.jpeg`. Llama `apiService.loginUser` |
+| `/(drawer)/inicio` | `HomeScreen` | `AnimatedSwitch` para alternar entre **Semaforo** (totales crítico/prioritario/estable + barra gradiente + lista) y **Refrigeradores** (cards de almacenes con temperatura) |
+| `/(drawer)/inventario` | `InventoryScreen` | `SearchHeader` (search + sort + dirección) + `ProductList` paginada con `ProductRow` |
+| `/(drawer)/usuario` | `UserScreen` | Avatar (o inicial) + nombre + email + empresa + rol + status |
+| `/details` (modal) | `DetailsScreen` | Imagen + nombre + tipo + clave + fechas en bottom-sheet. Recibe `item` por params (JSON-stringified) |
+
+### Cliente HTTP
+- `api/axiosInstance.ts` → `instance` con `baseURL = EXPO_PUBLIC_API_URL`. Interceptor que:
+  - Para login/refresh/logout, no inyecta auth.
+  - Para el resto, lee `access` de SecureStore; si expiró (`atob` del payload), refresh; si falla refresh → `replace("Auth")`.
+- `api/apiCalls.ts` → solo `loginUser` separado para que tests lo puedan mockear.
+- `api/apiService.ts` → wrapper con `loginUser`, `logOut`, `retrieveData(route)`, `getImage(url)`.
+
+### Estado global
+Redux Toolkit con slices: `themeSlice`, `userSlice`, `settingsSlice`. SecureStore para tokens (`access`, `refresh`) vía `functions/userKey.ts`.
+
+### Navegación legacy
+`functions/NavigationService.ts` convierte nombres tipo React Navigation (`"Dashboard"`, `"Auth"`, `"Inventario"`, …) a paths de Expo Router. Mantiene compat con código que aún usa `navigate("Inicio")`. **Cuidado**: `"Configuracion"` mapea a `/(drawer)/configuracion` pero ese archivo no existe.
+
+---
+
+## Estado actual de configuración (local de Alex)
+
+### Bases de datos
+- Empresa real BAMX: `C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Datos\SAE80EMPRE03.FDB`
+- Perfiles auth BAMX: `C:\Program Files (x86)\Common Files\Aspel\Perfiles\BAMX_PERFILES.FDB`
+- Imágenes: `C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Imagenes`
+
+### `.env` del backend (relevante)
+- `APP_EMPRESA_SUFFIX=03` (fuerza que login firme JWT con empresa 03).
+- `DATABASE_PATH_EMPRESA` → `SAE80EMPRE03.FDB`.
+- `DATABASE_PATH_AUTH` → `BAMX_PERFILES.FDB`.
+
+### Comandos típicos
+```powershell
+# Backend
+cd backend
+cmd /c mvnw.cmd -DskipTests compile
+cmd /c mvnw.cmd test
+cmd /c mvnw.cmd spring-boot:run
+
+# Frontend
+cd frontend
+npm install
+npx expo start
+npm run test
+```
+
+`source loadenv.sh` solo funciona en bash; en PowerShell usar `.env` directo (Spring Boot ya lo lee por `spring.config.import`).
+
+### Datos confirmados en `SAE80EMPRE03.FDB`
+- `INVE03`: 37 199 productos
+- `CLIE03`: 1 454 clientes
+- `ALMACENES03`: 11 almacenes
+- `MULT03`: 164 852 registros
+- `LTPD03`: 3 lotes (sí, sólo 3)
+- `MINVE03`: 872 588 movimientos
+- `INVE01` / `CLIE01`: 0 (la empresa 01 está vacía, no usar)
+
+Ejemplos para sanity-check: producto `VEDU000GR` (VERDURA A GRANEL), `FRUT000GR` (FRUTA A GRANEL), cliente `44` (PUBLICO EN GENERAL).
+
+---
+
+## Estado de Aspel SAE (instalación local)
+
+Aspel instalado en `C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00`. Archivo de conexiones: `Conexiones.ini`.
+
+Aliases relevantes:
+- `[EJEMPLOS]` → `…\Ejemplos\Ejemplos.fdb`
+- `[Ejemplos03]` → `…\Empresa03\Datos\SAE80EMPRE03.FDB`
+
+Acciones hechas (histórico, mantener por si se necesita rollback):
+- Se copió `Empresa03` desde Desktop/info a `Program Files` de Aspel.
+- Se copió `BAMX_PERFILES.FDB` a carpeta de perfiles.
+- Se sobrescribió `Ejemplos.fdb` con `C:\Users\alexi\Desktop\info\info\Ejemplos.fdb`.
+- Backup del anterior: `Ejemplos.fdb.bak-20260505-173919`.
+
+**Pendiente actual con Aspel UI**: Aspel SAE abre pero muestra "EMPRESA INVÁLIDA, S.A. DE C.V." y al abrir clientes/productos no aparecen datos. El **backend sí funciona** porque apunta directo al `.FDB` y reescribe sufijo a `03`. El problema es que la GUI de Aspel está cargando contexto de empresa 01 o uno inválido. Hay que revisar cómo Aspel decide qué empresa abrir y si la 03 está registrada correctamente en el catálogo de empresas de Aspel (no solo en `Conexiones.ini`).
+
+---
+
+## Cambios importantes ya hechos en el backend
+
+- Arreglado `mvnw.cmd` (wrapper Windows).
+- `LtpdRepository`: ID de `Ltpd` corregido a `Integer` (era `String`).
+- Configurado para leer `.env` vía `spring.config.import`.
+- Lógica multi-empresa: `EmpresaPhysicalNamingStrategy` + `EmpresaSqlStatementInspector` + ThreadLocal seteado por `JwtAuthenticationFilter`.
+- Auth/JWT incluye claim `empresa`.
+- Fallback en `TokenBlockListService` cuando `TOKEN_BLOCK_LIST` no existe.
+- Tests pasan con `cmd /c mvnw.cmd test` (sobre H2, no Firebird).
+
+---
+
+## Issues conocidos (resumen, ver review en sesión para detalle)
+
+**BLOCKERS para producción**
+- `SecurityConfig` con `requestMatchers("/**").permitAll()`: la protección efectiva vive en el filter, frágil.
+- `criticalDate`/`warningDate` invertidos entre `InveService` y `AlmacenService`: el semáforo del inventario está al revés del dashboard.
+- `useSemaforoStats` filtra por `producto.status === "critical"|"warning"|"good"` pero el backend nunca pone esos valores → Semaforo siempre muestra 0.
+- `StackedBarChart` truena con `data: []` (`Object.keys(mappedData[0])` → crash).
+- CORS abierto a `*` con `permitAll`.
+
+**WARNINGS**
+- `TOKEN_BLOCK_LIST` no existe; logout responde 200 sin persistir.
+- Queries de prioridad en `LtpdRepository` se traslapan (warning incluye critical).
+- `i.getUniMed().toLowerCase()` y `alm.getStatus().equalsIgnoreCase("A")` pueden tronar con null.
+- `AlmacenService.getDashboard` calcula `last_update` con `rows` global, no por almacén.
+- `ProductRow` usa `(product as any)` para tragar `InventoryItem | Lot`.
+- `spring.jpa.open-in-view=true` (anti-pattern).
+- Tests en H2 ≠ Firebird real.
+- 3 botones del SideBar sin `onPress` (Registro, Productos entregables/no aptos).
+
+**SUGGESTIONS**
+- Bajar a Java 21 LTS.
+- Añadir `typecheck` script al frontend.
+- Migraciones con Flyway/Liquibase para tablas propias.
+- Optimizar N+1 en `InveService.getAllInve` (41 queries por página de 10).
+- Quitar `System.out.println` en `AlmacenService`.
+- Unificar `InventoryItem` vs `Lot` desde el backend.
+- Postman collection completa.
+
+---
+
+## Tips operativos
+
+- Para validar que el backend está leyendo empresa 03: pegar `cveArt='VEDU000GR'` en una query a `/api/inventarios/?search=VEDU000GR`. Si responde con datos, el sufijo está bien.
+- Si Aspel SAE GUI no muestra datos pero el backend sí, **no es un problema del backend**; revisar configuración GUI de Aspel.
+- Cuando un endpoint nuevo del backend devuelva 401 inesperado, revisar `shouldNotFilter` en `JwtAuthenticationFilter` antes de tocar `SecurityConfig`.
+- Frontend: si `useFetchLotes` cae a `productosDummy.items`, el API falló silenciosamente — revisar `EXPO_PUBLIC_API_URL` y network del device.
