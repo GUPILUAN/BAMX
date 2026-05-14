@@ -67,14 +67,50 @@ El sufijo en el ThreadLocal se setea por request en `JwtAuthenticationFilter` de
 | `/api/foto-usuario/` | GET | `FotoUsuarioController` | PNG del usuario actual |
 | `/api/foto-inve/...` | GET | `FotoInveController` | Imágenes de producto desde `APP_IMAGES_PATH` |
 
-### Convención de "prioridades" (atención: hay inconsistencia)
-- `AlmacenService.getDashboard`: `criticalDate = today + 2 días`, `warningDate = today + 5 días` ← **correcto** (lo que caduca antes es crítico).
-- `InveService.getAllInve`: `warningDate = today + 2 días`, `criticalDate = today + 5 días` ← **invertido**. Ver BLOCKERS abajo.
+### Convención de "prioridades" — TRES lugares, DOS convenciones
+
+| Lugar | `criticalDate` | `warningDate` | ¿Correcto? |
+|-------|----------------|----------------|-------------|
+| `AlmacenService.getDashboard:36-37` | `today + 2d` | `today + 5d` | ✅ |
+| `LtpdService.findAll:42-47` | `days <= 2` → critical | `days <= 5` → warning | ✅ |
+| `InveService.getAllInve:32-33` | **`today + 5d`** | **`today + 2d`** | ❌ invertido |
+
+Lo correcto es: "lo que caduca antes es crítico". `InveService` lo tiene al revés. Ver BLOCKERS abajo.
+
+### `LtpdService.findAll` reescribe `Lot.status` después del query
+
+Esto es no-obvio y costó una sesión de confusión. La verdad:
+
+- En BD, `LTPD.STATUS` es `"A"` / `"I"` (Activo / Inactivo de Aspel).
+- `LtpdRepository.findAllLotes` hace `WHERE l.status = 'A' AND l.cantidad > 0` y devuelve un DTO con `status = null` (literalmente `null` en el SELECT).
+- `LtpdService.findAll` itera el page y **sobrescribe** `dto.status` con `"critical"` / `"warning"` / `"good"` según `expiration_date`:
+  - `expiration_date == null` → `"critical"`
+  - `days <= 2` → `"critical"`
+  - `days <= 5` → `"warning"`
+  - else → `"good"`
+- El frontend (`useSemaforoStats`) consume este status reescrito, no el de Aspel.
+
+Resultado: el campo `status` en la API de `/api/lotes/` **no es el de Aspel**. Si alguien busca por `status="A"` en esa respuesta, no encontrará nada.
 
 ### Queries de almacén por urgencia (`LtpdRepository`)
 - `findWarehouseNameInCritical(cveArt, criticalDate)`: `l.fchCaduc <= :criticalDate OR fchCaduc IS NULL`.
 - `findWarehouseNameInWarning(cveArt, warningDate)`: `l.fchCaduc <= :warningDate` ← se traslapa con critical, debería excluirlo (`AND fchCaduc > :criticalDate`).
 - `findWarehouseNameInGood(cveArt, warningDate)`: `l.fchCaduc > :warningDate`.
+
+> **Comportamiento de NULL**: `findWarehouseNameInCritical` matchea `fchCaduc IS NULL` explícitamente. Las otras dos usan `<=` y `>` que con `NULL` devuelven `unknown` (no `true`), así que lotes con caducidad nula **solo aparecen como críticos**. Esto explica que `A006123` (atún sin caducidad en LTPD) solo pinte el círculo rojo.
+
+### Dos fuentes de verdad para "cantidad" — inconsistencia funcional
+
+Hay dos lugares en la app que muestran "cuánto hay" de un producto y **no se sincronizan**:
+
+| Pantalla | Endpoint | Campo | De dónde sale |
+|----------|----------|-------|---------------|
+| Inventario | `/api/inventarios/` | `available_quantity` | `INVE.EXIST` (existencia maestra del catálogo de Aspel) |
+| Semaforo del Home | `/api/lotes/` | suma de `Lot.available_quantity` | `LTPD.CANTIDAD` (sumas por lote activo) |
+
+Un mismo producto puede mostrar `EXIST = 57.7` en Inventario y `2680` sumado en Semaforo del mismo día. No es bug del backend — Aspel modela cantidad maestra (Inve) y por-lote (Ltpd) por separado. Pero al usuario se le presentan ambas como "Productos en estado X" sin contexto. Cuidado al pedir features que asuman que son el mismo número.
+
+Adicionalmente, el Semaforo **suma cantidades de unidades distintas** (kg de fruta + latas de atún + piezas de yoghurt) y las muestra como "Productos". Conceptualmente raro pero así está; cualquier rediseño de esa pantalla debería separarlo por `UNI_MED`.
 
 ---
 
@@ -165,6 +201,38 @@ npm run test
 
 Ejemplos para sanity-check: producto `VEDU000GR` (VERDURA A GRANEL), `FRUT000GR` (FRUTA A GRANEL), cliente `44` (PUBLICO EN GENERAL).
 
+### Operación directa con Firebird (isql)
+
+Para investigar/modificar datos del ERP sin pasar por el backend:
+
+```powershell
+& "C:\Program Files (x86)\Firebird\Firebird_2_5\bin\isql.exe" `
+  -user sysdba -password masterkey `
+  "C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Datos\SAE80EMPRE03.FDB"
+```
+
+Adentro del prompt `SQL>`:
+- Siempre primero: `SET NAMES WIN1252;` o los acentos salen como `?`.
+- Cada statement termina con `;`. `EXIT;` para salir.
+- `SHOW TABLE LTPD03;` muestra el schema completo.
+
+Para ejecutar un script desde un archivo: agrega `-i ruta\al\archivo.sql` al comando.
+
+GUI alternativas: **DBeaver Community** o **FlameRobin** (conexión `localhost:3050`, mismo user/pass).
+
+### Schema importante de LTPD03 (lotes)
+
+PK = `REG_LTPD INTEGER NOT NULL` — **NO es autoincremental**. Para INSERT manual hay que generar el ID con `SELECT MAX(REG_LTPD)+1 FROM LTPD03;` antes. Probable que esto aplique a otras tablas de Aspel (verificar caso por caso).
+
+### Productos con lotes activos (estado actual)
+
+Solo **3 CVE_ART** tienen lotes en `LTPD03` (de 37 199 productos en el catálogo):
+- `A006123` (Atún en Aceite Herdez 170gr) — 2 lotes con `FCHCADUC = NULL` → siempre críticos.
+- `YOGH450GR` (YOGHURT 450GR) — 1 lote caducado en 2023-08-11 → siempre crítico.
+- `FRUT000GR` (FRUTA A GRANEL) — sin lotes en `LTPD03` por defecto. **Usado en sesiones de testing** para meter lotes con fechas variadas (critical/warning/good) y reproducir el bug de fechas invertidas. Para reproducir, INSERT con `MAX(REG_LTPD)+1`, varias fechas relativas a `today`, status `'A'`, cantidad > 0.
+
+Esto significa que el 99.99% del catálogo está "ciego" para la app — no aparecen lotes porque nadie los marcó con manejo por lote en Aspel (ver sección Aspel abajo).
+
 ---
 
 ## Estado de Aspel SAE (instalación local)
@@ -183,6 +251,15 @@ Acciones hechas (histórico, mantener por si se necesita rollback):
 
 **Pendiente actual con Aspel UI**: Aspel SAE abre pero muestra "EMPRESA INVÁLIDA, S.A. DE C.V." y al abrir clientes/productos no aparecen datos. El **backend sí funciona** porque apunta directo al `.FDB` y reescribe sufijo a `03`. El problema es que la GUI de Aspel está cargando contexto de empresa 01 o uno inválido. Hay que revisar cómo Aspel decide qué empresa abrir y si la 03 está registrada correctamente en el catálogo de empresas de Aspel (no solo en `Conexiones.ini`).
 
+### Proceso de captura: flag "Maneja Lote"
+
+En Aspel SAE, cada producto del catálogo (`INVE`) tiene un flag tipo "Maneja Lote" que define si los movimientos del producto se rastrean en `LTPD`. Si el flag **NO** está activo:
+- Las entradas/salidas siguen registrándose en `MINVE` (movimientos generales).
+- **NO se generan filas en `LTPD`** → la app BAMX nunca ve esos productos como "lotes".
+- Las pantallas Semaforo / Refrigeradores / Inventario-con-prioridad quedan vacías para esos productos.
+
+Hoy `LTPD03` tiene 3 lotes de la noche a la mañana porque solo 3 productos están marcados con el flag. **Esto es un proceso de captura en Aspel, no es un bug de la app.** Si BAMX quiere ver más productos en la app, alguien tiene que marcar el flag en los productos relevantes antes de hacer entradas. Sospechar de esto cuando alguien diga "metí 100 productos pero la app no los muestra".
+
 ---
 
 ## Cambios importantes ya hechos en el backend
@@ -194,6 +271,8 @@ Acciones hechas (histórico, mantener por si se necesita rollback):
 - Auth/JWT incluye claim `empresa`.
 - Fallback en `TokenBlockListService` cuando `TOKEN_BLOCK_LIST` no existe.
 - Tests pasan con `cmd /c mvnw.cmd test` (sobre H2, no Firebird).
+- **Frontend** `StackedBarChart` ahora hace early-return si `mappedData` está vacío (antes crasheaba con `Object.keys(undefined)`).
+- **Frontend** `app/_layout.tsx` silencia (solo en web) el error `Cannot read properties of undefined (reading 'Typeface')` de `@shopify/react-native-skia` mientras CanvasKit termina de cargar. El filtro es estricto (`/Typeface|MakeFreeTypeFaceFromData|JsiSkTypefaceFactory/`) y silencia 6 canales: `LogBox.ignoreLogs`, `console.error`, `console.warn`, `ErrorUtils.setGlobalHandler`, `window.error` y `window.unhandledrejection` (en capture phase con `stopImmediatePropagation`). **Cualquier otro error pasa normal** — revisar DevTools del navegador si algo se ve raro.
 
 ---
 
@@ -201,10 +280,12 @@ Acciones hechas (histórico, mantener por si se necesita rollback):
 
 **BLOCKERS para producción**
 - `SecurityConfig` con `requestMatchers("/**").permitAll()`: la protección efectiva vive en el filter, frágil.
-- `criticalDate`/`warningDate` invertidos entre `InveService` y `AlmacenService`: el semáforo del inventario está al revés del dashboard.
-- `useSemaforoStats` filtra por `producto.status === "critical"|"warning"|"good"` pero el backend nunca pone esos valores → Semaforo siempre muestra 0.
-- `StackedBarChart` truena con `data: []` (`Object.keys(mappedData[0])` → crash).
+- `criticalDate`/`warningDate` invertidos entre `InveService` y `AlmacenService` (latente — no se manifiesta hoy porque casi todos los lotes están caducados). Ver tabla en "Convención de prioridades".
 - CORS abierto a `*` con `permitAll`.
+
+**~~BLOCKERS resueltos~~ ✅**
+- ~~`StackedBarChart` truena con `data: []`~~ — fixed con early-return (commit `4a6c91d`).
+- ~~`useSemaforoStats` muestra 0 siempre~~ — **FALSO POSITIVO** descubierto en sesión. `LtpdService.findAll` sí reescribe `Lot.status` a `"critical"/"warning"/"good"`. El Semaforo funciona.
 
 **WARNINGS**
 - `TOKEN_BLOCK_LIST` no existe; logout responde 200 sin persistir.
@@ -224,6 +305,22 @@ Acciones hechas (histórico, mantener por si se necesita rollback):
 - Quitar `System.out.println` en `AlmacenService`.
 - Unificar `InventoryItem` vs `Lot` desde el backend.
 - Postman collection completa.
+
+---
+
+## Git workflow del equipo
+
+- Branch default: **`main`**. **Protegida server-side**: requiere PR + 2 status checks (`backend-tests`, `frontend-tests`). No se puede `git push` directo (lo rechaza GitHub aunque hagas `--force`).
+- **No hay `develop` viva.** Existen `origin/develop`, `develop-java`, `develop-ponce` pero las tres están abandonadas hace 6-8 meses. **No crear nuevos `develop`** — el flujo real es `feature/<algo>` → PR → `main` directo (ver merges recientes en `git log`).
+- `gh` CLI **no está instalado** en el entorno local. Para abrir PRs usar la web: `https://github.com/GUPILUAN/BAMX/compare/main...<branch>`.
+- `.claude/settings.json` tiene `attribution.commit = ""` y `attribution.pr = ""`. **No agregar `Co-Authored-By: Claude`** ni footers de Claude en commits/PRs.
+- Convention de mensajes (Conventional Commits, ver `git log --oneline`): `feat:`, `fix(scope):`, `chore:`, `docs:`, `refactor:`.
+
+### Branches sugeridas para tareas pendientes
+- `chore/ui-cleanup` — quitar acciones muertas (Entregar/Deshechar, Registro, botones de Inventario), default images por línea de producto.
+- `feat/pages-entregables-no-aptos` — pantallas para los 2 botones grandes del SideBar.
+- `infra/dockerize-backend` — Dockerfile + docker-compose para despliegue en BAMX.
+- `feat/refrigeradores-iot` — wire MQTT real (esperar a tener hardware).
 
 ---
 
