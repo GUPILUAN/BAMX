@@ -5,10 +5,81 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { useFonts } from "expo-font";
+import { useEffect } from "react";
+import { LogBox, Platform } from "react-native";
 
 import "@/global.css";
 
+const TYPEFACE_RE = /Typeface|MakeFreeTypeFaceFromData|JsiSkTypefaceFactory/;
+const isTypefaceNoise = (msg: unknown): boolean => {
+  if (msg == null) return false;
+  const text =
+    typeof msg === "string"
+      ? msg
+      : msg instanceof Error
+        ? `${msg.message} ${msg.stack ?? ""}`
+        : (() => {
+            try {
+              return JSON.stringify(msg);
+            } catch {
+              return String(msg);
+            }
+          })();
+  return TYPEFACE_RE.test(text);
+};
+
+LogBox.ignoreLogs([TYPEFACE_RE]);
+
+const originalConsoleError = console.error;
+console.error = (...args: unknown[]) => {
+  if (args.some(isTypefaceNoise)) return;
+  originalConsoleError(...args);
+};
+const originalConsoleWarn = console.warn;
+console.warn = (...args: unknown[]) => {
+  if (args.some(isTypefaceNoise)) return;
+  originalConsoleWarn(...args);
+};
+
+const errorUtils = (globalThis as unknown as {
+  ErrorUtils?: {
+    getGlobalHandler?: () => (error: Error, isFatal?: boolean) => void;
+    setGlobalHandler?: (
+      handler: (error: Error, isFatal?: boolean) => void
+    ) => void;
+  };
+}).ErrorUtils;
+if (errorUtils?.setGlobalHandler) {
+  const previous = errorUtils.getGlobalHandler?.();
+  errorUtils.setGlobalHandler((error, isFatal) => {
+    if (isTypefaceNoise(error)) return;
+    previous?.(error, isFatal);
+  });
+}
+
 export function RootLayout() {
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const onRejection = (event: PromiseRejectionEvent) => {
+      if (isTypefaceNoise(event.reason)) {
+        event.preventDefault();
+        event.stopImmediatePropagation?.();
+      }
+    };
+    const onError = (event: ErrorEvent) => {
+      if (isTypefaceNoise(event.error ?? event.message)) {
+        event.preventDefault();
+        event.stopImmediatePropagation?.();
+      }
+    };
+    window.addEventListener("unhandledrejection", onRejection, true);
+    window.addEventListener("error", onError, true);
+    return () => {
+      window.removeEventListener("unhandledrejection", onRejection, true);
+      window.removeEventListener("error", onError, true);
+    };
+  }, []);
+
   const { settings } = useUserSettings();
 
   const [fontsLoaded] = useFonts({

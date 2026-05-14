@@ -48,8 +48,8 @@ export const StackedBarChart: React.FC<Props> = ({
     require("@/assets/fonts/SF-Pro-Rounded-Bold.otf"),
     fontSize
   );
+  if (!font || mappedData.length === 0) return null;
   const yKeys = Object.keys(mappedData[0]).filter((key) => key.startsWith("y"));
-  if (!font) return null;
   const xPadding = 0.5;
 
   return (
