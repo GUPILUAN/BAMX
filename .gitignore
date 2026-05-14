@@ -84,3 +84,6 @@ yarn-error.*
 *.tsbuildinfo
 
 coverage
+
+# Claude Code
+settings.local.json
