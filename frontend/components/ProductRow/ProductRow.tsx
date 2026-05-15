@@ -138,7 +138,7 @@ export default function ProductRow({
         style={{ flex: 1.5, justifyContent: "center", alignItems: "center" }}
       >
         <Text style={{ color: isDark ? "#fff" : "#000" }}>
-          {available_quantity}
+          {formatQuantity(available_quantity)}
           {"\n"}
           {(() => {
             // unit mapping based on type
@@ -263,6 +263,14 @@ export default function ProductRow({
     </View>
   );
 }
+function formatQuantity(value: unknown): string {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return "0";
+  // ruido de punto flotante de Aspel (sumas/restas de movimientos dejan residuos ~1e-14)
+  if (Math.abs(n) < 0.001) return "0";
+  return n.toLocaleString("es-MX", { maximumFractionDigits: 2 });
+}
+
 function formatDateProduction(dateStr: string) {
   // expected input 'YYYY-MM-DD' or similar
   try {
