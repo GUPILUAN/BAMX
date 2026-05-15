@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
 } from "react-native";
 import ProductRow from "../ProductRow/ProductRow";
@@ -46,7 +46,7 @@ export default function ProductList({
     { label: "Prioridad", flex: 1.5 },
   ];
 
-  // Pagination logic to show a maximum of 10 visible pages
+  // Maximo 10 paginas visibles en la barra
   const getVisiblePages = () => {
     const maxVisible = 10;
     let start = Math.max(currentPage - Math.floor(maxVisible / 2), 0);
@@ -58,135 +58,139 @@ export default function ProductList({
     return Array.from({ length: end - start }, (_, i) => start + i);
   };
 
-  return (
+  const renderHeader = () => (
     <View
       style={[
-        styles.container,
+        styles.headerRow,
         {
-          height: totalPages > 1 ? 600 : "auto",
+          backgroundColor: themeColors.headerBackground(isDark),
+          borderBottomColor: isDark ? "#555" : "#ccc",
         },
       ]}
     >
-      <View style={styles.tableContainer}>
-        {/* Header */}
+      {columns.map((col, idx, arr) => (
+        <View
+          key={col.label}
+          style={{
+            flex: col.flex,
+            justifyContent: "center",
+            alignItems: "center",
+            borderRightWidth: idx < arr.length - 1 ? 1 : 0,
+            borderRightColor: isDark ? "#555" : "#ddd",
+            paddingVertical: 8,
+          }}
+        >
+          <Text
+            style={{
+              color: themeColors.text(isDark),
+              fontWeight: "700",
+              fontSize: 14,
+              textTransform: "uppercase",
+              letterSpacing: 0.5,
+            }}
+          >
+            {col.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <View
+        style={[
+          styles.tableContainer,
+          { borderColor: isDark ? "#555" : "#ccc" },
+        ]}
+      >
+        <FlatList
+          data={productos}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          stickyHeaderIndices={[0]}
+          renderItem={({ item, index }) => (
+            <ProductRow
+              style={{
+                paddingVertical: 15,
+                paddingHorizontal: 8,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              isDark={isDark}
+              index={index}
+              product={item}
+              isSelected={selectedIds.includes(item.id)}
+              handleSelect={handleSelect}
+            />
+          )}
+          showsVerticalScrollIndicator
+        />
+      </View>
+
+      {totalPages > 1 && (
         <View
           style={[
-            styles.headerRow,
+            styles.paginationContainer,
             {
-              backgroundColor: themeColors.headerBackground(isDark),
-              borderBottomColor: isDark ? "#555" : "#ccc",
+              backgroundColor: themeColors.background(isDark),
+              borderTopColor: isDark ? "#555" : "#ddd",
             },
           ]}
         >
-          {columns.map((col, idx, arr) => (
-            <View
-              key={col.label}
-              style={{
-                flex: col.flex,
-                justifyContent: "center",
-                alignItems: "center",
-                borderRightWidth: idx < arr.length - 1 ? 1 : 0,
-                borderRightColor: isDark ? "#555" : "#ddd",
-                paddingVertical: 8,
-              }}
+          {currentPage > 0 ? (
+            <TouchableOpacity onPress={loadLess} style={styles.pageArrow}>
+              <FontAwesome6 name="arrow-left" size={20} color="red" />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 32, height: 32, marginHorizontal: 3 }} />
+          )}
+
+          {getVisiblePages().map((num) => (
+            <TouchableOpacity
+              key={num}
+              onPress={() => setCurrentPage(num)}
+              style={[
+                styles.pageNumber,
+                currentPage === num && styles.pageNumberActive,
+              ]}
             >
               <Text
                 style={{
-                  color: themeColors.text(isDark),
-                  fontWeight: "700",
-                  fontSize: 14,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
+                  color: "#475569",
+                  fontWeight: currentPage === num ? "700" : "500",
                 }}
               >
-                {col.label}
+                {num + 1}
               </Text>
-            </View>
+            </TouchableOpacity>
           ))}
+
+          {currentPage < totalPages - 1 ? (
+            <TouchableOpacity onPress={loadMore} style={styles.pageArrow}>
+              <FontAwesome6 name="arrow-right" size={20} color="red" />
+            </TouchableOpacity>
+          ) : (
+            <View style={{ width: 32, height: 32, marginHorizontal: 3 }} />
+          )}
         </View>
-
-        {/* Filas */}
-
-        {productos.map((producto, index) => (
-          <ProductRow
-            style={{
-              paddingVertical: 15,
-              paddingHorizontal: 8,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-            isDark={isDark}
-            key={producto.id}
-            index={index}
-            product={producto}
-            isSelected={selectedIds.includes(producto.id)}
-            handleSelect={handleSelect}
-          />
-        ))}
-
-        {totalPages > 1 && (
-          <View
-            style={[
-              styles.paginationContainer,
-              { backgroundColor: themeColors.background(isDark) },
-            ]}
-          >
-            {currentPage > 0 ? (
-              <TouchableOpacity onPress={loadLess} style={styles.pageArrow}>
-                <FontAwesome6 name="arrow-left" size={20} color="red" />
-              </TouchableOpacity>
-            ) : (
-              <View style={{ width: 32, height: 32, marginHorizontal: 3 }} />
-            )}
-
-            {getVisiblePages().map((num) => (
-              <TouchableOpacity
-                key={num}
-                onPress={() => setCurrentPage(num)}
-                style={[
-                  styles.pageNumber,
-                  currentPage === num && styles.pageNumberActive,
-                ]}
-              >
-                <Text
-                  style={{
-                    color: "#475569",
-                    fontWeight: currentPage === num ? "700" : "500",
-                  }}
-                >
-                  {num + 1}
-                </Text>
-              </TouchableOpacity>
-            ))}
-
-            {currentPage < totalPages - 1 ? (
-              <TouchableOpacity onPress={loadMore} style={styles.pageArrow}>
-                <FontAwesome6 name="arrow-right" size={20} color="red" />
-              </TouchableOpacity>
-            ) : (
-              <View style={{ width: 32, height: 32, marginHorizontal: 3 }} />
-            )}
-          </View>
-        )}
-      </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    width: "90%",
-    alignSelf: "center",
+    flex: 1,
+    width: "100%",
+    paddingHorizontal: 12,
     marginTop: 15,
   },
   tableContainer: {
+    flex: 1,
     borderWidth: 1,
-    borderColor: "#ccc",
     borderRadius: 12,
-    overflow: "scroll",
-
-    height: "100%",
-    maxHeight: 560,
+    overflow: "hidden",
   },
   headerRow: {
     flexDirection: "row",
@@ -200,10 +204,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     flexWrap: "wrap",
     borderTopWidth: 1,
-    borderTopColor: "#ddd",
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
   },
   pageNumber: {
     width: 36,
