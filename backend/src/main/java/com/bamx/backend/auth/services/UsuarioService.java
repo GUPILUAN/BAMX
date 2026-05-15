@@ -6,7 +6,6 @@ import com.bamx.backend.auth.models.TokenBlockList;
 import com.bamx.backend.auth.models.UsrEmp;
 import com.bamx.backend.auth.models.Usuario;
 import com.bamx.backend.auth.repositories.Rol1005Repository;
-import com.bamx.backend.auth.repositories.TokenBlockListRepository;
 import com.bamx.backend.auth.repositories.UsrEmpRepository;
 import com.bamx.backend.auth.repositories.UsuarioRepository;
 import com.bamx.backend.auth.utils.AspelHash;
@@ -29,14 +28,18 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
+
   private final UsuarioRepository usuarioRepository;
-  private final TokenBlockListRepository tokenBlockListRepository;
+  private final TokenBlockListService tokenBlockListService;
   private final UsrEmpRepository usrEmpRepository;
   private final Rol1005Repository rol1005Repository;
   private final FotoUsuarioService fotoUsuarioService;
 
   @Value("${app.host.url}")
   private String hostUrl;
+
+  @Value("${app.empresa.suffix:}")
+  private String empresaSuffixOverride;
 
   @Value("${jwt.secret}")
   private String jwtSecret;
@@ -52,7 +55,7 @@ public class UsuarioService {
 
   @PostConstruct
   public void init() {
-    this.tokenDecoder = new TokenDecoder(jwtSecret, tokenBlockListRepository);
+    this.tokenDecoder = new TokenDecoder(jwtSecret, tokenBlockListService);
     this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
   }
 
@@ -92,7 +95,7 @@ public class UsuarioService {
         .email(usuario.getMail())
         .position(usuario.getPuesto())
         .department(usuario.getDepto())
-        .company(usrEmp.getEmpresa())
+        .company(resolveEmpresa(usrEmp.getEmpresa()))
         .role(rol1005.getNombre())
         .status(usrEmp.getStatus())
         .profile_picture(profilePictureUrl)
@@ -146,7 +149,7 @@ public class UsuarioService {
       return false;
     }
 
-    return tokenBlockListRepository.save(blockedToken) != null;
+    return tokenBlockListService.revoke(blockedToken);
   }
 
   private String generateAccessJwtToken(Usuario usuario) {
@@ -172,10 +175,17 @@ public class UsuarioService {
         .setExpiration(new java.util.Date(now + jwtExpiration))
         .claim("type", "access")
         .claim("rol", rol1005.getNombre())
-        .claim("empresa", usrEmp.getEmpresa().toString().trim())
+        .claim("empresa", resolveEmpresa(usrEmp.getEmpresa()).toString().trim())
         .claim("status", usrEmp.getStatus().toString().trim())
         .signWith(key)
         .compact();
+  }
+
+  private Integer resolveEmpresa(Integer empresa) {
+    if (empresaSuffixOverride == null || empresaSuffixOverride.isBlank()) {
+      return empresa;
+    }
+    return Integer.valueOf(empresaSuffixOverride.trim());
   }
 
   private String generateRefreshJwtToken(Usuario usuario) {

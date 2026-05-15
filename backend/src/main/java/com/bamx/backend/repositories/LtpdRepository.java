@@ -12,7 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface LtpdRepository extends JpaRepository<Ltpd, String> {
+public interface LtpdRepository extends JpaRepository<Ltpd, Integer> {
 
   @Query(
 """

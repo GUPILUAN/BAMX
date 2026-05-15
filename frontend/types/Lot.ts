@@ -11,4 +11,7 @@ export type Lot = {
   type: string | null;
   type_id: string | null;
   image: string | null;
+  warehouseNamesCritical?: string[];
+  warehouseNamesWarning?: string[];
+  warehouseNamesGood?: string[];
 };
