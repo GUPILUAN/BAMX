@@ -30,6 +30,52 @@ Branch típica de trabajo: `feature/code-review`
 
 ---
 
+## Decisiones de arquitectura
+
+### La app es READ-ONLY contra Aspel
+
+**Regla**: la app **no escribe nada** a las tablas de Aspel (`INVE`, `LTPD`, `MINVE`, `ALMACENES`, `CLIE`, etc.). Solo consulta (GETs).
+
+**Razones**:
+1. Aspel es el ERP autoritativo. Las mutaciones tienen implicaciones contables, fiscales y de auditoría que ya están blindadas en Aspel (asientos automáticos, validaciones, historial en MINVE). Replicar eso desde la app es trabajo enorme y fácil de hacer mal.
+2. Confianza/adopción: BAMX suelta la app sin miedo a corromper su contabilidad. Quien lleva Aspel firma sin fricción.
+3. Alcance acotado: la app es **tablero/visor + IoT (refrigeradores)**. Eso ya tiene valor de sobra para un voluntario en campo o un coordinador que no quiere abrir Aspel en una laptop.
+4. Hay capturista dedicado en Aspel — la app no compite, complementa.
+
+**Implicaciones para diseño**:
+- Botones tipo "Entregar", "Despachar", "Marcar como desechado", "Registrar lote" **no se construyen**. Si el usuario necesita ese flujo, lo hace en Aspel.
+- Si en algún momento BAMX decide capturar desde celular en bodega, eso es V2 (cambio de filosofía, no feature menor) — requiere reescribir asientos contables, validar contra reglas de Aspel, etc.
+- Las tablas propias de la app (`TOKEN_BLOCK_LIST` en la DB de perfiles, sensores MQTT) sí son writeables — son de la app, no de Aspel.
+
+### Plan de arranque (go-live en BAMX)
+
+Cuando se conecte la app a BAMX en producción, el catálogo va a tener ~37k productos sin el flag "Maneja Lote" prendido y existencia histórica sin lotes en `LTPD`. La estrategia:
+
+**A. Preparación del catálogo (antes del go-live, en Aspel)**:
+- BAMX prende el flag "Maneja Lote" en líneas perecederas usando **Aspel "Modificar masivo"** (Inventarios → Modificar varios artículos, filtra por `LIN_PROD`).
+- Líneas que **sí** requieren lote (caducidad relevante): `FYV`, `F1N`, `F1P`, `F2P`, `V1N` (frutas/verduras), `LECHE`, `L1P`, `L2P` (lácteos), `AOA`, `O1N`, `O1P` (carnes/huevos), `P`, `P1P`, `T1P` (panadería/preparada), `B2P` (botanas), `E1P`, `E2P` (bebidas).
+- Líneas que **no** requieren (vida larga / no comestibles): `NP`, `X2`, `AZU`, `LEG`, `AYG`, `A2P`, `A2N`, `CER` (discutible).
+- Esto solo cambia un flag en `INVE`; no crea lotes ni toca cantidades.
+
+**B. Existencia histórica (cutoff + atrición — no se migra)**:
+- **No se migra**. La existencia vieja sin lote se queda como está.
+- Entradas nuevas (post-cutoff) entran con lote+caducidad correctamente → `LTPD03` se llena con datos válidos.
+- Existencia vieja:
+  - **Sigue visible** en Inventario (porque lee `INVE.EXIST`).
+  - **No aparece** en Semaforo (porque lee de `LTPD` y no hay lotes para esa existencia).
+  - Se consume naturalmente con salidas en MINVE. En 1-3 meses, la rotación natural de un banco de alimentos limpia el stock viejo.
+
+**C. Lo que NO se hace** (descartado conscientemente):
+- ❌ Migrar como "lote sin fecha" (`FCHCADUC = NULL`): el código actual trata NULL como crítico → todo en rojo = nada en rojo. Pierde la señal.
+- ❌ Conteo físico al arranque: ideal pero pide fin de semana de operación. Si BAMX lo puede hacer, mejor — pero no bloquea el lanzamiento.
+- ❌ Script de migración que escribe a `LTPD`: violaría la regla read-only.
+
+**D. Visibilidad en la app durante la transición** (opcional, todavía no construido):
+- Badge "Sin lote" en filas de Inventario cuando `EXIST > 0` pero el producto no tiene lotes en `LTPD`. Convierte la pregunta "¿por qué está vacío el semáforo?" en accionable.
+- Banner sutil en Home: "Semaforo en fase de carga: X% de productos con lote activo" — da contexto durante el periodo de transición.
+
+---
+
 ## Arquitectura del backend
 
 ### Doble DataSource
