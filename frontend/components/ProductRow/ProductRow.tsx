@@ -10,6 +10,7 @@ import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { InventoryItem } from "@/types/InventoryItem";
 import { Lot } from "@/types/Lot";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
+import { unitForLine } from "@/functions/unitForLine";
 
 import { navigate } from "@/functions/NavigationService";
 
@@ -150,19 +151,10 @@ export default function ProductRow({
           <Text style={{ color: isDark ? "#fff" : "#000" }}>
             {formatQuantity(available_quantity)}
             {"\n"}
-            {(() => {
-              // unit mapping based on type
-              const map: Record<string, string> = {
-                fruit: "unidades",
-                canned_food: "latas",
-                bottle: "botellas",
-                grain: "kilogramos",
-                dairy: "litros",
-                snack: "paquetes",
-                jar: "frasco",
-              };
-              return map[prodType] || "unidades";
-            })()}
+            {unitForLine({
+              typeId: (product as any).type_id,
+              type: prodType,
+            })}
           </Text>
         ) : (
           <View
