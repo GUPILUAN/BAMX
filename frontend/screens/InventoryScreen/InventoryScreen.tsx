@@ -1,10 +1,4 @@
-import {
-  View,
-  Platform,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Keyboard,
-} from "react-native";
+import { View, Platform, KeyboardAvoidingView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useSelector } from "react-redux";
@@ -47,37 +41,32 @@ export default function InventoryScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <TouchableWithoutFeedback
-          onPress={() => Platform.OS !== "web" && Keyboard.dismiss()}
-          accessible={false}
+        <View
+          className={`${themeColorsTailwind.backgroundTailwind} flex-1 w-full items-center`}
         >
-          <View
-            className={`${themeColorsTailwind.backgroundTailwind} flex-1 w-full items-center`}
-          >
-            {/* 🔍 Header de búsqueda */}
-            <SearchHeader
-              handleChangeQuery={setQuery}
-              query={query}
-              handleOrder={setSortDirection}
-              handleSort={setSortBy}
-              sortBy={sortBy}
-              sortDirection={sortDirection}
-              onlyWithStock={onlyWithStock}
-              setOnlyWithStock={setOnlyWithStock}
-            />
+          {/* 🔍 Header de búsqueda */}
+          <SearchHeader
+            handleChangeQuery={setQuery}
+            query={query}
+            handleOrder={setSortDirection}
+            handleSort={setSortBy}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onlyWithStock={onlyWithStock}
+            setOnlyWithStock={setOnlyWithStock}
+          />
 
-            {/* 📦 Lista de productos */}
-            <ProductList
-              productos={products}
-              isDark={isDark}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              loadMore={loadMore}
-              loadLess={loadLess}
-              setCurrentPage={setCurrentPage}
-            />
-          </View>
-        </TouchableWithoutFeedback>
+          {/* 📦 Lista de productos */}
+          <ProductList
+            productos={products}
+            isDark={isDark}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            loadMore={loadMore}
+            loadLess={loadLess}
+            setCurrentPage={setCurrentPage}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

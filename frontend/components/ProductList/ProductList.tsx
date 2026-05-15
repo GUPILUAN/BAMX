@@ -5,6 +5,8 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  Keyboard,
+  Platform,
 } from "react-native";
 import ProductRow from "../ProductRow/ProductRow";
 import { InventoryItem } from "@/types/InventoryItem";
@@ -125,6 +127,13 @@ export default function ProductList({
             />
           )}
           showsVerticalScrollIndicator
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === "ios" ? "interactive" : "on-drag"
+          }
+          onScrollBeginDrag={() => {
+            if (Platform.OS !== "web") Keyboard.dismiss();
+          }}
         />
       </View>
 
