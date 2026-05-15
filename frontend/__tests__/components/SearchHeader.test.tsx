@@ -145,4 +145,45 @@ describe("SearchHeader", () => {
 
     expect(getByText("Descendente")).toBeTruthy();
   });
+
+  it("renders 'Solo con existencia' toggle when setOnlyWithStock is provided", () => {
+    const setOnlyWithStock = jest.fn();
+    const { getByText } = render(
+      <TestWrapper>
+        <SearchHeader
+          {...mockProps}
+          onlyWithStock={true}
+          setOnlyWithStock={setOnlyWithStock}
+        />
+      </TestWrapper>
+    );
+
+    expect(getByText("Solo productos con existencia")).toBeTruthy();
+  });
+
+  it("does not render the toggle when setOnlyWithStock is not provided", () => {
+    const { queryByText } = render(
+      <TestWrapper>
+        <SearchHeader {...mockProps} />
+      </TestWrapper>
+    );
+
+    expect(queryByText("Solo productos con existencia")).toBeNull();
+  });
+
+  it("calls setOnlyWithStock with the opposite value when the toggle is pressed", () => {
+    const setOnlyWithStock = jest.fn();
+    const { getByText } = render(
+      <TestWrapper>
+        <SearchHeader
+          {...mockProps}
+          onlyWithStock={true}
+          setOnlyWithStock={setOnlyWithStock}
+        />
+      </TestWrapper>
+    );
+
+    fireEvent.press(getByText("Solo productos con existencia"));
+    expect(setOnlyWithStock).toHaveBeenCalledWith(false);
+  });
 });

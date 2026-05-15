@@ -331,4 +331,40 @@ describe("ProductRow", () => {
     // The edit button should be rendered (FontAwesome5 with name="edit")
     expect(UNSAFE_getByProps({ name: "edit" })).toBeTruthy();
   });
+
+  it("shows 'Sin stock' badge when available_quantity is 0", () => {
+    const productNoStock = { ...mockProduct, available_quantity: 0 };
+    const { getByTestId, getByText, queryByText } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productNoStock} />
+      </TestWrapper>
+    );
+
+    expect(getByTestId("sin-stock-badge")).toBeTruthy();
+    expect(getByText("Sin stock")).toBeTruthy();
+    expect(queryByText("0\nunidades")).toBeNull();
+  });
+
+  it("shows 'Sin stock' badge for float-noise values below 0.001", () => {
+    const productNoise = { ...mockProduct, available_quantity: -8.5e-14 };
+    const { getByTestId } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productNoise} />
+      </TestWrapper>
+    );
+
+    expect(getByTestId("sin-stock-badge")).toBeTruthy();
+  });
+
+  it("dims the row opacity when product has no stock", () => {
+    const productNoStock = { ...mockProduct, available_quantity: 0 };
+    const { getByTestId } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productNoStock} />
+      </TestWrapper>
+    );
+
+    const row = getByTestId("product-row");
+    expect(row.props.style.opacity).toBeLessThan(1);
+  });
 });

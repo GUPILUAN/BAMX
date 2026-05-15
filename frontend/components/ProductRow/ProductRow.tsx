@@ -76,6 +76,12 @@ export default function ProductRow({
     setDropdownVisible(false);
   };
 
+  const numericQty =
+    typeof available_quantity === "number"
+      ? available_quantity
+      : Number(available_quantity);
+  const hasStock = Number.isFinite(numericQty) && Math.abs(numericQty) >= 0.001;
+
   const baseStyle: any = {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -89,7 +95,7 @@ export default function ProductRow({
         : index % 2 === 0
           ? "#f2f2f2"
           : "#fff",
-    opacity: isSelected ? 0.5 : 1,
+    opacity: isSelected ? 0.5 : hasStock ? 1 : 0.55,
   };
 
   const mergedStyle = Object.assign({}, baseStyle, (style as any) || {});
@@ -137,23 +143,45 @@ export default function ProductRow({
       <View
         style={{ flex: 1.5, justifyContent: "center", alignItems: "center" }}
       >
-        <Text style={{ color: isDark ? "#fff" : "#000" }}>
-          {formatQuantity(available_quantity)}
-          {"\n"}
-          {(() => {
-            // unit mapping based on type
-            const map: Record<string, string> = {
-              fruit: "unidades",
-              canned_food: "latas",
-              bottle: "botellas",
-              grain: "kilogramos",
-              dairy: "litros",
-              snack: "paquetes",
-              jar: "frasco",
-            };
-            return map[prodType] || "unidades";
-          })()}
-        </Text>
+        {hasStock ? (
+          <Text style={{ color: isDark ? "#fff" : "#000" }}>
+            {formatQuantity(available_quantity)}
+            {"\n"}
+            {(() => {
+              // unit mapping based on type
+              const map: Record<string, string> = {
+                fruit: "unidades",
+                canned_food: "latas",
+                bottle: "botellas",
+                grain: "kilogramos",
+                dairy: "litros",
+                snack: "paquetes",
+                jar: "frasco",
+              };
+              return map[prodType] || "unidades";
+            })()}
+          </Text>
+        ) : (
+          <View
+            testID="sin-stock-badge"
+            style={{
+              backgroundColor: isDark ? "#444" : "#e5e7eb",
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              borderRadius: 10,
+            }}
+          >
+            <Text
+              style={{
+                color: isDark ? "#bbb" : "#6b7280",
+                fontSize: 11,
+                fontWeight: "600",
+              }}
+            >
+              Sin stock
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Tipo */}
