@@ -13,6 +13,7 @@ import { navigate } from "@/functions/NavigationService";
 import { styles } from "./styles";
 import { Lot } from "@/types/Lot";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
+import { isUsableImage } from "@/functions/isUsableImage";
 
 interface ProductCardProps {
   item: Lot;
@@ -25,6 +26,8 @@ export default function ProductCard({ item }: ProductCardProps) {
   const bgColor = isDarkMode ? "bg-gray-800" : "bg-white";
 
   const [loading, setLoading] = useState<boolean>(true);
+  const [imageFailed, setImageFailed] = useState<boolean>(false);
+  const showRealImage = isUsableImage(item.image) && !imageFailed;
 
   return (
     <View
@@ -32,13 +35,17 @@ export default function ProductCard({ item }: ProductCardProps) {
       className={"mr-8 rounded-3xl shadow-lg w-48 h-48 " + bgColor}
     >
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        {item.image && item.image.trim() !== "" ? (
+        {showRealImage ? (
           <>
             <Image
-              source={{ uri: item.image }}
+              source={{ uri: item.image as string }}
               style={styles.image}
               resizeMode="cover"
               onLoad={() => setLoading(false)}
+              onError={() => {
+                setImageFailed(true);
+                setLoading(false);
+              }}
             />
             {loading && (
               <View testID="loading-indicator" style={styles.loadingOverlay}>

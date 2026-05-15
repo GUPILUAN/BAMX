@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { goBack } from "@/functions/NavigationService";
 import { selectTheme } from "@/slices/themeSlice";
 import { Lot } from "@/types/Lot";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
+import { isUsableImage } from "@/functions/isUsableImage";
 
 const { height, width } = Dimensions.get("window");
 
@@ -21,15 +22,18 @@ export default function DetailsScreen() {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
   const product: Lot | null = item ? JSON.parse(item as string) : null;
+  const [imageFailed, setImageFailed] = useState<boolean>(false);
+  const showRealImage = isUsableImage(product?.image) && !imageFailed;
 
   return (
     <View className={`flex-1 ${isDark ? "bg-black" : "bg-white"}`}>
       {/* Imagen superior */}
-      {product?.image && product?.image.trim() !== "" ? (
+      {showRealImage ? (
         <Image
-          source={{ uri: product.image }}
+          source={{ uri: product?.image as string }}
           className="absolute top-0 left-0 w-full h-full"
           resizeMode="cover"
+          onError={() => setImageFailed(true)}
         />
       ) : (
         <DefaultProductImage
