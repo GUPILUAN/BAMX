@@ -25,9 +25,11 @@ public class InveController {
       @RequestParam(defaultValue = "10") int size,
       @RequestParam(defaultValue = "linProd") String sort,
       @RequestParam(defaultValue = "") String search,
-      @RequestParam(defaultValue = "asc") String direction) {
+      @RequestParam(defaultValue = "asc") String direction,
+      @RequestParam(defaultValue = "true") boolean onlyWithStock) {
     HttpStatus status = HttpStatus.OK;
-    Page<InventoryItem> result = inveService.getAllInve(page, size, sort, direction, search);
+    Page<InventoryItem> result =
+        inveService.getAllInve(page, size, sort, direction, search, onlyWithStock);
     return new ResponseEntity<>(
         new ApiResponse(
             status.value(),

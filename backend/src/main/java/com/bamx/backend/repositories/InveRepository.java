@@ -19,4 +19,15 @@ WHERE i.conLote = 'S'
   AND (LOWER(i.cveArt) LIKE %:search% OR LOWER(i.descr) LIKE %:search%)
 """)
   Page<Inve> findAllInve(@Param("search") String search, Pageable pageable);
+
+  @Query(
+"""
+SELECT i FROM Inve i
+WHERE i.conLote = 'S'
+  AND i.tipoEle = 'P'
+  AND i.status = 'A'
+  AND i.exist > 0
+  AND (LOWER(i.cveArt) LIKE %:search% OR LOWER(i.descr) LIKE %:search%)
+""")
+  Page<Inve> findAllInveWithStock(@Param("search") String search, Pageable pageable);
 }
