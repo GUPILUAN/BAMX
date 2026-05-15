@@ -36,6 +36,8 @@ export default function InventoryScreen() {
     sortBy,
     sortDirection,
     setSortDirection,
+    onlyWithStock,
+    setOnlyWithStock,
   } = useFetchProducts();
 
   return (
@@ -63,6 +65,8 @@ export default function InventoryScreen() {
                 handleSort={setSortBy}
                 sortBy={sortBy}
                 sortDirection={sortDirection}
+                onlyWithStock={onlyWithStock}
+                setOnlyWithStock={setOnlyWithStock}
               />
 
               {/* 📦 Lista de productos */}

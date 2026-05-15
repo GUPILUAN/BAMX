@@ -11,6 +11,8 @@ type SearchHeaderProps = {
   handleOrder: (direction: "asc" | "desc") => void;
   sortBy?: "linProd" | "exist" | "cveArt";
   sortDirection?: "asc" | "desc";
+  onlyWithStock?: boolean;
+  setOnlyWithStock?: (value: boolean) => void;
 };
 
 export default function SearchHeader({
@@ -20,6 +22,8 @@ export default function SearchHeader({
   sortDirection,
   handleSort,
   handleOrder,
+  onlyWithStock = true,
+  setOnlyWithStock,
 }: SearchHeaderProps) {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
@@ -53,6 +57,31 @@ export default function SearchHeader({
           value={query}
         />
       </View>
+
+      {/* Toggle: solo productos con existencia */}
+      {setOnlyWithStock && (
+        <TouchableOpacity
+          onPress={() => setOnlyWithStock(!onlyWithStock)}
+          className="flex-row items-center mt-3"
+        >
+          <View
+            className={`w-5 h-5 rounded mr-2 items-center justify-center border ${
+              onlyWithStock
+                ? "bg-blue-600 border-blue-600"
+                : isDark
+                  ? "bg-gray-700 border-gray-500"
+                  : "bg-white border-gray-400"
+            }`}
+          >
+            {onlyWithStock && (
+              <Feather name="check" size={14} color="white" />
+            )}
+          </View>
+          <Text className={`text-sm ${inputText}`}>
+            Solo productos con existencia
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Sort + direction */}
       <View className="flex-row items-center justify-between mt-3">
