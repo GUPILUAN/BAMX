@@ -20,18 +20,20 @@ WHERE i.conLote = 'S'
 """)
   Page<Inve> findAllInve(@Param("search") String search, Pageable pageable);
 
-  // Threshold 0.001 (no > 0) para descartar ruido de punto flotante de Aspel:
-  // valores como 1.62e-12 son residuos de cientos de operaciones en MINVE.
-  // El frontend usa el mismo umbral en hasStock / formatQuantity, así que
-  // mantener ambos sincronizados evita que el toggle "Solo con existencia"
-  // muestre filas que el frontend pinta como "Sin stock".
+  // Threshold 0.01 (no > 0) para descartar ruido de punto flotante de Aspel
+  // y "residuo escalado" que tampoco sirve operativamente. Aspel acumula
+  // errores en INVE.EXIST conforme procesa cientos de movimientos de MINVE
+  // (residuos como 1.62e-12, pero también casos peores tipo CARNE DE POLLO
+  // con EXIST=0.01 piezas, que son 10g de pollo — no es stock real para un
+  // banco de alimentos). El frontend usa el mismo umbral en hasStock /
+  // formatQuantity para que ambas capas sean coherentes.
   @Query(
 """
 SELECT i FROM Inve i
 WHERE i.conLote = 'S'
   AND i.tipoEle = 'P'
   AND i.status = 'A'
-  AND i.exist >= 0.001
+  AND i.exist >= 0.01
   AND (LOWER(i.cveArt) LIKE %:search% OR LOWER(i.descr) LIKE %:search%)
 """)
   Page<Inve> findAllInveWithStock(@Param("search") String search, Pageable pageable);

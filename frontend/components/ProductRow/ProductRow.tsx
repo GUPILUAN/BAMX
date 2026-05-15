@@ -80,7 +80,10 @@ export default function ProductRow({
     typeof available_quantity === "number"
       ? available_quantity
       : Number(available_quantity);
-  const hasStock = Number.isFinite(numericQty) && Math.abs(numericQty) >= 0.001;
+  // Threshold 0.01: descarta ruido de Aspel (residuos tipo 1.62e-12) y
+  // también "residuo escalado" tipo CARNE DE POLLO con 0.01 pz que es 10g
+  // — no es stock operativo. Mantiene sincronizado con InveRepository.
+  const hasStock = Number.isFinite(numericQty) && Math.abs(numericQty) >= 0.01;
 
   const baseStyle: any = {
     flexDirection: "row",
@@ -294,8 +297,11 @@ export default function ProductRow({
 function formatQuantity(value: unknown): string {
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n)) return "0";
-  // ruido de punto flotante de Aspel (sumas/restas de movimientos dejan residuos ~1e-14)
-  if (Math.abs(n) < 0.001) return "0";
+  // Threshold 0.01: descarta ruido de Aspel (residuos tipo 1e-12 que dejan
+  // las sumas/restas de movimientos) y también valores residuales escalados
+  // como 0.01 que en piezas significa "casi nada". Sincronizado con
+  // hasStock arriba y con InveRepository.findAllInveWithStock en backend.
+  if (Math.abs(n) < 0.01) return "0";
   return n.toLocaleString("es-MX", { maximumFractionDigits: 2 });
 }
 
