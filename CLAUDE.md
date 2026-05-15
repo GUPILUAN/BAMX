@@ -47,32 +47,78 @@ Branch típica de trabajo: `feature/code-review`
 - Si en algún momento BAMX decide capturar desde celular en bodega, eso es V2 (cambio de filosofía, no feature menor) — requiere reescribir asientos contables, validar contra reglas de Aspel, etc.
 - Las tablas propias de la app (`TOKEN_BLOCK_LIST` en la DB de perfiles, sensores MQTT) sí son writeables — son de la app, no de Aspel.
 
+### Estado real de los datos en BAMX (verificado contra DB en sesión 2026-05-15)
+
+Antes de planear cualquier cosa que dependa de lotes/caducidad, hay que entender el desfase entre **cómo está modelado el sistema** y **cómo se está usando**.
+
+**Lo que dicen los datos** (consultas SQL directas a `SAE80EMPRE03.FDB`):
+
+| Métrica | Valor | Significado |
+|---|---|---|
+| Productos en `INVE03` | 37,199 | Catálogo completo |
+| Productos con `CON_LOTE='S'` | **37,199 (100%)** | Flag prendido en todo el catálogo |
+| Filas en `LTPD03` (lotes capturados) | **6** | Casi nadie capturó lote+caducidad |
+| Filas en `MINVE03` (movimientos) | 872,588 | Hubo muchísima actividad de entrada/salida |
+| Productos con lote completo (caducidad + producción) | 4 de 6, y 3 los inserté en testing manual |
+| Único lote "real" con caducidad capturada | `YOGH450GR / OXXO01` capturado en 2023 (caducó hace ~2 años) |
+| Lotes con caducidad NULL | `A006123` (Atún) — capturado en 2010 sin caducidad |
+
+**Lectura**: el catálogo está bien configurado (`CON_LOTE='S'` está en todos), **pero el flujo de captura no aprovecha esa configuración**. El capturista parece estar haciendo entradas en Aspel sin pasar por la ventana de captura de lote+caducidad. Por eso `INVE.EXIST` y `MINVE` están bien poblados pero `LTPD` está casi vacío.
+
+**Hipótesis a confirmar con la operación de BAMX** (NO confirmadas):
+1. El capturista se salta la ventana de lote (rapidez / desconocimiento / configuración permisiva en `TBLCONTROL`).
+2. Manejan caducidades operativamente por fuera (rotulación física, Excel, "FIFO a ojo").
+3. Datos legacy migrados de versión anterior de Aspel sin caducidad.
+
+### Implicación para la app
+
+El Semaforo (pantalla Home) depende 100% de `LTPD`. Si `LTPD` está vacío, el Semaforo está vacío. **No hay solución técnica desde la app** — la caducidad no existe en ningún campo alternativo de la DB, así que un "adaptador" no puede inventarla.
+
+Las features de la app que **sí funcionan hoy sin tocar nada** en BAMX:
+- **Inventario**: lee `INVE.EXIST` que está bien poblado → la pantalla sirve completa con sus 37k productos.
+- **Almacenes** (vista por bodega): lee `MINVE` + `ALMACENES` → funciona.
+- **Refrigeradores / sensores MQTT**: independiente de Aspel → funciona.
+- **Detalles de producto, búsqueda, ordenamiento**: funcionan.
+
+Las features que **dependen de captura de lote en Aspel para tener valor real**:
+- **Semaforo**: hoy solo muestra 3 productos (los de prueba).
+- **Almacén dashboard con prioridad**: hoy clasifica solo esos 3.
+
 ### Plan de arranque (go-live en BAMX)
 
-Cuando se conecte la app a BAMX en producción, el catálogo va a tener ~37k productos sin el flag "Maneja Lote" prendido y existencia histórica sin lotes en `LTPD`. La estrategia:
+**Pre-requisito antes de cualquier discusión técnica**: una junta con la operación de BAMX para resolver las hipótesis de arriba. Preguntas clave para el capturista:
+1. ¿Cómo manejan hoy las caducidades operativamente? (papel/Excel/memoria/etiquetas físicas/FIFO)
+2. ¿Conocen y usan la ventana de captura de lote+caducidad cuando hacen entradas en Aspel?
+3. ¿Estarían dispuestos a empezar a capturarla en cada entrada, o lo ven como overhead?
+4. ¿Cuál sería para BAMX el valor más alto de la app? (puede ser Inventario móvil + IoT, no necesariamente Semaforo)
 
-**A. Preparación del catálogo (antes del go-live, en Aspel)**:
-- BAMX prende el flag "Maneja Lote" en líneas perecederas usando **Aspel "Modificar masivo"** (Inventarios → Modificar varios artículos, filtra por `LIN_PROD`).
-- Líneas que **sí** requieren lote (caducidad relevante): `FYV`, `F1N`, `F1P`, `F2P`, `V1N` (frutas/verduras), `LECHE`, `L1P`, `L2P` (lácteos), `AOA`, `O1N`, `O1P` (carnes/huevos), `P`, `P1P`, `T1P` (panadería/preparada), `B2P` (botanas), `E1P`, `E2P` (bebidas).
-- Líneas que **no** requieren (vida larga / no comestibles): `NP`, `X2`, `AZU`, `LEG`, `AYG`, `A2P`, `A2N`, `CER` (discutible).
-- Esto solo cambia un flag en `INVE`; no crea lotes ni toca cantidades.
+Según las respuestas, hay 2 caminos:
 
-**B. Existencia histórica (cutoff + atrición — no se migra)**:
-- **No se migra**. La existencia vieja sin lote se queda como está.
-- Entradas nuevas (post-cutoff) entran con lote+caducidad correctamente → `LTPD03` se llena con datos válidos.
-- Existencia vieja:
-  - **Sigue visible** en Inventario (porque lee `INVE.EXIST`).
-  - **No aparece** en Semaforo (porque lee de `LTPD` y no hay lotes para esa existencia).
-  - Se consume naturalmente con salidas en MINVE. En 1-3 meses, la rotación natural de un banco de alimentos limpia el stock viejo.
+**Camino A — BAMX captura caducidad en Aspel a partir de go-live**
 
-**C. Lo que NO se hace** (descartado conscientemente):
-- ❌ Migrar como "lote sin fecha" (`FCHCADUC = NULL`): el código actual trata NULL como crítico → todo en rojo = nada en rojo. Pierde la señal.
-- ❌ Conteo físico al arranque: ideal pero pide fin de semana de operación. Si BAMX lo puede hacer, mejor — pero no bloquea el lanzamiento.
-- ❌ Script de migración que escribe a `LTPD`: violaría la regla read-only.
+1. Mini-instructivo de 1 página al capturista: "Cuando registres una entrada al inventario en Aspel, asegúrate de capturar lote y fecha de caducidad en la ventana que aparece. Si te la saltas, la app no podrá alertarte cuando se caduque."
+2. Existencia histórica: **cutoff + atrición** — no se migra nada. La existencia vieja queda visible en Inventario pero no en Semaforo. Conforme se consume con salidas naturales (1-3 meses para perecederos), se vacía sola. Las entradas nuevas sí van con lote → Semaforo se va poblando solo.
+3. La app no requiere cambios.
 
-**D. Visibilidad en la app durante la transición** (opcional, todavía no construido):
-- Badge "Sin lote" en filas de Inventario cuando `EXIST > 0` pero el producto no tiene lotes en `LTPD`. Convierte la pregunta "¿por qué está vacío el semáforo?" en accionable.
-- Banner sutil en Home: "Semaforo en fase de carga: X% de productos con lote activo" — da contexto durante el periodo de transición.
+**Camino B — BAMX no va a capturar caducidad en Aspel**
+
+1. Replantear la propuesta de valor de la app: el Semaforo deja de ser feature core y baja a "nice-to-have para los pocos productos que sí estén capturados".
+2. Reposicionar como features principales: Inventario móvil + Almacenes + IoT de refrigeradores. Eso ya tiene valor sin lotes.
+3. Discutir V2: pantalla de captura desde la app que escribe a `LTPD` (rompe el read-only, decisión grande).
+
+### Lo que NO se hace (descartado conscientemente)
+
+- ❌ **Migrar la existencia histórica creando lotes con `FCHCADUC = NULL`**: el código actual trata NULL como crítico → todo en rojo = nada en rojo. Pierde la señal del semáforo.
+- ❌ **Inferir caducidad por línea de producto** (ej. "fruta = 5 días desde entrada"): mentira, pierde precisión, vuelve la señal ruido.
+- ❌ **Script de migración que escribe a `LTPD`**: viola la regla read-only.
+- ❌ **Modificar el flag `CON_LOTE` masivamente**: ya está prendido en todo el catálogo. (En una sesión anterior se documentó mal esto con un campo inventado `CTR_LOTE` — corregido: el campo real es `CON_LOTE` y está en `'S'` para los 37,199 productos.)
+
+### Visibilidad en la app durante la transición (opcional, no construido)
+
+- **Badge "Sin lote" en filas de Inventario** cuando `EXIST > 0` y el producto no tiene lotes en `LTPD`. Convierte la pregunta "¿por qué está vacío el Semaforo?" en accionable: "estos productos necesitan que se capture lote en Aspel".
+- **Contador/banner en Home**: "Semaforo muestra X de Y productos en almacén (los que tienen caducidad capturada en Aspel)". Da contexto sin mentir.
+
+Ambas son features de display, no modifican datos.
 
 ---
 
