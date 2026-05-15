@@ -1,16 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
-import {
-  Feather,
-  FontAwesome6,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import React from "react";
+import { View, TextInput, TouchableOpacity, Text } from "react-native";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
 
 type SearchHeaderProps = {
-  onDataChange: (data: any[]) => void;
-  indexesLength: number;
   handleChangeQuery: (text: string) => void;
   query: string;
   handleSort: (sortBy: "linProd" | "exist" | "cveArt") => void;
@@ -20,8 +14,6 @@ type SearchHeaderProps = {
 };
 
 export default function SearchHeader({
-  onDataChange,
-  indexesLength,
   handleChangeQuery,
   query,
   sortBy,
@@ -32,38 +24,29 @@ export default function SearchHeader({
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
 
-  const textColor = isDark ? "text-white" : "text-gray-800";
-  const bgCard = isDark ? "bg-gray-800" : "bg-gray-100";
-
-  const clearSelection = () => onDataChange([]);
-
-  const renderActionButton = (
-    icon: keyof typeof FontAwesome6.glyphMap,
-    label: string,
-    color: string,
-    disabled: boolean
-  ) => (
-    <TouchableOpacity
-      disabled={disabled}
-      onPress={clearSelection}
-      className={`flex-1 items-center justify-center p-5 rounded-2xl mx-2 ${disabled ? "bg-gray-300" : color} shadow`}
-    >
-      <FontAwesome6 name={icon} size={28} color="white" />
-      <Text className={`mt-2 text-center ${textColor}`}>{label}</Text>
-    </TouchableOpacity>
-  );
+  const cardBg = isDark ? "bg-gray-800" : "bg-white";
+  const inputBg = isDark ? "bg-gray-700" : "bg-gray-100";
+  const inputText = isDark ? "text-white" : "text-gray-800";
+  const pillBaseBg = isDark ? "bg-gray-700" : "bg-gray-100";
+  const pillActiveBg = isDark ? "bg-blue-700" : "bg-blue-100";
+  const pillActiveBorder = isDark ? "border-blue-400" : "border-blue-400";
+  const pillIdleBorder = isDark ? "border-gray-600" : "border-gray-300";
+  const pillActiveText = isDark ? "text-white" : "text-blue-700";
+  const pillIdleText = isDark ? "text-gray-200" : "text-gray-700";
+  const orderText = isDark ? "text-gray-200" : "text-gray-700";
+  const orderBorder = isDark ? "border-gray-600" : "border-gray-300";
 
   return (
     <View
-      className={`w-10/12 p-3 mt-2 rounded-2xl shadow-md ${isDark ? "bg-gray-600" : "bg-white"}`}
+      className={`w-10/12 p-4 mt-2 rounded-2xl shadow-md ${cardBg}`}
     >
-      {/*  Search bar */}
+      {/* Search bar */}
       <View
-        className={`flex-row items-center px-3 py-2 rounded-2xl ${bgCard} shadow-sm`}
+        className={`flex-row items-center px-3 py-2 rounded-2xl ${inputBg}`}
       >
         <Feather name="search" size={20} color={isDark ? "#ccc" : "#555"} />
         <TextInput
-          className="ml-2 flex-1 text-base text-gray-800"
+          className={`ml-2 flex-1 text-base ${inputText}`}
           placeholder="Buscar productos..."
           placeholderTextColor={isDark ? "#aaa" : "#777"}
           onChangeText={handleChangeQuery}
@@ -71,76 +54,52 @@ export default function SearchHeader({
         />
       </View>
 
-      <View className="flex-row items-center justify-center mt-3">
-        <View className="flex-col justify-evenly items-start flex-1">
-          {/* Add button */}
-          <TouchableOpacity className="flex-row items-center justify-center mt-3 p-3 rounded-2xl bg-blue-700 shadow w-full">
-            <MaterialCommunityIcons name="plus-box" size={26} color="white" />
-            <Text className="text-white font-semibold text-base ml-2">
-              Añadir productos al inventario
-            </Text>
-          </TouchableOpacity>
-          {/*  Filters */}
-          <View className="flex-row justify-evenly mt-3">
-            {(["exist", "linProd"] as const).map((filter) => (
+      {/* Sort + direction */}
+      <View className="flex-row items-center justify-between mt-3">
+        <View className="flex-row flex-1 mr-2">
+          {(["exist", "linProd"] as const).map((filter) => {
+            const active = sortBy === filter;
+            return (
               <TouchableOpacity
                 key={filter}
-                onPress={() =>
-                  handleSort(sortBy === filter ? "cveArt" : filter)
-                }
-                className={`flex-1 mx-1 p-2 rounded-2xl border ${
-                  sortBy === filter
-                    ? "bg-blue-100 border-blue-400"
-                    : "bg-white border-gray-300"
+                onPress={() => handleSort(active ? "cveArt" : filter)}
+                className={`flex-1 mx-1 px-3 py-2 rounded-2xl border ${
+                  active
+                    ? `${pillActiveBg} ${pillActiveBorder}`
+                    : `${pillBaseBg} ${pillIdleBorder}`
                 }`}
               >
-                <Text className="text-center text-sm font-medium">
+                <Text
+                  className={`text-center text-sm font-medium ${
+                    active ? pillActiveText : pillIdleText
+                  }`}
+                >
                   {filter === "exist" ? "Existencia" : "Línea de producto"}
                 </Text>
               </TouchableOpacity>
-            ))}
-          </View>
+            );
+          })}
         </View>
 
-        {/*  Actions */}
-        <View className="flex-row justify-around mt-4 w-1/2">
-          <TouchableOpacity
-            onPress={() =>
-              handleOrder(sortDirection === "asc" ? "desc" : "asc")
+        <TouchableOpacity
+          onPress={() =>
+            handleOrder(sortDirection === "asc" ? "desc" : "asc")
+          }
+          className={`flex-row items-center px-3 py-2 rounded-2xl border ${orderBorder}`}
+        >
+          <Text className={`mr-2 text-sm font-semibold ${orderText}`}>
+            {sortDirection === "asc" ? "Ascendente" : "Descendente"}
+          </Text>
+          <MaterialCommunityIcons
+            name={
+              sortDirection === "asc"
+                ? "sort-calendar-ascending"
+                : "sort-calendar-descending"
             }
-            className="items-center justify-center px-2 mx-2 border border-gray-400 rounded-2xl"
-          >
-            <Text
-              className={`${isDark ? "text-gray-200" : "text-gray-700"} mr-2 text-sm font-bold`}
-              style={{ minWidth: 120, textAlign: "center" }}
-            >
-              Orden {sortDirection === "asc" ? "ascendente" : "descendente"}
-            </Text>
-
-            <MaterialCommunityIcons
-              name={
-                sortDirection === "asc"
-                  ? "sort-calendar-descending"
-                  : "sort-calendar-ascending"
-              }
-              size={28}
-              color={isDark ? "#ccc" : "#1b4671"}
-            />
-          </TouchableOpacity>
-
-          {renderActionButton(
-            "basket-shopping",
-            "Agregar para entrega",
-            "bg-green-600",
-            indexesLength <= 0
-          )}
-          {renderActionButton(
-            "trash",
-            "Agregar para deshecho",
-            "bg-red-600",
-            indexesLength <= 0
-          )}
-        </View>
+            size={20}
+            color={isDark ? "#ccc" : "#1b4671"}
+          />
+        </TouchableOpacity>
       </View>
     </View>
   );

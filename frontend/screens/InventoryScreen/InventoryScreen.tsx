@@ -25,9 +25,7 @@ export default function InventoryScreen() {
 
   const {
     products,
-    selectedIds,
     query,
-    handleAction,
     loadLess,
     loadMore,
     totalPages,
@@ -59,8 +57,6 @@ export default function InventoryScreen() {
             <View className="flex-col items-center">
               {/* 🔍 Header de búsqueda */}
               <SearchHeader
-                onDataChange={() => {}}
-                indexesLength={selectedIds.length}
                 handleChangeQuery={setQuery}
                 query={query}
                 handleOrder={setSortDirection}

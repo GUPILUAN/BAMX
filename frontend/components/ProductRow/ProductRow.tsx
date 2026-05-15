@@ -9,6 +9,7 @@ import {
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { InventoryItem } from "@/types/InventoryItem";
 import { Lot } from "@/types/Lot";
+import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
 
 import { navigate } from "@/functions/NavigationService";
 
@@ -109,6 +110,12 @@ export default function ProductRow({
           alignItems: "center",
         }}
       >
+        <DefaultProductImage
+          typeId={(product as any).type_id}
+          type={(product as any).type}
+          size={36}
+          style={{ borderRadius: 6, marginRight: 6 }}
+        />
         <TouchableOpacity
           testID="info-button"
           onPress={() => navigate("Details", { product })}
