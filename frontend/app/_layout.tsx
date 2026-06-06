@@ -7,6 +7,7 @@ import { useUserSettings } from "@/hooks/useUserSettings";
 import { useFonts } from "expo-font";
 import { useEffect } from "react";
 import { LogBox, Platform } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "@/global.css";
 
@@ -136,7 +137,9 @@ export function RootLayout() {
 }
 
 export default () => (
-  <Provider store={store}>
-    <RootLayout />
-  </Provider>
+  <GestureHandlerRootView style={{ flex: 1 }}>
+    <Provider store={store}>
+      <RootLayout />
+    </Provider>
+  </GestureHandlerRootView>
 );
