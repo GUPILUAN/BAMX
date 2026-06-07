@@ -88,19 +88,24 @@ describe("ProductRow", () => {
     ).toBeTruthy();
   });
 
-  it("displays correct quantity units for different product types", () => {
+  it("displays correct quantity units for known CVE_LIN codes", () => {
+    // Mapping por type_id (CVE_LIN canónico de Aspel). Ver functions/unitForLine.ts.
     const testCases = [
-      { type: "fruit", expectedUnit: "unidades" },
-      { type: "canned_food", expectedUnit: "latas" },
-      { type: "bottle", expectedUnit: "botellas" },
-      { type: "grain", expectedUnit: "kilogramos" },
-      { type: "dairy", expectedUnit: "litros" },
-      { type: "snack", expectedUnit: "paquetes" },
-      { type: "jar", expectedUnit: "frasco" },
+      { type_id: "FYV", expectedUnit: "kg" },
+      { type_id: "V1N", expectedUnit: "kg" },
+      { type_id: "AOA", expectedUnit: "kg" },
+      { type_id: "LECHE", expectedUnit: "litros" },
+      { type_id: "AYG", expectedUnit: "litros" },
+      { type_id: "E2P", expectedUnit: "botellas" },
+      { type_id: "A2P", expectedUnit: "latas" },
+      { type_id: "B2P", expectedUnit: "paquetes" },
+      { type_id: "P1P", expectedUnit: "piezas" },
+      { type_id: "T1P", expectedUnit: "porciones" },
+      { type_id: "NP", expectedUnit: "unidades" },
     ];
 
-    testCases.forEach(({ type, expectedUnit }) => {
-      const productWithType = { ...mockProduct, type };
+    testCases.forEach(({ type_id, expectedUnit }) => {
+      const productWithType = { ...mockProduct, type_id };
       const { getByText } = render(
         <TestWrapper>
           <ProductRow {...mockProps} product={productWithType} />
@@ -109,6 +114,36 @@ describe("ProductRow", () => {
 
       expect(getByText(`10\n${expectedUnit}`)).toBeTruthy();
     });
+  });
+
+  it("falls back to heuristic on description when type_id is unknown", () => {
+    const productHeuristic = {
+      ...mockProduct,
+      type_id: null,
+      type: "FRUTAS Y VERDURAS A GRANEL",
+    };
+    const { getByText } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productHeuristic as any} />
+      </TestWrapper>
+    );
+
+    expect(getByText("10\nkg")).toBeTruthy();
+  });
+
+  it("uses default 'unidades' when neither type_id nor type matches", () => {
+    const productUnknown = {
+      ...mockProduct,
+      type_id: "WHATEVER_XYZ",
+      type: "ALGO_QUE_NO_EXISTE",
+    };
+    const { getByText } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productUnknown } />
+      </TestWrapper>
+    );
+
+    expect(getByText("10\nunidades")).toBeTruthy();
   });
 
   it("shows critical status for products expiring in 2 days or less", () => {
@@ -330,5 +365,41 @@ describe("ProductRow", () => {
 
     // The edit button should be rendered (FontAwesome5 with name="edit")
     expect(UNSAFE_getByProps({ name: "edit" })).toBeTruthy();
+  });
+
+  it("shows 'Sin stock' badge when available_quantity is 0", () => {
+    const productNoStock = { ...mockProduct, available_quantity: 0 };
+    const { getByTestId, getByText, queryByText } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productNoStock} />
+      </TestWrapper>
+    );
+
+    expect(getByTestId("sin-stock-badge")).toBeTruthy();
+    expect(getByText("Sin stock")).toBeTruthy();
+    expect(queryByText("0\nunidades")).toBeNull();
+  });
+
+  it("shows 'Sin stock' badge for float-noise values below 0.001", () => {
+    const productNoise = { ...mockProduct, available_quantity: -8.5e-14 };
+    const { getByTestId } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productNoise} />
+      </TestWrapper>
+    );
+
+    expect(getByTestId("sin-stock-badge")).toBeTruthy();
+  });
+
+  it("dims the row opacity when product has no stock", () => {
+    const productNoStock = { ...mockProduct, available_quantity: 0 };
+    const { getByTestId } = render(
+      <TestWrapper>
+        <ProductRow {...mockProps} product={productNoStock} />
+      </TestWrapper>
+    );
+
+    const row = getByTestId("product-row");
+    expect(row.props.style.opacity).toBeLessThan(1);
   });
 });

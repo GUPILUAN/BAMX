@@ -2,6 +2,7 @@ package com.bamx.backend.services;
 
 import com.bamx.backend.dtos.InventoryItem;
 import com.bamx.backend.mappers.InveMapper;
+import com.bamx.backend.models.Inve;
 import com.bamx.backend.repositories.CLinRepository;
 import com.bamx.backend.repositories.InveRepository;
 import com.bamx.backend.repositories.LtpdRepository;
@@ -22,19 +23,33 @@ public class InveService {
   private final InveMapper inveMapper;
 
   public Page<InventoryItem> getAllInve(
-      int page, int size, String sortBy, String sortDir, String search) {
-    Sort.Order order =
+      int page,
+      int size,
+      String sortBy,
+      String sortDir,
+      String search,
+      boolean onlyWithStock) {
+    Sort.Order userOrder =
         new Sort.Order(
             sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC,
             sortBy == null ? "fchCaduc" : sortBy);
-    Pageable pageable = PageRequest.of(page, size, Sort.by(order));
+    // Cuando se piden todos (con y sin stock), priorizar los que tienen stock
+    // anteponiendo exist DESC como primer criterio. Cuando onlyWithStock=true
+    // este sort es redundante pero no hace daño.
+    Sort sort = Sort.by(Sort.Order.desc("exist")).and(Sort.by(userOrder));
+    Pageable pageable = PageRequest.of(page, size, sort);
     LocalDateTime now = LocalDateTime.now();
     LocalDateTime warningDate = now.plusDays(2);
     LocalDateTime criticalDate = now.plusDays(5);
 
+    String normalizedSearch = search == null ? "" : search.toLowerCase().trim();
+    Page<Inve> rawPage =
+        onlyWithStock
+            ? inveRepository.findAllInveWithStock(normalizedSearch, pageable)
+            : inveRepository.findAllInve(normalizedSearch, pageable);
+
     Page<InventoryItem> pages =
-        inveRepository
-            .findAllInve(search == null ? "" : search.toLowerCase().trim(), pageable)
+        rawPage
             .map(inveMapper::toDto)
             .map(
                 i ->

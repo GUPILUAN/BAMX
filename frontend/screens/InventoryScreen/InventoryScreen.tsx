@@ -1,10 +1,4 @@
-import {
-  View,
-  Platform,
-  TouchableWithoutFeedback,
-  KeyboardAvoidingView,
-  Keyboard,
-} from "react-native";
+import { View, Platform, KeyboardAvoidingView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useSelector } from "react-redux";
@@ -16,7 +10,6 @@ import { useFetchProducts } from "@/hooks/useFetchProducts";
 export default function InventoryScreen() {
   const theme = useSelector(selectTheme);
   const isDark = theme === "dark";
-  const isWeb = Platform.OS === "web";
 
   const themeColorsTailwind = {
     backgroundTailwind: isDark ? "bg-gray-900" : "bg-gray-50",
@@ -25,9 +18,7 @@ export default function InventoryScreen() {
 
   const {
     products,
-    selectedIds,
     query,
-    handleAction,
     loadLess,
     loadMore,
     totalPages,
@@ -38,6 +29,8 @@ export default function InventoryScreen() {
     sortBy,
     sortDirection,
     setSortDirection,
+    onlyWithStock,
+    setOnlyWithStock,
   } = useFetchProducts();
 
   return (
@@ -48,40 +41,32 @@ export default function InventoryScreen() {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <TouchableWithoutFeedback
-          onPress={() => Platform.OS !== "web" && Keyboard.dismiss()}
+        <View
+          className={`${themeColorsTailwind.backgroundTailwind} flex-1 w-full items-center`}
         >
-          <View
-            className={`${themeColorsTailwind.backgroundTailwind} w-full ${
-              isWeb ? "overflow-scroll" : ""
-            }`}
-          >
-            <View className="flex-col items-center">
-              {/* 🔍 Header de búsqueda */}
-              <SearchHeader
-                onDataChange={() => {}}
-                indexesLength={selectedIds.length}
-                handleChangeQuery={setQuery}
-                query={query}
-                handleOrder={setSortDirection}
-                handleSort={setSortBy}
-                sortBy={sortBy}
-                sortDirection={sortDirection}
-              />
+          {/* 🔍 Header de búsqueda */}
+          <SearchHeader
+            handleChangeQuery={setQuery}
+            query={query}
+            handleOrder={setSortDirection}
+            handleSort={setSortBy}
+            sortBy={sortBy}
+            sortDirection={sortDirection}
+            onlyWithStock={onlyWithStock}
+            setOnlyWithStock={setOnlyWithStock}
+          />
 
-              {/* 📦 Lista de productos */}
-              <ProductList
-                productos={products}
-                isDark={isDark}
-                currentPage={currentPage}
-                totalPages={totalPages}
-                loadMore={loadMore}
-                loadLess={loadLess}
-                setCurrentPage={setCurrentPage}
-              />
-            </View>
-          </View>
-        </TouchableWithoutFeedback>
+          {/* 📦 Lista de productos */}
+          <ProductList
+            productos={products}
+            isDark={isDark}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            loadMore={loadMore}
+            loadLess={loadLess}
+            setCurrentPage={setCurrentPage}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -9,6 +9,8 @@ import {
 import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { InventoryItem } from "@/types/InventoryItem";
 import { Lot } from "@/types/Lot";
+import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
+import { unitForLine } from "@/functions/unitForLine";
 
 import { navigate } from "@/functions/NavigationService";
 
@@ -75,6 +77,15 @@ export default function ProductRow({
     setDropdownVisible(false);
   };
 
+  const numericQty =
+    typeof available_quantity === "number"
+      ? available_quantity
+      : Number(available_quantity);
+  // Threshold 0.01: descarta ruido de Aspel (residuos tipo 1.62e-12) y
+  // también "residuo escalado" tipo CARNE DE POLLO con 0.01 pz que es 10g
+  // — no es stock operativo. Mantiene sincronizado con InveRepository.
+  const hasStock = Number.isFinite(numericQty) && Math.abs(numericQty) >= 0.01;
+
   const baseStyle: any = {
     flexDirection: "row",
     borderBottomWidth: 1,
@@ -88,7 +99,7 @@ export default function ProductRow({
         : index % 2 === 0
           ? "#f2f2f2"
           : "#fff",
-    opacity: isSelected ? 0.5 : 1,
+    opacity: isSelected ? 0.5 : hasStock ? 1 : 0.55,
   };
 
   const mergedStyle = Object.assign({}, baseStyle, (style as any) || {});
@@ -109,6 +120,12 @@ export default function ProductRow({
           alignItems: "center",
         }}
       >
+        <DefaultProductImage
+          typeId={(product as any).type_id}
+          type={(product as any).type}
+          size={36}
+          style={{ borderRadius: 6, marginRight: 6 }}
+        />
         <TouchableOpacity
           testID="info-button"
           onPress={() => navigate("Details", { product })}
@@ -130,23 +147,36 @@ export default function ProductRow({
       <View
         style={{ flex: 1.5, justifyContent: "center", alignItems: "center" }}
       >
-        <Text style={{ color: isDark ? "#fff" : "#000" }}>
-          {available_quantity}
-          {"\n"}
-          {(() => {
-            // unit mapping based on type
-            const map: Record<string, string> = {
-              fruit: "unidades",
-              canned_food: "latas",
-              bottle: "botellas",
-              grain: "kilogramos",
-              dairy: "litros",
-              snack: "paquetes",
-              jar: "frasco",
-            };
-            return map[prodType] || "unidades";
-          })()}
-        </Text>
+        {hasStock ? (
+          <Text style={{ color: isDark ? "#fff" : "#000" }}>
+            {formatQuantity(available_quantity)}
+            {"\n"}
+            {unitForLine({
+              typeId: (product as any).type_id,
+              type: prodType,
+            })}
+          </Text>
+        ) : (
+          <View
+            testID="sin-stock-badge"
+            style={{
+              backgroundColor: isDark ? "#444" : "#e5e7eb",
+              paddingHorizontal: 8,
+              paddingVertical: 3,
+              borderRadius: 10,
+            }}
+          >
+            <Text
+              style={{
+                color: isDark ? "#bbb" : "#6b7280",
+                fontSize: 11,
+                fontWeight: "600",
+              }}
+            >
+              Sin stock
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Tipo */}
@@ -256,6 +286,17 @@ export default function ProductRow({
     </View>
   );
 }
+function formatQuantity(value: unknown): string {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return "0";
+  // Threshold 0.01: descarta ruido de Aspel (residuos tipo 1e-12 que dejan
+  // las sumas/restas de movimientos) y también valores residuales escalados
+  // como 0.01 que en piezas significa "casi nada". Sincronizado con
+  // hasStock arriba y con InveRepository.findAllInveWithStock en backend.
+  if (Math.abs(n) < 0.01) return "0";
+  return n.toLocaleString("es-MX", { maximumFractionDigits: 2 });
+}
+
 function formatDateProduction(dateStr: string) {
   // expected input 'YYYY-MM-DD' or similar
   try {

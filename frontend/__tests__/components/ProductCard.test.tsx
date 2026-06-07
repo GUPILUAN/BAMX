@@ -92,19 +92,6 @@ describe("ProductCard", () => {
     expect(getByTestId("loading-indicator")).toBeTruthy();
   });
 
-  it('renders "Entregar" and "Desechar" buttons', async () => {
-    const { getByText } = render(
-      <TestWrapper>
-        <ProductCard item={mockProduct} />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      expect(getByText("Entregar")).toBeTruthy();
-      expect(getByText("Desechar")).toBeTruthy();
-    });
-  });
-
   it("applies dark theme styles correctly", async () => {
     const { getByText } = render(
       <TestWrapper theme="dark">
@@ -147,14 +134,15 @@ describe("ProductCard", () => {
       type_id: "fruit01", // Inve01.CVE_LINEA
     };
 
-    const { getByText } = render(
+    const { getByText, getByTestId } = render(
       <TestWrapper>
         <ProductCard item={productWithoutImage} />
       </TestWrapper>
     );
 
     await waitFor(() => {
-      expect(getByText("Test Product No Image")).toBeTruthy();
+      expect(getByTestId("default-product-image")).toBeTruthy();
+      expect(getByText("Test Product")).toBeTruthy();
     });
   });
 
@@ -177,23 +165,4 @@ describe("ProductCard", () => {
     });
   });
 
-  it("handles button presses without errors", async () => {
-    const { getByText } = render(
-      <TestWrapper>
-        <ProductCard item={mockProduct} />
-      </TestWrapper>
-    );
-
-    await waitFor(() => {
-      const entregarButton = getByText("Entregar");
-      const desecharButton = getByText("Desechar");
-
-      fireEvent.press(entregarButton);
-      fireEvent.press(desecharButton);
-
-      // Should not throw any errors
-      expect(entregarButton).toBeTruthy();
-      expect(desecharButton).toBeTruthy();
-    });
-  });
 });

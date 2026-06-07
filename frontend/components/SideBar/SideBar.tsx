@@ -11,13 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  FontAwesome6,
-  Ionicons,
-  MaterialCommunityIcons,
-  AntDesign,
-  Feather,
-} from "@expo/vector-icons";
+import { FontAwesome6, Ionicons, AntDesign } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { selectTheme } from "@/slices/themeSlice";
 import styles from "./styles";
@@ -175,19 +169,6 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity className="pl-4 py-2 flex-row items-center">
-                <MaterialCommunityIcons
-                  name="clipboard-edit-outline"
-                  size={30}
-                  color="#e1a244"
-                />
-                <Text
-                  className={"ml-2 font-extrabold text-lg"}
-                  style={styles.menuText}
-                >
-                  Registro
-                </Text>
-              </TouchableOpacity>
             </View>
             <View className="flex-col items-center justify-center border-b border-t border-gray-300 m-2">
               <TouchableOpacity

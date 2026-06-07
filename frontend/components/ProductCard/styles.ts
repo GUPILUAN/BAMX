@@ -1,4 +1,4 @@
-import { StyleSheet, Dimensions } from "react-native";
+import { StyleSheet } from "react-native";
 const styles = StyleSheet.create({
   cardContainer: {
     shadowColor: "#000",
@@ -22,16 +22,4 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 });
-const buttonStyle = (good: boolean) => ({
-  backgroundColor: good ? "#78af6d" : "#d65f61",
-  shadowColor: "#000",
-  elevation: 10,
-});
-
-const cartText = () => ({
-  color: "#fbfbfb",
-  fontFamily: "SF-Pro-Semibold",
-  fontSize: Dimensions.get("window").width * 0.013,
-  textAlign: "center" as "center",
-});
-export { styles, buttonStyle, cartText };
+export { styles };
