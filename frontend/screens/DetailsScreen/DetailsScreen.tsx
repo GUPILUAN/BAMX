@@ -14,6 +14,7 @@ import { selectTheme } from "@/slices/themeSlice";
 import { Lot } from "@/types/Lot";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
 import { isUsableImage } from "@/functions/isUsableImage";
+import { resolveImageUrl } from "@/functions/resolveImageUrl";
 
 const { height, width } = Dimensions.get("window");
 
@@ -23,14 +24,15 @@ export default function DetailsScreen() {
   const isDark = theme === "dark";
   const product: Lot | null = item ? JSON.parse(item as string) : null;
   const [imageFailed, setImageFailed] = useState<boolean>(false);
-  const showRealImage = isUsableImage(product?.image) && !imageFailed;
+  const imageUrl = resolveImageUrl(product?.image);
+  const showRealImage = isUsableImage(imageUrl) && !imageFailed;
 
   return (
     <View className={`flex-1 ${isDark ? "bg-black" : "bg-white"}`}>
       {/* Imagen superior */}
       {showRealImage ? (
         <Image
-          source={{ uri: product?.image as string }}
+          source={{ uri: imageUrl as string }}
           className="absolute top-0 left-0 w-full h-full"
           resizeMode="cover"
           onError={() => setImageFailed(true)}

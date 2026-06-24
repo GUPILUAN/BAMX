@@ -35,9 +35,6 @@ public class UsuarioService {
   private final Rol1005Repository rol1005Repository;
   private final FotoUsuarioService fotoUsuarioService;
 
-  @Value("${app.host.url}")
-  private String hostUrl;
-
   @Value("${app.empresa.suffix:}")
   private String empresaSuffixOverride;
 
@@ -83,9 +80,11 @@ public class UsuarioService {
             .orElseThrow(() -> new UserNotFoundException("No role found for the user."));
 
     boolean hasProfilePicture = fotoUsuarioService.hasProfilePicture(id);
+    // Ruta relativa: el frontend (getImage/axios) le antepone su baseURL. Evita
+    // acoplar la URL de la foto al host/túnel por el que se accede al backend.
     String profilePictureUrl =
         hasProfilePicture
-            ? hostUrl + "/api/foto-usuario/"
+            ? "/api/foto-usuario/"
             : "https://www.pngall.com/wp-content/uploads/5/User-Profile-PNG-High-Quality-Image.png";
 
     return InfoUsuario.builder()
