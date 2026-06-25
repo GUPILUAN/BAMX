@@ -259,7 +259,7 @@ describe("ProductRow", () => {
     expect(mockProps.handleSelect).toHaveBeenCalledWith("123");
   });
 
-  it("navigates to details when info button is pressed", () => {
+  it("navigates to details with a JSON-stringified item when info button is pressed", () => {
     const { navigate } = require("../../functions/NavigationService");
     const { getByTestId } = render(
       <TestWrapper>
@@ -267,25 +267,25 @@ describe("ProductRow", () => {
       </TestWrapper>
     );
 
-    // Find the info button by its FontAwesome6 icon
-    const infoButtons =
-      getByTestId("info-button") ||
-      (() => {
-        // Fallback: find by text content or other method
-        const { getAllByText } = render(
-          <TestWrapper>
-            <ProductRow {...mockProps} />
-          </TestWrapper>
-        );
-        return getAllByText("Test Product")[0].parent?.parent?.children[0];
-      });
+    fireEvent.press(getByTestId("info-button"));
 
-    if (infoButtons) {
-      fireEvent.press(infoButtons);
-      expect(navigate).toHaveBeenCalledWith("Details", {
-        product: mockProduct,
-      });
-    }
+    // DetailsScreen reads the `item` param and JSON.parses it (Lot shape).
+    // Passing the raw object under `product` is the bug we are fixing.
+    expect(navigate).toHaveBeenCalledWith(
+      "Details",
+      expect.objectContaining({ item: expect.any(String) })
+    );
+
+    const { item } = navigate.mock.calls[0][1];
+    expect(JSON.parse(item)).toEqual(
+      expect.objectContaining({
+        product_id: "123",
+        product_name: "Test Product",
+        type: "fruit",
+        type_id: "fruit01",
+        production_date: "2025-08-01",
+      })
+    );
   });
 
   it("applies selected styles when isSelected is true", () => {

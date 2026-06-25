@@ -128,7 +128,18 @@ export default function ProductRow({
         />
         <TouchableOpacity
           testID="info-button"
-          onPress={() => navigate("Details", { product })}
+          onPress={() =>
+            navigate("Details", {
+              item: JSON.stringify({
+                product_id: productId,
+                product_name: productName,
+                type: prodType,
+                type_id: (product as any).type_id ?? null,
+                production_date: production_date ?? null,
+                image: (product as any).image ?? null,
+              }),
+            })
+          }
           style={{ padding: 6 }}
         >
           <FontAwesome5 name="info-circle" size={16} color="gray" />
