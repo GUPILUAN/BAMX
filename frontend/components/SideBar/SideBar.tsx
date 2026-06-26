@@ -174,6 +174,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
               <TouchableOpacity
                 className="flex-row items-center justify-center m-4 rounded-2xl"
                 style={button(true, width, height)}
+                onPress={() => navigate("ProductosEntregables")}
               >
                 <View className="flex-row items-center p-6">
                   <FontAwesome6
@@ -193,6 +194,7 @@ export default function SideBar({ navigation }: DrawerContentComponentProps) {
               <TouchableOpacity
                 className="flex-row items-center justify-center m-4 rounded-2xl"
                 style={button(false, width, height)}
+                onPress={() => navigate("ProductosNoAptos")}
               >
                 <View className="flex-row items-center p-6">
                   <FontAwesome6
