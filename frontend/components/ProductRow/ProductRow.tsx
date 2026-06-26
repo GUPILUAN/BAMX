@@ -11,6 +11,7 @@ import { InventoryItem } from "@/types/InventoryItem";
 import { Lot } from "@/types/Lot";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
 import { unitForLine } from "@/functions/unitForLine";
+import { formatQuantity } from "@/functions/formatQuantity";
 
 import { navigate } from "@/functions/NavigationService";
 
@@ -296,16 +297,6 @@ export default function ProductRow({
       </View>
     </View>
   );
-}
-function formatQuantity(value: unknown): string {
-  const n = typeof value === "number" ? value : Number(value);
-  if (!Number.isFinite(n)) return "0";
-  // Threshold 0.01: descarta ruido de Aspel (residuos tipo 1e-12 que dejan
-  // las sumas/restas de movimientos) y también valores residuales escalados
-  // como 0.01 que en piezas significa "casi nada". Sincronizado con
-  // hasStock arriba y con InveRepository.findAllInveWithStock en backend.
-  if (Math.abs(n) < 0.01) return "0";
-  return n.toLocaleString("es-MX", { maximumFractionDigits: 2 });
 }
 
 function formatDateProduction(dateStr: string) {
