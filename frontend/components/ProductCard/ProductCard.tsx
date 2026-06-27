@@ -14,6 +14,7 @@ import { styles } from "./styles";
 import { Lot } from "@/types/Lot";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
 import { isUsableImage } from "@/functions/isUsableImage";
+import { resolveImageUrl } from "@/functions/resolveImageUrl";
 
 interface ProductCardProps {
   item: Lot;
@@ -27,7 +28,8 @@ export default function ProductCard({ item }: ProductCardProps) {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [imageFailed, setImageFailed] = useState<boolean>(false);
-  const showRealImage = isUsableImage(item.image) && !imageFailed;
+  const imageUrl = resolveImageUrl(item.image);
+  const showRealImage = isUsableImage(imageUrl) && !imageFailed;
 
   return (
     <View
@@ -38,7 +40,7 @@ export default function ProductCard({ item }: ProductCardProps) {
         {showRealImage ? (
           <>
             <Image
-              source={{ uri: item.image as string }}
+              source={{ uri: imageUrl as string }}
               style={styles.image}
               resizeMode="cover"
               onLoad={() => setLoading(false)}

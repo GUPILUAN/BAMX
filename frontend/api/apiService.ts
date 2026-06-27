@@ -30,7 +30,7 @@ export const apiService = {
         console.log("Sesión cerrada correctamente.");
       }
     } catch (error) {
-      console.error("Error al cerrar sesión:", error);
+      console.log("Error al cerrar sesión:", error);
     } finally {
       replace("Auth");
     }
@@ -43,6 +43,9 @@ export const apiService = {
       return response.data.data;
     } catch (error) {
       if (error instanceof AxiosError && error.response) {
+        // Los 401 ya los maneja el interceptor de response (limpia sesión y
+        // redirige a login); no los registramos aquí para no ensuciar consola.
+        if (error.response.status === 401) return;
         console.error(
           `Error ${error.response.status}:`,
           error.response.data.message
@@ -57,7 +60,10 @@ export const apiService = {
       const uri = `data:image/jpeg;base64,${base64}`;
       return uri;
     } catch (e) {
-      console.error(e);
+      // Imagen no disponible (URL inalcanzable, sin foto, etc.): no es un error
+      // de la app — la UI cae al avatar/imagen por defecto. Lo dejamos como log
+      // discreto en vez de un ERROR rojo en consola.
+      console.log("No se pudo cargar la imagen:", url);
       return null;
     }
   },
