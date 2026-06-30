@@ -11,11 +11,7 @@ import { isUsableImage } from "@/functions/isUsableImage";
 import { resolveImageUrl } from "@/functions/resolveImageUrl";
 import { formatQuantity } from "@/functions/formatQuantity";
 import { unitForLine } from "@/functions/unitForLine";
-import {
-  getFreshness,
-  FRESHNESS_GREEN,
-  FRESHNESS_AMBER,
-} from "@/functions/getFreshness";
+import { getFreshness, FRESHNESS_AMBER } from "@/functions/getFreshness";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
 import FreshnessDots from "@/components/FreshnessDots/FreshnessDots";
 import {
@@ -37,9 +33,10 @@ function badgeTextColor(bg: string): string {
   return bg === FRESHNESS_AMBER ? "#1a1a1a" : "#ffffff";
 }
 
-function statusLabel(variant: DeliverableVariant, color: string): string {
+function statusLabel(variant: DeliverableVariant, daysLeft: number | null): string {
   if (variant === "noapto") return "No apto";
-  return color === FRESHNESS_GREEN ? "Entregable" : "Por caducar";
+  // Verde (> 5 días) = entregable holgado; amarillo (3-5) = por caducar.
+  return daysLeft != null && daysLeft > 5 ? "Entregable" : "Por caducar";
 }
 
 // Tarjeta de producto para las pantallas de entregables / no aptos. Reusa el
@@ -144,7 +141,7 @@ export default function DeliverableCard({
               color: badgeTextColor(fresh.color),
             }}
           >
-            {statusLabel(variant, fresh.color)}
+            {statusLabel(variant, fresh.daysLeft)}
           </Text>
         </View>
       </View>

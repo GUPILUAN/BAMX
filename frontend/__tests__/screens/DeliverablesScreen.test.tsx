@@ -35,8 +35,8 @@ const product = (over: Partial<DeliverableProduct>): DeliverableProduct => ({
 function setHook(over: Partial<ReturnType<typeof mockUse>> = {}) {
   mockUse.mockReturnValue({
     products: [],
-    totalQuantity: 0,
     totalCount: 0,
+    truncated: false,
     loading: false,
     refresh: jest.fn(),
     ...over,
@@ -82,5 +82,16 @@ describe("DeliverablesScreen", () => {
     const { getByText } = renderScreen("noapto");
     expect(getByText("Productos no aptos")).toBeTruthy();
     expect(getByText("Nada marcado como no apto")).toBeTruthy();
+  });
+
+  it("muestra aviso de lista parcial cuando el bucket viene truncado", () => {
+    setHook({
+      products: [product({})],
+      totalCount: 1,
+      truncated: true,
+      loading: false,
+    });
+    const { getByText } = renderScreen("entregable");
+    expect(getByText(/Lista parcial/)).toBeTruthy();
   });
 });

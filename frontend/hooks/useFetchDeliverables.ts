@@ -6,6 +6,11 @@ import {
 } from "@/types/DeliverableProduct";
 import { useCallback, useEffect, useState } from "react";
 
+// Una sola página cubre con holgura el volumen real de lotes de BAMX. El backend
+// pagina, así que si algún bucket llegara a superar esto exponemos `truncated`
+// para que la pantalla avise en vez de esconder productos en silencio.
+const PAGE_SIZE = 500;
+
 // La caducidad "más temprana" gana. null (sin caducidad capturada) domina: en
 // no aptos es lo más crítico/desconocido, así que ese producto se muestra como
 // "Sin caducidad".
@@ -59,22 +64,23 @@ function aggregateByProduct(lots: Lot[]): DeliverableProduct[] {
 }
 
 // Trae los lotes del bucket pedido desde /api/lotes/ (el backend filtra por
-// fitForDelivery) y los agrega por producto. size=500 cubre con holgura el
-// volumen real de lotes capturados en BAMX hoy; el filtro mantiene el payload
-// chico. Si el API falla, retrievaData devuelve undefined -> lista vacía ->
-// empty state honesto en la pantalla.
+// fitForDelivery) y los agrega por producto. Si el API falla, retrieveData
+// devuelve undefined -> lista vacía -> empty state honesto en la pantalla.
 export function useFetchDeliverables(variant: DeliverableVariant) {
   const [products, setProducts] = useState<DeliverableProduct[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [truncated, setTruncated] = useState<boolean>(false);
 
   const fitForDelivery = variant === "entregable";
 
   const load = useCallback(async () => {
     setLoading(true);
     const data = await apiService.retrieveData(
-      `/api/lotes/?fitForDelivery=${fitForDelivery}&size=500&sort=fchCaduc&direction=asc`
+      `/api/lotes/?fitForDelivery=${fitForDelivery}&size=${PAGE_SIZE}&sort=fchCaduc&direction=asc`
     );
     const lots: Lot[] = data?.content ?? [];
+    // `last === false` => el backend tiene más páginas de las que pedimos.
+    setTruncated(data?.last === false);
     setProducts(aggregateByProduct(lots));
     setLoading(false);
   }, [fitForDelivery]);
@@ -83,12 +89,10 @@ export function useFetchDeliverables(variant: DeliverableVariant) {
     load();
   }, [load]);
 
-  const totalQuantity = products.reduce((sum, p) => sum + p.total_quantity, 0);
-
   return {
     products,
-    totalQuantity,
     totalCount: products.length,
+    truncated,
     loading,
     refresh: load,
   };

@@ -67,17 +67,31 @@ export default function DeliverablesScreen({
   const { width: screenW } = useWindowDimensions();
 
   const cfg = VARIANTS[variant];
-  const { products, totalCount, loading, refresh } =
+  const { products, totalCount, truncated, loading, refresh } =
     useFetchDeliverables(variant);
 
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>("freshness");
 
-  // Categorías presentes (por CVE_LIN) para los chips de filtro.
+  // Productos que matchean la búsqueda (sin aplicar aún el filtro de categoría):
+  // base común para los chips y el grid.
+  const queryFiltered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter(
+      (p) =>
+        p.product_name?.toLowerCase().includes(q) ||
+        p.product_id?.toLowerCase().includes(q)
+    );
+  }, [products, query]);
+
+  // Categorías presentes (por CVE_LIN) para los chips. Se cuentan sobre lo que
+  // matchea la búsqueda (no sobre la categoría seleccionada) para que el número
+  // del chip concuerde con lo visible y no se vacíe al elegir una categoría.
   const categories: Category[] = useMemo(() => {
     const map = new Map<string, Category>();
-    for (const p of products) {
+    for (const p of queryFiltered) {
       const id = p.type_id ?? "";
       const existing = map.get(id);
       if (existing) existing.count += 1;
@@ -91,19 +105,12 @@ export default function DeliverablesScreen({
         });
     }
     return Array.from(map.values()).sort((a, b) => b.count - a.count);
-  }, [products]);
+  }, [queryFiltered]);
 
   const visible = useMemo(() => {
-    let list = products;
+    let list = queryFiltered;
     if (selectedCategory != null)
       list = list.filter((p) => (p.type_id ?? "") === selectedCategory);
-    const q = query.trim().toLowerCase();
-    if (q)
-      list = list.filter(
-        (p) =>
-          p.product_name?.toLowerCase().includes(q) ||
-          p.product_id?.toLowerCase().includes(q)
-      );
 
     const sorted = [...list];
     if (sortBy === "quantity")
@@ -114,11 +121,13 @@ export default function DeliverablesScreen({
       );
     // "freshness" ya viene ordenado del hook (caduca antes primero)
     return sorted;
-  }, [products, selectedCategory, query, sortBy]);
+  }, [queryFiltered, selectedCategory, sortBy]);
 
-  const available = screenW - H_PADDING * 2;
+  // Clamp: en el primer render (web) useWindowDimensions puede reportar 0;
+  // evitamos un ancho de tarjeta negativo.
+  const available = Math.max(0, screenW - H_PADDING * 2);
   const numColumns = Math.max(2, Math.floor((available + GAP) / (MIN_CARD + GAP)));
-  const cardWidth = (available - GAP * (numColumns - 1)) / numColumns;
+  const cardWidth = Math.max(120, (available - GAP * (numColumns - 1)) / numColumns);
 
   const openMenu = () => navigation.dispatch(DrawerActions.openDrawer());
 
@@ -235,6 +244,35 @@ export default function DeliverablesScreen({
             onSelect={setSelectedCategory}
             isDark={isDark}
           />
+        </View>
+      )}
+
+      {/* Aviso de lista parcial (si el bucket excede una página de lotes) */}
+      {truncated && (
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            marginHorizontal: 16,
+            marginBottom: 6,
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            borderRadius: 10,
+            backgroundColor: isDark ? "#3a2f12" : "#fef3cd",
+          }}
+        >
+          <Ionicons
+            name="information-circle-outline"
+            size={18}
+            color={isDark ? "#fbbf24" : "#92700e"}
+          />
+          <Text
+            style={{ flex: 1, fontSize: 12, color: isDark ? "#fcd34d" : "#92700e" }}
+          >
+            Lista parcial: hay más lotes de los que caben aquí. Afina con la
+            búsqueda o las categorías.
+          </Text>
         </View>
       )}
 
