@@ -5,6 +5,7 @@ import com.bamx.backend.dtos.LtpdDto;
 import com.bamx.backend.mappers.LtpdMapper;
 import com.bamx.backend.repositories.LtpdRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,14 +21,38 @@ public class LtpdService {
   private final LtpdRepository ltpdRepository;
   private final LtpdMapper ltpdMapper;
 
+  /** Sin filtro de entregabilidad: lo usa el Semáforo (Home). No tocar el comportamiento. */
   public Page<LoteConImagenDto> findAll(int page, int size, String sortBy, String sortDir) {
+    return findAll(page, size, sortBy, sortDir, null);
+  }
+
+  /**
+   * @param fitForDelivery {@code null} = todos los lotes (Semáforo); {@code true} = solo
+   *     entregables (verde+amarillo); {@code false} = solo no aptos (rojo: caducados, por caducar o
+   *     sin caducidad capturada).
+   */
+  public Page<LoteConImagenDto> findAll(
+      int page, int size, String sortBy, String sortDir, Boolean fitForDelivery) {
     Sort.Order order =
         new Sort.Order(
             sortDir.equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC,
             sortBy == null ? "fchCaduc" : sortBy);
     Pageable pageable = PageRequest.of(page, size, Sort.by(order));
-    Page<LoteConImagenDto> pages = ltpdRepository.findAllLotes(pageable);
     LocalDate today = LocalDate.now();
+
+    Page<LoteConImagenDto> pages;
+    if (fitForDelivery == null) {
+      pages = ltpdRepository.findAllLotes(pageable);
+    } else {
+      // Entregable <=> "days > 2" en la clasificación de abajo. Como days se calcula truncando la
+      // caducidad a fecha, la frontera cae exacta en la medianoche de hoy+3.
+      LocalDateTime deliverableCutoff = today.plusDays(3).atStartOfDay();
+      pages =
+          fitForDelivery
+              ? ltpdRepository.findDeliverableLotes(deliverableCutoff, pageable)
+              : ltpdRepository.findNotDeliverableLotes(deliverableCutoff, pageable);
+    }
+
     return pages.map(
         dto -> {
           if (dto.getExpiration_date() == null) {

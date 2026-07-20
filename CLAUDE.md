@@ -153,7 +153,7 @@ El sufijo en el ThreadLocal se setea por request en `JwtAuthenticationFilter` de
 | `/api/usuarios/logout` | POST | `UsuarioService.logout` | Inserta en `TOKEN_BLOCK_LIST` si existe |
 | `/api/usuarios/me` | GET | `UsuarioService.findById` | Usa `@CurrentUser` |
 | `/api/inventarios/` | GET | `InveService.getAllInve` | Page<InventoryItem>. Soporta `page,size,sort,direction,search` |
-| `/api/lotes/` | GET | `LtpdService.findAll` | Page<LoteConImagenDto> |
+| `/api/lotes/` | GET | `LtpdService.findAll` | Page<LoteConImagenDto>. `fitForDelivery` opcional: `true`=entregables (verde+amarillo), `false`=no aptos (rojo), ausente=todos (Semaforo) |
 | `/api/almacenes/all` | GET | `AlmacenService.getAllAlmacenes` | Lista de almacenes |
 | `/api/almacenes/dashboard` | GET | `AlmacenService.getDashboard` | Por almacén → por línea → totales critical/warning/good |
 | `/api/foto-usuario/` | GET | `FotoUsuarioController` | PNG del usuario actual |
@@ -222,6 +222,8 @@ app/
     ├── _layout.tsx          # Drawer + SideBar
     ├── inicio.tsx           # → HomeScreen
     ├── inventario.tsx       # → InventoryScreen
+    ├── productosEntregables.tsx # → ProductosEntregablesScreen (semáforo verde+amarillo)
+    ├── productosNoAptos.tsx     # → ProductosNoAptosScreen (semáforo rojo)
     └── usuario.tsx          # → UserScreen / ProfileScreen
 ```
 
@@ -235,8 +237,12 @@ Los archivos en `app/` son shims que importan de `screens/`. La lógica real viv
 | `/(auth)/login` | `AuthScreen` | Login username + password con fondo `bg-bamx.jpeg`. Llama `apiService.loginUser` |
 | `/(drawer)/inicio` | `HomeScreen` | `AnimatedSwitch` para alternar entre **Semaforo** (totales crítico/prioritario/estable + barra gradiente + lista) y **Refrigeradores** (cards de almacenes con temperatura) |
 | `/(drawer)/inventario` | `InventoryScreen` | `SearchHeader` (search + sort + dirección) + `ProductList` paginada con `ProductRow` |
+| `/(drawer)/productosEntregables` | `ProductosEntregablesScreen` | Grid de tarjetas (hero + buscador + chips de categoría + frescura) de productos **entregables** (semáforo verde+amarillo). Comparte `DeliverablesScreen` con la de no aptos |
+| `/(drawer)/productosNoAptos` | `ProductosNoAptosScreen` | Mismo grid, bucket **no apto** (semáforo rojo: caducados, por caducar ≤2d o sin caducidad). Acento rojo, frescura tipo "caducó hace Xd" |
 | `/(drawer)/usuario` | `UserScreen` | Avatar (o inicial) + nombre + email + empresa + rol + status |
 | `/details` (modal) | `DetailsScreen` | Imagen + nombre + tipo + clave + fechas en bottom-sheet. Recibe `item` por params (JSON-stringified) |
+
+> **Entregables / No aptos** comparten `components/DeliverablesScreen` (parametrizado por `variant`). El bucket lo decide la caducidad vía el filtro `fitForDelivery` de `/api/lotes/`: entregable = `fchCaduc > hoy+2` (frontera exacta `>= medianoche de hoy+3`, alineada con `days>2` de `LtpdService`), no apto = `fchCaduc <= hoy+2` o `NULL`. `useFetchDeliverables` agrega los lotes por producto (una tarjeta = un producto) y `getFreshness` traduce la caducidad a puntos+color+label. **Misma dependencia que el Semaforo**: si `LTPD` está vacío, estas pantallas también (por diseño — la caducidad manda). El empty state lo explica.
 
 ### Cliente HTTP
 - `api/axiosInstance.ts` → `instance` con `baseURL = EXPO_PUBLIC_API_URL`. Interceptor que:
@@ -485,7 +491,7 @@ Componente que recibe `typeId` (CVE_LIN, preferido) o `type` (DESC_LIN, fallback
 - `ProductRow` usa `(product as any)` para tragar `InventoryItem | Lot`.
 - `spring.jpa.open-in-view=true` (anti-pattern).
 - Tests en H2 ≠ Firebird real.
-- 2 botones del SideBar sin `onPress` (Productos entregables / Productos no aptos). El de "Registro" ya se quitó en `chore/ui-cleanup`.
+- ~~2 botones del SideBar sin `onPress` (Productos entregables / Productos no aptos)~~ ✅ **resueltos** en `feat/pages-entregables-no-aptos` (cablean a sus pantallas vía `DeliverablesScreen`). El de "Registro" ya se quitó en `chore/ui-cleanup`.
 
 **SUGGESTIONS**
 - Bajar a Java 21 LTS.

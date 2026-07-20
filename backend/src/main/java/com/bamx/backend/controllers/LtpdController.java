@@ -24,9 +24,11 @@ public class LtpdController {
       @RequestParam(defaultValue = "0") int page,
       @RequestParam(defaultValue = "20") int size,
       @RequestParam(defaultValue = "fchCaduc") String sort,
-      @RequestParam(defaultValue = "asc") String direction) {
+      @RequestParam(defaultValue = "asc") String direction,
+      @RequestParam(required = false) Boolean fitForDelivery) {
 
-    Page<LoteConImagenDto> result = ltpdService.findAll(page, size, sort, direction);
+    Page<LoteConImagenDto> result =
+        ltpdService.findAll(page, size, sort, direction, fitForDelivery);
     HttpStatus status = HttpStatus.OK;
 
     return new ResponseEntity<>(

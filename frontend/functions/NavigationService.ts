@@ -40,6 +40,10 @@ function convertRouteToPath(routeName: string): string {
       return "/(drawer)/inicio";
     case "Inventario":
       return "/(drawer)/inventario";
+    case "ProductosEntregables":
+      return "/(drawer)/productosEntregables";
+    case "ProductosNoAptos":
+      return "/(drawer)/productosNoAptos";
     case "Configuracion":
       return "/(drawer)/configuracion";
     case "Usuario":
