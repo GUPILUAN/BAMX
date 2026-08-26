@@ -2,7 +2,7 @@
   "expo": {
     "name": "BAMX",
     "slug": "BAMX",
-    "scheme": "bamx", 
+    "scheme": "bamx",
     "version": "1.0.0",
     "orientation": "landscape",
     "icon": "./assets/logo.png",
@@ -35,7 +35,15 @@
     "plugins": [
       "expo-font",
       "expo-secure-store",
-      "expo-router"
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {

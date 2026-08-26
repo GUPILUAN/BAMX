@@ -1,0 +1,8 @@
+# Material de instalacion: se arma en cada release y viaja en la USB.
+# Nunca se versiona (pesa cientos de MB y el .env trae secretos).
+#
+#   dist/bamx-backend.jar      <- lo produce 01-build.ps1
+#   dist/WinSW-x64.exe         <- descargado de github.com/winsw/winsw
+#   dist/.env                  <- secretos de produccion
+#   dist/runtime/              <- JDK 25 portable
+dist/

@@ -10,7 +10,7 @@ Branch base: `main` (protegida). Flujo real: `feature/<algo>` o `chore/<algo>` �
 ## Stack
 
 ### Backend (`backend/`)
-- Spring Boot **3.5.7** sobre **Java 25** (no LTS — pendiente bajar a 21 LTS).
+- Spring Boot **3.5.7** sobre **Java 25**. (Corrección: en sesiones previas se documentó "Java 25 no es LTS — pendiente bajar a 21". **Es falso**: Java 25 salió en sept-2025 y **sí es LTS**, el siguiente después del 21. No hay nada que bajar. Además `SecurityConfig:47` usa el parámetro sin nombrar `_`, que requiere Java 22+, así que bajar a 21 exigiría tocar código.)
 - Maven, Lombok, MapStruct 1.5.5.
 - **Jaybird 5.0.10** + Hibernate community dialects (`FirebirdDialect`).
 - Spring Security + JWT (JJWT 0.11.5).
@@ -126,7 +126,7 @@ Ambas son features de display, no modifican datos.
 
 ### Doble DataSource
 - `EmpresaDbConfig` → `spring.datasource.empresa` → DB de Aspel (`SAE80EMPRE03.FDB`). Scanea `com.bamx.backend.models` y `com.bamx.backend.repositories`.
-- `AuthDbConfig` → `spring.datasource.auth` → DB de perfiles (`BAMX_PERFILES.FDB`). Scanea `com.bamx.backend.auth.models` y `com.bamx.backend.auth.repositories`.
+- `AuthDbConfig` → `spring.datasource.auth` → DB de perfiles (`PERFILES.FDB`). Scanea `com.bamx.backend.auth.models` y `com.bamx.backend.auth.repositories`.
 - Cada uno con su `EntityManager` y `TransactionManager` propios. Ambos `@Profile("!test")`.
 
 ### Multi-empresa por sufijo (truco clave)
@@ -263,13 +263,13 @@ Redux Toolkit con slices: `themeSlice`, `userSlice`, `settingsSlice`. SecureStor
 
 ### Bases de datos
 - Empresa real BAMX: `C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Datos\SAE80EMPRE03.FDB`
-- Perfiles auth BAMX: `C:\Program Files (x86)\Common Files\Aspel\Perfiles\BAMX_PERFILES.FDB`
+- Perfiles auth BAMX: `C:\Program Files (x86)\Common Files\Aspel\Perfiles\PERFILES.FDB` (corrección: se documentó como `BAMX_PERFILES.FDB`; el archivo real en disco se llama `PERFILES.FDB`, verificado 2026-08-25)
 - Imágenes: `C:\Program Files (x86)\Common Files\Aspel\Sistemas Aspel\SAE8.00\Empresa03\Imagenes`
 
 ### `.env` del backend (relevante)
 - `APP_EMPRESA_SUFFIX=03` (fuerza que login firme JWT con empresa 03).
 - `DATABASE_PATH_EMPRESA` → `SAE80EMPRE03.FDB`.
-- `DATABASE_PATH_AUTH` → `BAMX_PERFILES.FDB`.
+- `DATABASE_PATH_AUTH` → `PERFILES.FDB`.
 
 ### Comandos típicos
 ```powershell
@@ -286,7 +286,15 @@ npx expo start
 npm run test
 ```
 
-**⚠️ Bug latente en `main`**: `application.properties` usa placeholders `${DATABASE_HOST_AUTH}`, `${JWT_SECRET}`, etc., **pero NO tiene `spring.config.import=optional:file:.env[.properties]`** — entonces Spring Boot no carga el `.env` automáticamente. En bash funcionaba porque `source loadenv.sh` exportaba al entorno antes de Maven; en PowerShell/CMD no corre ese script, las variables no llegan, Spring deja los `${...}` literales y Firebird estalla con `Bad port: '${DATABASE_PORT_AUTH}' is not a number`. Fix de una línea: agregar `spring.config.import=optional:file:.env[.properties]` a `application.properties`. Pendiente en una branch nueva (`fix/backend-env-loading`).
+**✅ Resuelto (verificado 2026-08-25)**: en sesiones anteriores se documentó como bug latente que `application.properties` no tenía `spring.config.import` y que por eso el backend no arrancaba desde CMD/PowerShell. **Ya no aplica**: la línea 2 de `application.properties` es
+
+```properties
+spring.config.import=optional:file:.env[.properties],optional:file:backend/.env[.properties]
+```
+
+El `.env` se carga solo, sin `loadenv.sh`. La branch `fix/backend-env-loading` que se sugería **ya no hace falta**.
+
+**Lo que sí hay que saber de ese mecanismo** (importa para el despliegue): la ruta se resuelve **relativa al directorio de trabajo del proceso**, no a la ubicación del jar. Y como el import es `optional:`, cuando no encuentra el `.env` **no falla ahí**: arranca igual y revienta después con `Could not resolve placeholder 'JWT_SECRET'`, un error que no menciona el `.env` por ningún lado. Por eso el servicio de Windows fija `<workingdirectory>`. Ver `deploy/README.md`.
 
 ### Datos confirmados en `SAE80EMPRE03.FDB` (sesión 2026-05-15)
 - `INVE03`: 37,199 productos (todos con `CON_LOTE='S'`).
@@ -443,7 +451,7 @@ Un error común al diagnosticar el "Semaforo vacío" es asumir que falta prender
 - Auth/JWT incluye claim `empresa`.
 - Fallback en `TokenBlockListService` cuando `TOKEN_BLOCK_LIST` no existe.
 - Tests pasan con `cmd /c mvnw.cmd test` (sobre H2, no Firebird).
-- **Pendiente**: `application.properties` no tiene `spring.config.import` para el `.env` → la app no arranca desde CMD/PowerShell sin truco. Ver sección "Configuración" arriba.
+- ✅ `application.properties` **ya tiene** `spring.config.import` para el `.env` — arranca desde CMD/PowerShell sin trucos.
 
 ### Frontend
 - `StackedBarChart` hace early-return si `mappedData` está vacío (antes crasheaba con `Object.keys(undefined)`).
@@ -471,6 +479,64 @@ Componente que recibe `typeId` (CVE_LIN, preferido) o `type` (DESC_LIN, fallback
 
 ---
 
+## Despliegue en la computadora de BAMX
+
+Todo vive en **`deploy/`**. El manual completo es **`deploy/README.md`**; esto es solo el mapa.
+
+**Forma del despliegue**: el backend corre como **servicio de Windows** en la misma maquina donde ya estan Aspel y Firebird, arrancando solo al encender el equipo sin que nadie inicie sesion. Las tablets Android consumen la API por la red local con un **APK** instalado a mano.
+
+```
+C:\BAMX\
+|-- app\
+|   |-- bamx-backend.jar      fat jar (mvnw package)
+|   |-- .env                  config de produccion, NO va a git
+|   |-- bamx-backend.exe      WinSW v2.12.0 renombrado
+|   |-- bamx-backend.xml      config del servicio
+|   +-- runtime\bin\java.exe  JDK 25 portable (zip de Temurin)
++-- logs\                    rotados a diario, capturados por WinSW
+```
+
+Nada se instala fuera de `C:\BAMX`: no se toca el PATH, ni el registro, ni Java global, ni Aspel, ni Firebird. Rollback = parar el servicio y borrar la carpeta.
+
+### Scripts
+
+| Script | Donde corre | Que hace |
+|---|---|---|
+| `00-preflight.ps1` | BAMX | Diagnostica 14 puntos (Aspel, Firebird, .FDB, sufijo de empresa, puertos, IP). **No modifica nada.** Imprime los valores para armar el `.env`. |
+| `01-build.ps1` | desarrollo | `mvnw clean package` y deja el jar en `deploy/dist/`. |
+| `02-install.ps1` | BAMX (admin) | Valida el `.env`, copia todo, registra el servicio, abre el firewall, arranca. |
+| `03-verify.ps1` | ambas | Prueba de humo de 8 pasos, de "el servicio existe" hasta "el inventario devuelve datos". |
+| `04-update.ps1` | BAMX (admin) | Actualiza el jar. **Revierte solo** si la version nueva no levanta. |
+| `99-uninstall.ps1` | BAMX (admin) | Desinstala. No toca Aspel. |
+
+Los `.ps1` estan **sin acentos** a proposito: PowerShell 5.1 lee los scripts como ANSI cuando no traen BOM.
+
+### Las tres trampas del despliegue
+
+1. **El `.env` se resuelve relativo al directorio de trabajo del proceso.** Un servicio de Windows arranca en `C:\Windows\System32`, no encuentra el `.env`, y como el import es `optional:` **no falla ahi**: revienta despues con `Could not resolve placeholder 'JWT_SECRET'`, error que no menciona el `.env`. Por eso el XML fija `<workingdirectory>%BASE%</workingdirectory>`.
+
+2. **`EXPO_PUBLIC_API_URL` se inlinea en tiempo de bundle.** La IP del servidor queda quemada dentro del APK. Si la computadora cambia de IP, **todas las tablets mueren a la vez** y hay que recompilar y reinstalar. La IP fija (reserva DHCP) es requisito, no recomendacion.
+
+3. **Android bloquea HTTP sin TLS en release desde Android 9.** El backend habla HTTP plano. Ya se agrego `expo-build-properties` con `usesCleartextTraffic: true` en `app.json`, y `buildType: apk` en el perfil `preview` de `eas.json` (sin eso EAS genera un `.aab` que no se puede instalar a mano). El sintoma de que falte es enganoso: no sale error, las pantallas salen vacias, porque `apiService.retrieveData` se traga los errores de red sin `response`.
+
+### Healthcheck sin tocar codigo
+
+No hay Actuator ni endpoint de health. El sustituto es:
+
+```
+GET /api/public/fotos-inventarios/__healthcheck__   ->  se espera 404
+```
+
+Es publico (no pide token), consulta la tabla de fotos en Firebird, no encuentra la clave inventada, cae a buscar el archivo en disco, tampoco lo encuentra, y responde 404. **Ese 404 es exito**: prueba HTTP + pool + Jaybird + Firebird + esquema. Un 500 ahi es problema de base de datos.
+
+Detalle no obvio: ese endpoint corre **sin token**, y sin token el sufijo de empresa cae al default `01` (ver `EmpresaPhysicalNamingStrategy.DEFAULT_EMPRESA_SUFFIX`). Por eso consulta `FOTO_INVE01` aunque los datos vivan en la empresa 03, y por eso el preflight verifica que esa tabla exista.
+
+### Sobre `ddl-auto=validate`
+
+`application.properties` declara `spring.jpa.hibernate.ddl-auto=validate`, pero `EmpresaDbConfig` y `AuthDbConfig` construyen sus `LocalContainerEntityManagerFactoryBean` a mano con su propio `setJpaPropertyMap(...)`, que solo incluye dialecto, naming strategy y statement inspector. **No dar por hecho que Hibernate valide el esquema al arrancar**: un desajuste de tablas o columnas se manifestaria como error 500 al usar una pantalla, no como fallo limpio de arranque. Por eso el paso de login + consulta real de inventario en `03-verify.ps1` es el que de verdad prueba el esquema.
+
+---
+
 ## Issues conocidos (resumen, ver review en sesión para detalle)
 
 **BLOCKERS para producción**
@@ -483,7 +549,6 @@ Componente que recibe `typeId` (CVE_LIN, preferido) o `type` (DESC_LIN, fallback
 - ~~`useSemaforoStats` muestra 0 siempre~~ — **FALSO POSITIVO** descubierto en sesión. `LtpdService.findAll` sí reescribe `Lot.status` a `"critical"/"warning"/"good"`. El Semaforo funciona.
 
 **WARNINGS**
-- `application.properties` no carga el `.env` (falta `spring.config.import`). Bug latente que rompe el arranque en CMD/PowerShell.
 - `TOKEN_BLOCK_LIST` no existe; logout responde 200 sin persistir.
 - Queries de prioridad en `LtpdRepository` se traslapan (warning incluye critical).
 - `i.getUniMed().toLowerCase()` y `alm.getStatus().equalsIgnoreCase("A")` pueden tronar con null.
@@ -494,7 +559,6 @@ Componente que recibe `typeId` (CVE_LIN, preferido) o `type` (DESC_LIN, fallback
 - ~~2 botones del SideBar sin `onPress` (Productos entregables / Productos no aptos)~~ ✅ **resueltos** en `feat/pages-entregables-no-aptos` (cablean a sus pantallas vía `DeliverablesScreen`). El de "Registro" ya se quitó en `chore/ui-cleanup`.
 
 **SUGGESTIONS**
-- Bajar a Java 21 LTS.
 - Añadir `typecheck` script al frontend.
 - Migraciones con Flyway/Liquibase para tablas propias.
 - Optimizar N+1 en `InveService.getAllInve` (41 queries por página de 10).
@@ -515,7 +579,8 @@ Componente que recibe `typeId` (CVE_LIN, preferido) o `type` (DESC_LIN, fallback
 ### Branches activas / sugeridas
 - ✅ `chore/ui-cleanup` — **en PR, mergeable**. UI cleanup + DefaultProductImage + filtros de imagen + clamp de flotante + CLAUDE.md actualizado.
 - 🚧 `feat/inventory-stock-filter` — **encima de chore/ui-cleanup (stacked)**. Toggle "Solo con existencia" en Inventario (default ON), `ORDER BY CASE WHEN EXIST>0 THEN 0 ELSE 1 END`, page size 25-30, badge "Sin stock" para filas con `EXIST=0`.
-- `fix/backend-env-loading` — pendiente: agregar `spring.config.import=optional:file:.env[.properties]` a `application.properties`. Una línea, alto impacto (sin esto el backend no arranca en CMD/PowerShell).
+- ~~`fix/backend-env-loading`~~ — **ya no hace falta**, `spring.config.import` ya está en `application.properties`.
+- ✅ `infra/deploy-windows-bamx` — despliegue del backend como servicio de Windows en BAMX (carpeta `deploy/`).
 - `feat/pages-entregables-no-aptos` — pantallas para los 2 botones grandes del SideBar.
 - `infra/dockerize-backend` — Dockerfile + docker-compose para despliegue en BAMX.
 - `feat/refrigeradores-iot` — wire MQTT real (esperar a tener hardware).
