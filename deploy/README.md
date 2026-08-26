@@ -4,6 +4,11 @@ Manual para instalar el backend como **servicio de Windows** en la computadora d
 
 > **La app es de solo lectura contra Aspel.** No escribe una sola fila en `INVE`, `LTPD`, `MINVE` ni ninguna tabla del ERP. Instalarla no puede afectar la contabilidad ni el inventario, y desinstalarla deja la máquina exactamente como estaba.
 
+> **¿Buscas correr la app en una laptop para enseñarla, no para dejarla instalada?**
+> Ese es otro documento: [`DEMO-LAPTOP.md`](DEMO-LAPTOP.md). Levanta todo —bases
+> incluidas— en una máquina sin Aspel ni Firebird, dentro de un emulador de
+> tablet Android, sin instalar nada permanente.
+
 ---
 
 ## Cómo queda instalado
