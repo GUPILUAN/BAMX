@@ -15,6 +15,7 @@ import { Lot } from "@/types/Lot";
 import DefaultProductImage from "@/components/DefaultProductImage/DefaultProductImage";
 import { isUsableImage } from "@/functions/isUsableImage";
 import { resolveImageUrl } from "@/functions/resolveImageUrl";
+import ProductWarehouses from "@/components/ProductWarehouses/ProductWarehouses";
 
 const { height, width } = Dimensions.get("window");
 
@@ -136,6 +137,11 @@ export default function DetailsScreen() {
               </Text>
             </View>
           </View>
+
+          <ProductWarehouses
+            productId={product?.product_id}
+            isDark={isDark}
+          />
 
           {/* Botón inferior */}
           <TouchableOpacity

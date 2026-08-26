@@ -134,4 +134,25 @@ public interface LtpdRepository extends JpaRepository<Ltpd, Integer> {
       """)
   List<String> findWarehouseNameInGood(
       @Param("cveArt") String cveArt, @Param("warningDate") LocalDateTime warningDate);
+
+  // Resumen de lotes activos por almacén, para el detalle de producto.
+  //
+  // Se consulta aparte de MULT (no con un JOIN) porque en BAMX las dos fuentes
+  // están desfasadas: de los 36 lotes activos, 7 no tienen fila en MULT y 29 la
+  // tienen en cero. Un JOIN perdería justo los productos que sólo viven en LTPD
+  // (p. ej. A006123, con 10 unidades en lotes y MULT.EXIST = 0).
+  //
+  // COUNT(l.fchCaduc) ignora los NULL, así que la resta contra COUNT(l) da
+  // cuántos lotes de ese almacén traen la caducidad sin capturar en Aspel.
+  @Query(
+"""
+    SELECT l.cveAlm, a.descr, SUM(l.cantidad), COUNT(l), COUNT(l.fchCaduc), MIN(l.fchCaduc)
+    FROM Ltpd l
+    LEFT JOIN Almacen a ON a.cveAlm = l.cveAlm
+    WHERE l.cveArt = :cveArt
+      AND l.status = 'A'
+      AND l.cantidad > 0
+    GROUP BY l.cveAlm, a.descr
+""")
+  List<Object[]> findLotSummaryByProduct(@Param("cveArt") String cveArt);
 }
