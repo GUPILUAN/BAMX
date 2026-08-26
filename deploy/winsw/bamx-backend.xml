@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Configuracion del servicio de Windows para el backend de BAMX (WinSW v2.12.0).
+
+  Este archivo se copia a C:\BAMX\app\bamx-backend.xml y TIENE que llamarse
+  igual que el ejecutable (bamx-backend.exe): asi es como WinSW encuentra su
+  configuracion.
+
+  Instalar:    C:\BAMX\app\bamx-backend.exe install
+  Arrancar:    C:\BAMX\app\bamx-backend.exe start
+  Estado:      C:\BAMX\app\bamx-backend.exe status
+  Parar:       C:\BAMX\app\bamx-backend.exe stop
+  Desinstalar: C:\BAMX\app\bamx-backend.exe uninstall
+
+  %BASE% = la carpeta donde vive bamx-backend.exe (C:\BAMX\app).
+-->
+<service>
+
+  <id>bamx-backend</id>
+  <name>BAMX Backend API</name>
+  <description>API REST que expone el inventario de Aspel SAE a la app movil de BAMX. Solo lectura contra el ERP.</description>
+
+  <!--
+    JDK 25 portable, por ruta absoluta. A proposito NO se usa el "java" del
+    PATH: el servicio corre como LocalSystem, que no ve el JAVA_HOME ni el
+    PATH del usuario que instalo. Ruta absoluta = cero sorpresas.
+  -->
+  <executable>%BASE%\runtime\bin\java.exe</executable>
+
+  <!--
+    -Xmx768m  : esta maquina la comparte con Aspel. Sin limite la JVM se
+                queda con 1/4 de la RAM fisica.
+    -D*encoding: la base es WIN1252 y hay acentos en descripciones de
+                producto. Java 25 ya usa UTF-8 por default en file.encoding,
+                pero los streams de consola de Windows no, y los logs
+                saldrian con caracteres rotos.
+  -->
+  <arguments>-Xms256m -Xmx768m -Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -jar "%BASE%\bamx-backend.jar"</arguments>
+
+  <!--
+    ================== LA LINEA MAS IMPORTANTE DEL ARCHIVO ==================
+    El backend lee su configuracion de un .env RELATIVO AL DIRECTORIO DE
+    TRABAJO (spring.config.import=optional:file:.env[.properties]).
+
+    Sin esta linea el servicio arranca en C:\Windows\System32, no encuentra
+    el .env, y como el import es "optional:" NO falla ahi: falla despues con
+    un error confuso de placeholder ${JWT_SECRET} sin resolver.
+    =========================================================================
+  -->
+  <workingdirectory>%BASE%</workingdirectory>
+
+  <!--
+    Automatic + delayedAutoStart: arranca solo al encender la computadora,
+    pero unos segundos despues del resto de servicios, para darle tiempo a
+    Firebird. No requiere que nadie inicie sesion en Windows.
+  -->
+  <startmode>Automatic</startmode>
+  <delayedAutoStart>true</delayedAutoStart>
+
+  <!--
+    Se depende del GUARDIAN, no del Server.
+
+    En una instalacion tipica de Aspel hay dos servicios:
+      FirebirdGuardianDefaultInstance -> StartType Automatic  (arranca al Server)
+      FirebirdServerDefaultInstance   -> StartType Manual     (lo lanza el Guardian)
+
+    Depender del Server (Manual) es fragil; el Guardian es quien controla el
+    ciclo de vida. Aun asi "Guardian arriba" no garantiza "3050 aceptando
+    conexiones", por eso ademas estan los reintentos de abajo.
+
+    OJO: verificar el nombre real con Get-Service *irebird* (lo reporta
+    00-preflight.ps1). Si la instalacion de BAMX usa otro nombre de
+    instancia, hay que cambiarlo aqui.
+
+    Si Firebird esta en OTRA maquina: BORRAR esta linea (no se puede
+    depender de un servicio remoto). Los reintentos cubren el caso.
+  -->
+  <depend>FirebirdGuardianDefaultInstance</depend>
+
+  <!--
+    Reintentos escalonados. Cubren los dos escenarios reales:
+      - Firebird todavia no estaba listo al arrancar la maquina.
+      - La JVM murio en caliente (OOM, etc.).
+  -->
+  <onfailure action="restart" delay="15 sec"/>
+  <onfailure action="restart" delay="30 sec"/>
+  <onfailure action="restart" delay="60 sec"/>
+  <resetfailure>1 hour</resetfailure>
+
+  <!-- Segundos que espera a que la JVM cierre limpio antes de matarla. -->
+  <stoptimeout>30 sec</stoptimeout>
+
+  <!--
+    La aplicacion no escribe logs a archivo por si misma (no hay
+    logging.file.name en application.properties). WinSW captura stdout y
+    stderr y los rota: por tamano (10 MB) y a diario a medianoche.
+
+    Genera en C:\BAMX\logs:
+      bamx-backend.out.log  <- stdout de la app (arranque, requests, errores)
+      bamx-backend.err.log  <- stderr
+      bamx-backend.wrapper.log <- del propio WinSW (arranques y reinicios)
+  -->
+  <logpath>%BASE%\..\logs</logpath>
+  <log mode="roll-by-size-time">
+    <sizeThreshold>10240</sizeThreshold>
+    <pattern>yyyyMMdd</pattern>
+    <autoRollAtTime>00:00:00</autoRollAtTime>
+  </log>
+
+</service>
