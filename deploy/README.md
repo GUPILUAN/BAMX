@@ -46,6 +46,7 @@ Computadora de BAMX (Windows 10/11 o Server, 64 bits)
 | Firebird corriendo en 3050 | Es de donde salen los datos | pasos 4-5 |
 | Permisos de Administrador | Para registrar un servicio y abrir el firewall | — |
 | **IP fija** | La URL se quema dentro del APK — ver abajo | paso 13 |
+| **Red clasificada como Privada** | Si Windows la tiene como Pública, la regla de firewall no aplica | paso 13 |
 | ~500 MB libres | jar + JDK portable + logs | — |
 
 ### La IP fija no es opcional
@@ -325,10 +326,18 @@ Get-Content C:\BAMX\logs\bamx-backend.out.log -Tail 80
 
 En orden de probabilidad:
 
-1. **Firewall** — `Get-NetFirewallRule -DisplayName "BAMX Backend API*"`
-2. **Aislamiento de clientes en el WiFi** — muchos access points, sobre todo en redes de invitados, bloquean el tráfico entre dispositivos aunque el firewall esté abierto. Se detecta probando desde la tablet, nunca desde la PC. La prueba rápida es abrir `http://<ip>:8080/api/public/fotos-inventarios/x` en el navegador de la tablet: si da 404, la red deja pasar.
-3. **Subredes distintas** — que la tablet y la PC estén en el mismo rango de IP.
-4. **`usesCleartextTraffic`** — si el APK se compiló sin ese ajuste, Android bloquea el HTTP en silencio.
+1. **La red está clasificada como Pública.** Es la causa más traicionera, porque *todo se ve bien*: la regla de firewall existe, aparece en la consola, y aun así no pasa nada. Una regla solo aplica en los perfiles que se le indicaron, y Windows bloquea casi todo lo entrante en el perfil Público. Verificar y corregir:
+
+   ```powershell
+   Get-NetConnectionProfile
+   Set-NetConnectionProfile -InterfaceAlias "Ethernet" -NetworkCategory Private
+   ```
+
+   La red interna de BAMX debe ser **Privada**. El pre-flight avisa de esto, y el instalador se niega a abrir el puerto en una red Pública salvo que se le pase `-PermitirEnRedPublica`.
+2. **Firewall** — `Get-NetFirewallRule -DisplayName "BAMX Backend API*"`
+3. **Aislamiento de clientes en el WiFi** — muchos access points, sobre todo en redes de invitados, bloquean el tráfico entre dispositivos aunque el firewall esté abierto. Se detecta probando desde la tablet, nunca desde la PC. La prueba rápida es abrir `http://<ip>:8080/api/public/fotos-inventarios/x` en el navegador de la tablet: si da 404, la red deja pasar.
+4. **Subredes distintas** — que la tablet y la PC estén en el mismo rango de IP.
+5. **`usesCleartextTraffic`** — si el APK se compiló sin ese ajuste, Android bloquea el HTTP en silencio.
 
 ### Las fotos de producto no cargan
 

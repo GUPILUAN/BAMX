@@ -38,7 +38,8 @@ param(
     [string] $Destino = "C:\BAMX",
     [int]    $Puerto  = 8080,
     [switch] $SinFirewall,
-    [switch] $SoloValidar
+    [switch] $SoloValidar,
+    [switch] $PermitirEnRedPublica
 )
 
 $ErrorActionPreference = "Stop"
@@ -320,13 +321,56 @@ if ($SinFirewall) {
     if ($regla) {
         Write-Info "La regla '$nombreRegla' ya existia."
     } else {
-        # Private y Domain a proposito, NUNCA Public: el backend tiene CORS
-        # abierto y permitAll("/**") (la autorizacion real la hace el filtro
-        # JWT). Esta API no debe salir a internet.
-        New-NetFirewallRule -DisplayName $nombreRegla `
-            -Direction Inbound -Protocol TCP -LocalPort $Puerto `
-            -Action Allow -Profile Private,Domain | Out-Null
-        Write-Ok "Regla creada para TCP $Puerto (perfiles Private y Domain)."
+        # Una regla de firewall solo aplica en los perfiles que se le indiquen,
+        # y Windows clasifica cada red como Public, Private o DomainAuthenticated.
+        # Si la red de BAMX esta clasificada como Public y creamos la regla solo
+        # para Private/Domain, la regla existe, se ve bien en la consola... y las
+        # tablets siguen sin conectar. Por eso se mira el perfil ACTIVO.
+        $categorias = @(Get-NetConnectionProfile -ErrorAction SilentlyContinue |
+                        Select-Object -ExpandProperty NetworkCategory -Unique)
+
+        $perfiles = @()
+        foreach ($c in $categorias) {
+            switch ("$c") {
+                "Private"             { $perfiles += "Private" }
+                "DomainAuthenticated" { $perfiles += "Domain" }
+                "Public"              { $perfiles += "Public" }
+            }
+        }
+        $perfiles = @($perfiles | Sort-Object -Unique)
+        if ($perfiles.Count -eq 0) { $perfiles = @("Private", "Domain") }
+
+        Write-Info ("Red activa clasificada por Windows como: " + ($categorias -join ", "))
+
+        if ($perfiles -contains "Public" -and -not $PermitirEnRedPublica) {
+            # No se abre un puerto en una red que Windows considera no confiable
+            # sin que alguien lo pida explicitamente. Y encima este backend tiene
+            # CORS abierto y permitAll("/**"): la autorizacion real la hace el
+            # filtro JWT, no Spring Security.
+            $perfiles = @($perfiles | Where-Object { $_ -ne "Public" })
+
+            Write-Host ""
+            Write-Warn "Esta red esta clasificada como PUBLICA."
+            Write-Host "            Lo correcto es reclasificarla como Privada: es la red interna" -ForegroundColor Yellow
+            Write-Host "            de BAMX, no un WiFi de cafeteria. Desde PowerShell como admin:" -ForegroundColor Yellow
+            Write-Host "              Set-NetConnectionProfile -InterfaceAlias '<nombre>' -NetworkCategory Private" -ForegroundColor Yellow
+            Write-Host "            Si de verdad se necesita abrir el puerto en la red publica," -ForegroundColor Yellow
+            Write-Host "            volver a correr con -PermitirEnRedPublica." -ForegroundColor Yellow
+            Write-Host ""
+
+            if ($perfiles.Count -eq 0) {
+                Write-Warn "No se creo ninguna regla de firewall: la unica red activa es publica."
+                Write-Warn "Las tablets NO van a poder conectarse hasta resolver esto."
+                $perfiles = $null
+            }
+        }
+
+        if ($perfiles) {
+            New-NetFirewallRule -DisplayName $nombreRegla `
+                -Direction Inbound -Protocol TCP -LocalPort $Puerto `
+                -Action Allow -Profile ($perfiles -join ",") | Out-Null
+            Write-Ok ("Regla creada para TCP $Puerto (perfiles: " + ($perfiles -join ", ") + ").")
+        }
     }
 }
 

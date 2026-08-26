@@ -513,6 +513,24 @@ try {
     if (-not $ipElegida) {
         Write-Advertencia "No se identifico una interfaz de LAN con puerta de enlace." "Elegir la IP a mano de la lista de arriba, descartando adaptadores virtuales."
     }
+
+    # Windows clasifica cada red como Public, Private o DomainAuthenticated, y
+    # una regla de firewall SOLO aplica en los perfiles que se le indiquen. Si
+    # la red esta como Public, la regla para Private/Domain existe, se ve bien
+    # en la consola, y las tablets igual no conectan. Hay que saberlo antes.
+    $perfilesRed = Get-NetConnectionProfile -ErrorAction SilentlyContinue
+    if ($perfilesRed) {
+        Write-Host ""
+        foreach ($pr in $perfilesRed) {
+            Write-Info ("{0,-18} red: {1,-22} perfil de Windows: {2}" -f $pr.InterfaceAlias, $pr.Name, $pr.NetworkCategory)
+        }
+        $hayPublica = @($perfilesRed | Where-Object { $_.NetworkCategory -eq "Public" }).Count -gt 0
+        if ($hayPublica) {
+            Write-Advertencia "Hay red(es) clasificadas como PUBLICA." "El firewall de Windows bloquea casi todo lo entrante en ese perfil. Reclasificar la red interna de BAMX como Privada ANTES de instalar: Set-NetConnectionProfile -InterfaceAlias '<alias>' -NetworkCategory Private"
+        } else {
+            Write-Ok "Ninguna red activa esta como Publica; la regla de firewall va a aplicar."
+        }
+    }
 } catch {
     Write-Advertencia "No se pudo leer la configuracion de red: $($_.Exception.Message)"
 }

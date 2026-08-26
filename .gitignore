@@ -57,6 +57,12 @@ node_modules/
 dist/
 web-build/
 
+# Carpetas nativas generadas por "expo prebuild" / "expo run:android".
+# Este proyecto es managed workflow: android/ e ios/ se regeneran desde
+# app.json y los config plugins, no se versionan (y pesan cientos de MB).
+android/
+ios/
+
 # Native
 *.orig.*
 *.jks
