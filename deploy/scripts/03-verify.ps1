@@ -152,8 +152,37 @@ if ($Usuario -eq "") {
 
     Test-Paso "Login (base de perfiles + JWT)" {
         $cuerpo = @{ username = $Usuario; password = $Password } | ConvertTo-Json -Compress
-        $r = Invoke-RestMethod -Uri "$BaseUrl/api/usuarios/login" -Method POST `
-                               -Body $cuerpo -ContentType "application/json" -TimeoutSec 30
+        $r = $null
+        try {
+            $r = Invoke-RestMethod -Uri "$BaseUrl/api/usuarios/login" -Method POST `
+                                   -Body $cuerpo -ContentType "application/json" -TimeoutSec 30
+        } catch {
+            # El backend responde con un JSON explicativo; sin esto el operador
+            # solo veria "(404) Not Found", que no dice nada util.
+            $codigo = 0
+            $mensaje = ""
+            if ($_.Exception.Response) {
+                $codigo = [int] $_.Exception.Response.StatusCode
+                try {
+                    $lector  = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+                    $crudo   = $lector.ReadToEnd()
+                    $mensaje = (ConvertFrom-Json $crudo).message
+                } catch { }
+            }
+
+            Write-Host "      [FAIL] Login rechazado (HTTP $codigo)." -ForegroundColor Red
+            if ($mensaje) { Write-Host "             El servidor dice: $mensaje" -ForegroundColor Red }
+
+            switch ($codigo) {
+                404 { Write-Host "             Ese usuario no existe en la base de perfiles. Revisar el nombre, o que DATABASE_PATH_AUTH apunte a la base correcta." -ForegroundColor Yellow }
+                401 { Write-Host "             El usuario existe pero la contrasena no coincide." -ForegroundColor Yellow }
+                403 { Write-Host "             El usuario existe pero esta inactivo o sin permisos." -ForegroundColor Yellow }
+                500 { Write-Host "             Error del servidor: probable problema con la base de perfiles. Revisar los logs." -ForegroundColor Yellow }
+                0   { Write-Host "             No hubo respuesta HTTP: el backend no esta escuchando o la red lo bloquea." -ForegroundColor Yellow }
+            }
+            return $false
+        }
+
         if (-not $r.access) {
             Write-Host "      [FAIL] La respuesta no trae token de acceso." -ForegroundColor Red
             return $false

@@ -146,10 +146,28 @@ powershell -Command "[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Ran
    `C:/Program Files (x86)/...` ✅  ·  `C:\Program Files (x86)\...` ❌
 2. **`APP_IMAGES_PATH` termina en `/`.** El código concatena la ruta literalmente.
 3. **Ninguna variable obligatoria puede faltar**, ni siquiera `APP_HOST_URL` (hoy no la lee nadie, pero sin ella Spring no arranca).
+4. **Para cambiar el puerto, la clave es `server.port`** — con punto y en minúsculas, no `SERVER_PORT`.
 
-El instalador valida las tres y se niega a continuar si algo está mal, así que no hay forma de equivocarse en silencio.
+El instalador valida las cuatro y se niega a continuar si algo está mal, así que no hay forma de equivocarse en silencio.
+
+### Por qué unas variables van en MAYÚSCULAS y otras con punto
+
+Parece inconsistente y no lo es: son **dos mecanismos distintos**.
+
+- `DATABASE_PATH_EMPRESA`, `JWT_SECRET`, `APP_IMAGES_PATH` y compañía **no se enlazan a ninguna propiedad de Spring**. `application.properties` las lee como `${PLACEHOLDER}`, y eso busca la clave **tal como está escrita**. Por eso funcionan en mayúsculas.
+- `server.port` sí es una propiedad de Spring. La traducción de `MAYUSCULAS_CON_GUION` a propiedad punteada la hace **solo la fuente de variables de entorno del sistema operativo**. Este archivo entra como un `.properties` normal, donde la clave se toma literal.
+
+Consecuencia práctica, y verificada en pruebas: con `SERVER_PORT=8081` la aplicación **arranca igual en 8080**, sin ninguna advertencia. Con `server.port=8081` sí obedece. El instalador rechaza la forma en mayúsculas para que nadie pierda una tarde con esto.
 
 ## Paso 3 — Instalar
+
+Antes de elevar a Administrador conviene revisar que el material y el `.env` estén bien. Esto no instala nada y no pide permisos:
+
+```bash
+powershell -ExecutionPolicy Bypass -File .\02-install.ps1 -SoloValidar
+```
+
+Y la instalación de verdad:
 
 ```bash
 powershell -ExecutionPolicy Bypass -File .\02-install.ps1
@@ -299,7 +317,7 @@ Get-Content C:\BAMX\logs\bamx-backend.out.log -Tail 80
 | `Connection refused` / `Unable to complete network request` | Firebird no está arriba o el puerto está cerrado | `Get-Service *irebird*` y `Test-NetConnection localhost -Port 3050` |
 | `I/O error ... No such file or directory` | La ruta del `.FDB` está mal | Revisar `DATABASE_PATH_*`, con `/` y sin errores de dedo |
 | `Your user name and password are not defined` | Contraseña de SYSDBA equivocada | Pedirla a quien administra Aspel |
-| `Port 8080 was already in use` | Otro programa tomó el puerto | `SERVER_PORT=8081` en el `.env` y reinstalar la regla de firewall |
+| `Port 8080 was already in use` | Otro programa tomó el puerto | Agregar `server.port=8081` al `.env` y reinstalar la regla de firewall — ver la nota de abajo |
 
 **El caso del `.env` invisible merece explicación**, porque es el más confuso de todos. La aplicación busca su configuración con `spring.config.import=optional:file:.env[.properties]`, que resuelve la ruta **relativa al directorio de trabajo del proceso**. Un servicio de Windows arranca por defecto en `C:\Windows\System32`. Al ser un import `optional:`, no falla al no encontrarlo: sigue arrancando y revienta más adelante con un error de placeholder que no menciona el `.env` por ningún lado. Por eso el XML fija `<workingdirectory>%BASE%</workingdirectory>`.
 
@@ -357,7 +375,7 @@ Esta entrega es **solo despliegue**: no se modificó el backend. Lo siguiente qu
 |---|---|---|---|
 | `00-preflight.ps1` | BAMX | no | Diagnostica. No modifica nada. |
 | `01-build.ps1` | desarrollo | no | Compila el jar. |
-| `02-install.ps1` | BAMX | **sí** | Instala el servicio. |
+| `02-install.ps1` | BAMX | **sí** | Instala el servicio. Con `-SoloValidar` revisa el `.env` sin admin y sin instalar. |
 | `03-verify.ps1` | ambas | no | Prueba de humo end-to-end. |
 | `04-update.ps1` | BAMX | **sí** | Actualiza el jar, revierte solo si falla. |
 | `99-uninstall.ps1` | BAMX | **sí** | Desinstala. No toca Aspel. |

@@ -58,6 +58,12 @@ if ($JdkPath -eq "") {
                     Where-Object { $_.Name -like "*jdk-25*" } |
                     Select-Object -ExpandProperty FullName)
 
+    # Un Get-ChildItem sin resultados deja un $null dentro del arreglo, y
+    # Join-Path con $null lanza excepcion terminante (ErrorActionPreference
+    # = Stop). Sin este filtro, una maquina sin JDK revienta con un error
+    # ilegible en vez del mensaje de abajo.
+    $candidatos = @($candidatos | Where-Object { $_ })
+
     foreach ($c in $candidatos) {
         if (Test-Path (Join-Path $c "bin\javac.exe")) { $JdkPath = $c; break }
     }
@@ -84,13 +90,13 @@ if ($SinTests) {
 }
 Write-Host ""
 
-Push-Location $backend
-try {
-    cmd /c "mvnw.cmd $objetivo"
-    $codigo = $LASTEXITCODE
-} finally {
-    Pop-Location
-}
+# El "cd /d" dentro de cmd no es adorno: Push-Location cambia la ubicacion de
+# PowerShell pero NO el directorio de trabajo del proceso, asi que un
+# "cmd /c mvnw.cmd" a secas no encuentra el wrapper. Ademas Maven necesita el
+# cwd correcto para localizar el pom.xml y la carpeta .mvn.
+$mvnw = Join-Path $backend "mvnw.cmd"
+cmd /c "cd /d `"$backend`" && `"$mvnw`" $objetivo"
+$codigo = $LASTEXITCODE
 
 if ($codigo -ne 0) {
     throw "El build fallo (codigo $codigo). Revisar la salida de Maven arriba."

@@ -37,7 +37,8 @@
 param(
     [string] $Destino = "C:\BAMX",
     [int]    $Puerto  = 8080,
-    [switch] $SinFirewall
+    [switch] $SinFirewall,
+    [switch] $SoloValidar
 )
 
 $ErrorActionPreference = "Stop"
@@ -64,12 +65,16 @@ Write-Host "  destino: $Destino   puerto: $Puerto" -ForegroundColor DarkGray
 # 1. Administrador
 # ---------------------------------------------------------------------------
 Write-Paso "1. Permisos"
-$identidad = [Security.Principal.WindowsIdentity]::GetCurrent()
-$principal = New-Object Security.Principal.WindowsPrincipal($identidad)
-if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    throw "Este script necesita permisos de Administrador. Abrir PowerShell con 'Ejecutar como administrador' y volver a correrlo."
+if ($SoloValidar) {
+    Write-Info "Modo -SoloValidar: se revisa el material y el .env, no se instala nada."
+} else {
+    $identidad = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = New-Object Security.Principal.WindowsPrincipal($identidad)
+    if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        throw "Este script necesita permisos de Administrador. Abrir PowerShell con 'Ejecutar como administrador' y volver a correrlo. Para solo revisar el .env sin instalar, usar -SoloValidar."
+    }
+    Write-Ok "Corriendo como Administrador."
 }
-Write-Ok "Corriendo como Administrador."
 
 
 # ---------------------------------------------------------------------------
@@ -176,6 +181,24 @@ foreach ($par in @(@("DATABASE_HOST_EMPRESA","DATABASE_PATH_EMPRESA"), @("DATABA
     }
 }
 
+# OJO: para cambiar el puerto, la clave se llama "server.port", CON PUNTO y
+# en minusculas.
+#
+# La forma SERVER_PORT (mayusculas con guion bajo) NO funciona desde este
+# archivo, y es un error facil de cometer porque en otros contextos de Spring
+# si sirve. La razon: la traduccion de MAYUSCULAS_CON_GUION a propiedad
+# punteada solo la hace la fuente de variables de entorno del sistema. El .env
+# entra como archivo .properties, donde la clave se toma literal.
+#
+# Verificado en pruebas: con SERVER_PORT=8081 la app arranco igual en 8080.
+#
+# (Las DATABASE_* y APP_* si funcionan en mayusculas porque no se enlazan a
+# una propiedad: se leen como ${PLACEHOLDER} desde application.properties, y
+# eso busca la clave tal cual esta escrita.)
+if ($config.ContainsKey("SERVER_PORT")) {
+    $errores += "El .env usa SERVER_PORT, que NO tiene efecto: la app arrancaria en 8080 de todas formas. Cambiar esa linea a 'server.port=<puerto>' (con punto, en minusculas)."
+}
+
 if ($errores.Count -gt 0) {
     Write-Host ""
     foreach ($e in $errores) { Write-Host "     [FAIL] $e" -ForegroundColor Red }
@@ -183,9 +206,24 @@ if ($errores.Count -gt 0) {
 }
 Write-Ok "$($config.Count) variables, todas validas."
 
-if ($config.ContainsKey("SERVER_PORT") -and $config["SERVER_PORT"] -ne "" -and [int]$config["SERVER_PORT"] -ne $Puerto) {
-    $Puerto = [int] $config["SERVER_PORT"]
-    Write-Info "El .env define SERVER_PORT=$Puerto; se usa ese para el firewall y la verificacion."
+if ($config.ContainsKey("server.port") -and $config["server.port"] -ne "") {
+    $puertoEnv = 0
+    if ([int]::TryParse($config["server.port"], [ref] $puertoEnv) -and $puertoEnv -ne $Puerto) {
+        $Puerto = $puertoEnv
+        Write-Info "El .env define server.port=$Puerto; se usa ese para el firewall y la verificacion."
+    }
+}
+
+
+if ($SoloValidar) {
+    Write-Host ""
+    Write-Host "  ---------------------------------------------------------------" -ForegroundColor DarkCyan
+    Write-Host "  Validacion OK. El material y el .env estan bien." -ForegroundColor Green
+    Write-Host "  ---------------------------------------------------------------" -ForegroundColor DarkCyan
+    Write-Host "  Para instalar de verdad: volver a correr SIN -SoloValidar," -ForegroundColor Gray
+    Write-Host "  desde un PowerShell abierto como Administrador." -ForegroundColor Gray
+    Write-Host ""
+    exit 0
 }
 
 

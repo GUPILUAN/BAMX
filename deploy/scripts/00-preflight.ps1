@@ -464,7 +464,7 @@ if ($enUso) {
         $proc = Get-Process -Id $p -ErrorAction SilentlyContinue
         if ($proc) { Write-Info "Ocupado por PID $p ($($proc.ProcessName)) - $($proc.Path)" }
     }
-    Write-Advertencia "El puerto $Puerto ya esta en uso." "Usar otro: descomentar SERVER_PORT=8081 en el .env, y ajustar APP_HOST_URL, la regla de firewall y EXPO_PUBLIC_API_URL del APK."
+    Write-Advertencia "El puerto $Puerto ya esta en uso." "Usar otro: agregar 'server.port=8081' al .env (CON PUNTO y en minusculas; SERVER_PORT en mayusculas NO funciona desde ese archivo), y ajustar APP_HOST_URL, la regla de firewall y EXPO_PUBLIC_API_URL del APK."
 } else {
     Write-Ok "Puerto $Puerto libre."
 }

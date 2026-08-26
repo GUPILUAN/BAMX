@@ -511,6 +511,17 @@ Nada se instala fuera de `C:\BAMX`: no se toca el PATH, ni el registro, ni Java 
 
 Los `.ps1` estan **sin acentos** a proposito: PowerShell 5.1 lee los scripts como ANSI cuando no traen BOM.
 
+### En el `.env`, unas claves van en MAYUSCULAS y otras con punto
+
+No es inconsistencia, son **dos mecanismos distintos**, y confundirlos cuesta una tarde:
+
+- `DATABASE_PATH_EMPRESA`, `JWT_SECRET`, `APP_IMAGES_PATH`, `APP_EMPRESA_SUFFIX` **no se enlazan a ninguna propiedad**. `application.properties` las lee como `${PLACEHOLDER}`, y eso busca la clave **literal**. Por eso funcionan en mayúsculas.
+- `server.port` **sí** es propiedad de Spring. La traducción `MAYUSCULAS_CON_GUION` → propiedad punteada la hace **solo** `SystemEnvironmentPropertySource` (variables de entorno reales del SO). El `.env` entra vía `spring.config.import` como un `.properties` normal, donde la clave se toma literal.
+
+**Verificado empíricamente (2026-08-25)**: con `SERVER_PORT=8081` en el `.env`, la app arrancó **igual en 8080**, sin advertencia. Con `server.port=8081` obedeció. `02-install.ps1` rechaza la forma en mayúsculas por eso.
+
+Si algún día hace falta forzar una propiedad de Spring desde afuera sin editar el `.env`, la vía que sí traduce mayúsculas es una variable de entorno real, p. ej. `<env name="BAMX_REFRIGERADORES" value="1"/>` en el XML de WinSW.
+
 ### Las tres trampas del despliegue
 
 1. **El `.env` se resuelve relativo al directorio de trabajo del proceso.** Un servicio de Windows arranca en `C:\Windows\System32`, no encuentra el `.env`, y como el import es `optional:` **no falla ahi**: revienta despues con `Could not resolve placeholder 'JWT_SECRET'`, error que no menciona el `.env`. Por eso el XML fija `<workingdirectory>%BASE%</workingdirectory>`.
