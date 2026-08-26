@@ -479,6 +479,24 @@ Componente que recibe `typeId` (CVE_LIN, preferido) o `type` (DESC_LIN, fallback
 
 ---
 
+## Demo en una laptop sin Aspel (presentaciones)
+
+Distinto del despliegue: **enseñar** la app en una máquina que no tiene nada instalado, sin dejar nada instalado. Manual: **`deploy/DEMO-LAPTOP.md`**.
+
+- `10-armar-kit-demo.ps1` corre **aquí** y arma `BAMX-DEMO-KIT` (~1.2 GB): respaldos `gbak` de las dos bases, el jar, Firebird 2.5 portable, JDK portable, Node portable, imágenes y copia del repo. No escribe nada en Aspel.
+- `11-preparar-laptop.ps1` corre **en la laptop**: levanta Firebird portable (`fbserver.exe -a`, sin instalar), restaura las bases y las verifica con consultas reales.
+- `12-arrancar-demo.ps1` corre **cada vez**: Firebird + jar + prueba de humo, y con `-Usuario` hace login e inventario reales.
+
+Tres cosas que no son obvias y cuestan la demo:
+
+1. **El emulador de Android llega a la laptop por `10.0.2.2`, no por `localhost`.** Adentro del emulador `localhost` es el emulador.
+2. **`useFetchLotes` cae a datos inventados** (`productosDummy`) cuando el API falla — la app puede verse perfecta con el backend caído. Si dice "Manzanas" y "Plátano", no son datos reales; los reales dicen "FRUTA A GRANEL".
+3. **Los `.env` no pueden llevar BOM.** `Set-Content -Encoding UTF8` en PowerShell 5.1 lo mete; Spring lee el archivo como `.properties` en ISO-8859-1, el BOM se pega a la primera clave y el arranque truena con `Could not resolve placeholder 'JWT_SECRET'`. Los scripts escriben con `UTF8Encoding($false)`.
+
+La app **sí corre en Expo Go** (SDK 54 trae Skia, Reanimated 4, worklets, gesture-handler, svg y secure-store en `bundledNativeModules.json`): no hace falta development build ni Gradle para demostrar.
+
+---
+
 ## Despliegue en la computadora de BAMX
 
 Todo vive en **`deploy/`**. El manual completo es **`deploy/README.md`**; esto es solo el mapa.
