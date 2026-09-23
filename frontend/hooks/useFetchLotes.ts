@@ -1,5 +1,4 @@
 import { apiService } from "@/api/apiService";
-import { productosDummy } from "@/constants/Products";
 import { Lot } from "@/types/Lot";
 import { useEffect, useState } from "react";
 
@@ -16,7 +15,11 @@ const useFetchLotes = () => {
     const fetchLotes = async () => {
       const data = await apiService.retrieveData(`/api/lotes/?size=${PAGE_SIZE}`);
 
-      setLotes(data?.content || productosDummy.items);
+      // retrieveData se traga los errores y devuelve undefined. Antes aquí se
+      // caía a productosDummy, y en producción eso pintaba "Manzanas" en
+      // estado crítico cada vez que se caía el WiFi o se reiniciaba el
+      // servidor. Un Semáforo vacío es honesto; uno inventado no.
+      setLotes(data?.content ?? []);
     };
     fetchLotes();
   }, []);
