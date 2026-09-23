@@ -7,6 +7,7 @@ import { Alert } from "react-native";
 import themeReducer from "@/slices/themeSlice";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
+import { AxiosError } from "axios";
 
 jest.mock("@/api/apiCalls", () => ({ loginUser: jest.fn() }));
 jest.mock("@/functions/NavigationService", () => ({ navigate: jest.fn() }));
@@ -131,6 +132,29 @@ describe("AuthScreen", () => {
       expect(Alert.alert).toHaveBeenCalledWith(
         "Error",
         "Las credenciales son incorrectas"
+      );
+    });
+  });
+
+  it("si no hay conexión con el servidor no culpa a las credenciales", async () => {
+    (loginUser as jest.Mock).mockRejectedValueOnce(
+      new AxiosError("Network Error", "ERR_NETWORK")
+    );
+
+    const { getByPlaceholderText, getByText } = render(
+      <TestWrapper>
+        <AuthScreen />
+      </TestWrapper>
+    );
+
+    fireEvent.changeText(getByPlaceholderText("Username"), "bamxUser");
+    fireEvent.changeText(getByPlaceholderText("Password"), "secret123");
+    fireEvent.press(getByText("INICIAR SESIÓN"));
+
+    await waitFor(() => {
+      expect(Alert.alert).toHaveBeenCalledWith(
+        "Error",
+        expect.stringContaining("No se pudo conectar con el servidor")
       );
     });
   });

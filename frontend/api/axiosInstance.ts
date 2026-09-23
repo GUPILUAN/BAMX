@@ -2,8 +2,18 @@ import { deleteData, getData, saveData } from "@/functions/userKey";
 import axios from "axios";
 import { replace } from "../functions/NavigationService";
 
+// Se inlinea al compilar: en el APK queda fija la URL con la que se construyó.
+// Se exporta para poder mostrarla cuando no hay conexión (ver loginErrorMessage).
+export const API_URL = process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080";
+
+// Sin timeout, React Native no corta nunca la conexión: con una IP equivocada
+// el login se quedaba girando un par de minutos (lo que tarda el sistema en
+// rendirse) antes de fallar. 30 s sobra para el endpoint más lento de la API.
+const TIMEOUT_MS = 30000;
+
 export const instance = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL || "http://localhost:8080",
+  baseURL: API_URL,
+  timeout: TIMEOUT_MS,
 });
 
 // Rutas de auth cuyo 401 NO significa "sesión expirada" (es credenciales o
