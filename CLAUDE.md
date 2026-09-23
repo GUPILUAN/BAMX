@@ -153,6 +153,7 @@ El sufijo en el ThreadLocal se setea por request en `JwtAuthenticationFilter` de
 | `/api/usuarios/logout` | POST | `UsuarioService.logout` | Inserta en `TOKEN_BLOCK_LIST` si existe |
 | `/api/usuarios/me` | GET | `UsuarioService.findById` | Usa `@CurrentUser` |
 | `/api/inventarios/` | GET | `InveService.getAllInve` | Page<InventoryItem>. Soporta `page,size,sort,direction,search` |
+| `/api/inventarios/{cveArt}/almacenes` | GET | `InveService.getProductLocations` | En que almacenes esta un producto. Une `MULT` (existencia por bodega) + `LTPD` (lote y caducidad). 404 si el producto no existe |
 | `/api/lotes/` | GET | `LtpdService.findAll` | Page<LoteConImagenDto>. `fitForDelivery` opcional: `true`=entregables (verde+amarillo), `false`=no aptos (rojo), ausente=todos (Semaforo) |
 | `/api/almacenes/all` | GET | `AlmacenService.getAllAlmacenes` | Lista de almacenes |
 | `/api/almacenes/dashboard` | GET | `AlmacenService.getDashboard` | Por almacén → por línea → totales critical/warning/good |
@@ -201,6 +202,27 @@ Hay dos lugares en la app que muestran "cuánto hay" de un producto y **no se si
 | Semaforo del Home | `/api/lotes/` | suma de `Lot.available_quantity` | `LTPD.CANTIDAD` (sumas por lote activo) |
 
 Un mismo producto puede mostrar `EXIST = 57.7` en Inventario y `2680` sumado en Semaforo del mismo día. No es bug del backend — Aspel modela cantidad maestra (Inve) y por-lote (Ltpd) por separado. Pero al usuario se le presentan ambas como "Productos en estado X" sin contexto. Cuidado al pedir features que asuman que son el mismo número.
+
+### Donde esta un producto: MULT y LTPD estan desfasadas
+
+`GET /api/inventarios/{cveArt}/almacenes` alimenta la seccion "Donde esta" del detalle de producto. Consulta **las dos** fuentes y las une por `CVE_ALM` en vez de elegir una, porque en BAMX ninguna cubre sola el catalogo (verificado 2026-08-26):
+
+| Fuente | Que aporta | Cobertura real en BAMX |
+|---|---|---|
+| `MULT` | Existencia por bodega (`EXIST`) | 7 filas con `EXIST >= 0.01`, en 4 almacenes |
+| `LTPD` | Lote, caducidad, cantidad por lote | 36 lotes activos, todos con `CVE_ALM` poblado |
+
+**El cruce es el punto no obvio**: de los 36 lotes activos, **7 no tienen fila en `MULT` y 29 la tienen en cero**. Un `JOIN` entre las dos tablas devolveria casi nada. Casos reales:
+
+- `VEDU000GR`: 267.02 en `MULT` (almacen 3) y **cero lotes** → sin `MULT` no se veria nada.
+- `A006123` (Atun): 10 unidades en 2 lotes (almacen 1) con `MULT.EXIST = 0` → sin `LTPD` no se veria nada.
+- `FRUT000GR`: existencia en el almacen 3 por `MULT` **y** lotes en el 2, 4 y 6 por `LTPD` → 4 almacenes, y solo la union los muestra todos.
+
+El desfase viene de que los lotes demo (`REG_LTPD` 1001-1099) se insertaron directo en `LTPD03` sin tocar `MULT` ni `INVE.EXIST`, y los lotes legacy (`A006123`, `YOGH450GR`) ya tienen su existencia consumida.
+
+Umbral **0.01** en la query de `MULT`, el mismo de `InveRepository.findAllInveWithStock`: `MULT` arrastra el mismo ruido de punto flotante que `INVE.EXIST` (39 de las 46 filas con `EXIST > 0` son residuos tipo `1.8e-11`). Sin el umbral, el detalle listaria almacenes fantasma.
+
+Los nombres de `ALMACENES03.DESCR` son los de fabrica de Aspel ("Almacen 1" ... "Almacen 11"); BAMX nunca los renombro. Si algun dia los renombran en Aspel, la app lo refleja sola.
 
 Adicionalmente, el Semaforo **suma cantidades de unidades distintas** (kg de fruta + latas de atún + piezas de yoghurt) y las muestra como "Productos". Conceptualmente raro pero así está; cualquier rediseño de esa pantalla debería separarlo por `UNI_MED`.
 
@@ -301,7 +323,7 @@ El `.env` se carga solo, sin `loadenv.sh`. La branch `fix/backend-env-loading` q
 - De esos, **solo 39 tienen `EXIST > 0`** — el resto del catálogo es histórico sin stock real.
 - `CLIE03`: 1,454 clientes.
 - `ALMACENES03`: 11 almacenes.
-- `MULT03`: 164,852 documentos.
+- `MULT03`: 164,852 filas (producto x almacen). **No son documentos** (ver correccion abajo); es el catalogo multi-almacen. Solo **7** filas tienen `EXIST >= 0.01`.
 - `LTPD03`: **6 filas** distribuidas en **3 productos**.
 - `MINVE03`: 872,588 movimientos.
 - `INVE01` / `CLIE01`: 0 (la empresa 01 está vacía, no usar).
@@ -420,7 +442,7 @@ Para que un producto aparezca en el Semaforo de la app, necesita una fila en `LT
      - Fecha de producción (opcional)
      - Pedimento (solo para importados)
 5. Guardar → Aspel hace 4 escrituras atómicamente:
-   - `MULT03` ← nuevo documento.
+   - `MULT03` ← actualiza la existencia de ese producto en ese almacen.
    - `MINVE03` ← una fila por renglón.
    - `INVE03.EXIST` ← incrementa la existencia maestra.
    - `LTPD03` ← **nueva fila con lote y caducidad** ✓ (solo si capturó el paso 4 del lote).
@@ -437,7 +459,7 @@ Un error común al diagnosticar el "Semaforo vacío" es asumir que falta prender
 - **`CLIN03`** (líneas): clasificación/categoría del producto (`CVE_LIN`, `DESC_LIN`).
 - **`ALMACENES03`** (bodegas): dónde está físicamente el inventario.
 - **`MINVE03`** (movimientos): cada entrada/salida histórica.
-- **`MULT03`** (documentos): facturas/remisiones/entradas que agrupan renglones de MINVE.
+- **`MULT03`** (multi-almacen): existencia de cada producto **en cada bodega** (`CVE_ART` + `CVE_ALM` → `EXIST`, mas stock min/max). `INVE.EXIST` es su suma. (**Correccion 2026-08-26**: en sesiones previas se documento como "documentos que agrupan renglones de MINVE". Es falso, verificado con `SHOW TABLE MULT03` y consultas directas. Los documentos viven en otras tablas; `MULT` es multi-almacen.)
 - **`LTPD03`** (lotes): detalle por lote con caducidad. **Aquí vive el dato que alimenta el Semaforo.**
 
 ---
