@@ -14,7 +14,7 @@ Manual para instalar el backend como **servicio de Windows** en la computadora d
 ## Cómo queda instalado
 
 ```
-Computadora de BAMX (Windows 10/11 o Server, 64 bits)
+Computadora de BAMX (Windows Server 2016 o posterior, 64 bits)
 │
 ├── Aspel SAE 8.00 ──── ya instalado, NO se toca
 ├── Firebird 2.5 ────── ya instalado como servicio, NO se toca
@@ -47,12 +47,14 @@ Computadora de BAMX (Windows 10/11 o Server, 64 bits)
 | Requisito | Por qué | Lo verifica |
 |---|---|---|
 | Windows 64 bits | No existe JDK 25 para x86 | `00-preflight.ps1` paso 1 |
-| .NET Framework ≥ 4.6.1 | Lo necesita WinSW (viene de fábrica en Win10 1607+) | paso 2 |
+| **Windows Server 2016 o posterior** | Oracle certifica el JDK 25 en Server 2016, 2019, 2022, 2025 y Windows 11. Server 2012 R2 no está en la lista y ya no recibe parches de Microsoft | paso 1 |
 | Firebird corriendo en 3050 | Es de donde salen los datos | pasos 4-5 |
 | Permisos de Administrador | Para registrar un servicio y abrir el firewall | — |
 | **IP fija** | La URL se quema dentro del APK — ver abajo | paso 13 |
 | **Red clasificada como Privada** | Si Windows la tiene como Pública, la regla de firewall no aplica | paso 13 |
 | ~500 MB libres | jar + JDK portable + logs | — |
+
+**No hace falta .NET Framework.** `WinSW-x64.exe` es el build *self-contained* de WinSW: trae su propio runtime de .NET Core adentro (por eso pesa 18 MB). Solo `WinSW.NET461.exe` dependería del .NET Framework de la máquina. El paso 2 del preflight es informativo. (Corrección: una versión anterior de este manual lo listaba como requisito.)
 
 ### La IP fija no es opcional
 
@@ -64,7 +66,7 @@ Antes de generar el APK hay que fijar la IP. Lo más limpio es una **reserva DHC
 
 ## Qué llevar en la USB
 
-En el repo viajan solo los archivos de texto. El material pesado se arma antes de salir y va en `deploy\dist\` (carpeta ignorada por git):
+En el repo viajan solo los archivos de texto. El material pesado va en `deploy\dist\` (carpeta ignorada por git). Se copia a la USB **toda la carpeta `deploy\`**:
 
 ```
 deploy\
@@ -72,36 +74,62 @@ deploy\
 ├── winsw\bamx-backend.xml         ← del repo
 ├── env\.env.produccion.example    ← del repo
 ├── scripts\*.ps1                  ← del repo
-└── dist\                          ← SE ARMA A MANO, no está en git
-    ├── bamx-backend.jar               (1) lo produce 01-build.ps1
-    ├── WinSW-x64.exe                  (2) descargar
-    ├── runtime\bin\java.exe            (3) JDK 25 extraído
-    └── .env                            (4) se rellena EN SITIO, tras el preflight
+└── dist\                          ← NO está en git: se arma en la máquina de desarrollo
+    ├── bamx-backend.jar               (1) 01-build.ps1
+    ├── WinSW-x64.exe                  (2) descargado, v2.12.0
+    ├── runtime\bin\java.exe           (3) JDK 25 portable
+    ├── .env                           (4) pre-armado; se CONFIRMA en sitio
+    └── apk\BAMX-<ip>-<puerto>-*.apk   (5) 05-build-apk.ps1, con la IP del servidor
 ```
 
-**(1) El jar** — en tu máquina, con el repo abierto:
+Para revisar sin instalar nada que el material y el `.env` están completos (no pide Administrador):
 
 ```bash
-powershell -ExecutionPolicy Bypass -File deploy\scripts\01-build.ps1
+powershell -ExecutionPolicy Bypass -File deploy/scripts/02-install.ps1 -SoloValidar
 ```
 
-**(2) WinSW** — descargar `WinSW-x64.exe` de la release **v2.12.0**:
+Cómo se regenera cada pieza:
+
+**(1) El jar** — en la máquina de desarrollo:
+
+```bash
+powershell -ExecutionPolicy Bypass -File deploy/scripts/01-build.ps1
+```
+
+Compila una **copia limpia del último commit** (no la carpeta `backend\`): lo que se instala corresponde exactamente a un commit, y el IDE o el backend de desarrollo, que comparten `backend\target`, no pueden romper el build a medio camino. Si hay cambios del backend sin commitear, avisa que no van a entrar. Con `-DesdeCarpeta` compila `backend\` tal cual.
+
+**(2) WinSW** — `WinSW-x64.exe` de la release **v2.12.0**:
 <https://github.com/winsw/winsw/releases/tag/v2.12.0>
-Guardarlo en `deploy\dist\` tal cual, sin renombrar (el instalador lo renombra solo).
+Se guarda en `deploy\dist\` tal cual, sin renombrar (el instalador lo renombra solo). Tamaño esperado: 18,243,033 bytes. SHA256:
 
-**(3) JDK 25 portable** — descargar el **.zip** de Temurin JDK 25 (LTS), Windows x64:
-<https://adoptium.net/temurin/releases/?version=25&os=windows&arch=x64&package=jdk>
+```
+05b82d46ad331cc16bdc00de5c6332c1ef818df8ceefcd49c726553209b3a0da
+```
 
-Se usa el `.zip` y no el instalador `.msi` a propósito: no toca el PATH ni el registro, no choca con nada que Aspel necesite, y evita el problema clásico de que el servicio corre como `LocalSystem` y `LocalSystem` no ve el `JAVA_HOME` del usuario.
+Para comprobarlo en cualquier máquina: `Get-FileHash dist\WinSW-x64.exe`.
 
-⚠️ **Al extraerlo hay que quitar la carpeta contenedora.** El resultado correcto es:
+**(3) JDK 25 portable** — cualquiera de estos dos sirve:
+
+- Copiar un JDK 25 ya instalado (así se armó el `dist` actual, con el Oracle JDK 25.0.2 bajo su licencia gratuita NFTC), sin `jmods` ni `lib\src.zip`, que solo sirven para desarrollar:
+
+  ```powershell
+  robocopy "C:\Program Files\Java\jdk-25.0.2" deploy\dist\runtime /E /XD jmods include /XF src.zip
+  ```
+
+- O bajar el **.zip** de Temurin JDK 25 (LTS), Windows x64: <https://adoptium.net/temurin/releases/?version=25&os=windows&arch=x64&package=jdk>
+
+Se usa una carpeta portable y no un instalador `.msi` a propósito: no toca el PATH ni el registro, no choca con nada que Aspel necesite, y evita el problema clásico de que el servicio corre como `LocalSystem` y `LocalSystem` no ve el `JAVA_HOME` del usuario.
+
+⚠️ **Sin carpeta contenedora.** El resultado correcto es:
 
 ```
 dist\runtime\bin\java.exe        ✅
 dist\runtime\jdk-25.0.2\bin\...  ❌  (sobra un nivel)
 ```
 
-**(4) El `.env`** — se copia de `env\.env.produccion.example` y se rellena **en sitio**, con los valores que reporte el preflight. No se prepara antes: las rutas reales de BAMX no se saben hasta llegar.
+**(4) El `.env`** — viene **pre-armado** desde `env\.env.produccion.example`: con un `JWT_SECRET` nuevo (48 bytes de un generador criptográfico) y las rutas de una instalación estándar de Aspel con la empresa 03. **En sitio no se escribe desde cero: se compara contra lo que imprime el preflight** y se corrige lo que difiera (paso 2). Si se necesita uno nuevo, ver el paso 2.
+
+**(5) El APK** — ver [El APK para las tablets](#el-apk-para-las-tablets). Necesita la IP fija del servidor: si ya se conoce, conviene compilarlo antes de ir.
 
 ---
 
@@ -123,30 +151,43 @@ Si SYSDBA no usa la contraseña por defecto:
 powershell -ExecutionPolicy Bypass -File .\00-preflight.ps1 -DbPassword "laClaveReal"
 ```
 
+En un servidor es común que los datos de Aspel no estén en `C:\Program Files (x86)\Common Files\Aspel` sino en otra unidad. Si el preflight no encuentra los `.FDB`, se buscan a mano (`Get-ChildItem D:\ -Recurse -Filter *.FDB`) y se le pasan, para que corran las consultas de sufijo, usuarios y fotos:
+
+```bash
+powershell -ExecutionPolicy Bypass -File .\00-preflight.ps1 -RutaEmpresa "D:\...\SAE80EMPRE03.FDB" -RutaPerfiles "D:\...\PERFILES.FDB"
+```
+
 **No continuar si hay BLOQUEANTES.** Los tres más probables:
 
 | Bloqueante | Qué significa | Qué hacer |
 |---|---|---|
-| No se encontró la base de perfiles | Sin ella nadie puede iniciar sesión | Localizar el `.FDB` de perfiles o llevarlo a la máquina |
+| No se encontró la base de perfiles | Sin ella nadie puede iniciar sesión | Localizar el `.FDB` de perfiles y pasarlo con `-RutaPerfiles` |
 | `isql` no pudo conectarse | La contraseña de SYSDBA no es la esperada | Pedirla a quien administra Aspel |
 | La tabla `USUARIOS` está vacía | No hay a quién dejar entrar | Dar de alta usuarios antes del go-live |
 
 Al final imprime un bloque con los valores detectados. **Ese bloque es el insumo del paso 2.**
 
-## Paso 2 — Armar el `.env`
+## Paso 2 — Confirmar el `.env`
+
+`dist\.env` ya viene pre-armado (ver "Qué llevar en la USB"). Se abre y se compara, línea por línea, contra el bloque que imprimió el preflight:
 
 ```bash
-copy ..\env\.env.produccion.example ..\dist\.env
 notepad ..\dist\.env
 ```
 
-Pegar los valores del preflight y generar el secreto:
+Lo que más probablemente cambie en sitio: las rutas (`DATABASE_PATH_*`, `APP_IMAGES_PATH`) si Aspel está en otra unidad, `DATABASE_PASSWORD_*` si SYSDBA no usa la clave por defecto, y `APP_HOST_URL` con la IP fija del servidor.
+
+Si hiciera falta uno desde cero, se copia la plantilla y se genera un secreto nuevo:
 
 ```bash
-powershell -Command "[Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))"
+copy ..\env\.env.produccion.example ..\dist\.env
 ```
 
-### Tres reglas que rompen el arranque
+```powershell
+$b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
+```
+
+### Cuatro reglas que rompen el arranque
 
 1. **Rutas con `/`, nunca con `\`.** El archivo se lee como `.properties`, donde `\` es carácter de escape.
    `C:/Program Files (x86)/...` ✅  ·  `C:\Program Files (x86)\...` ❌
@@ -193,9 +234,13 @@ powershell -ExecutionPolicy Bypass -File .\02-install.ps1 -Puerto 8081
 powershell -ExecutionPolicy Bypass -File .\03-verify.ps1 -Usuario "unUsuarioReal" -Password "suClave"
 ```
 
-Prueba ocho cosas, cada una más profunda que la anterior. Sin credenciales solo corre la mitad, y **no queda comprobado que el sufijo de empresa sea el correcto**, que es justo el error más caro de detectar tarde.
+Prueba nueve cosas, cada una más profunda que la anterior. Sin credenciales solo corre la mitad, y **no queda comprobado que el sufijo de empresa sea el correcto**, que es justo el error más caro de detectar tarde. Las credenciales son las de un usuario de Aspel: la app entra con los mismos usuarios.
+
+El paso 6 además detecta un **jar viejo**: si `/api/inventarios/{clave}/almacenes` responde el 404 genérico de Spring en vez del de la app, lo instalado es anterior a ese endpoint.
 
 ## Paso 5 — La prueba de verdad: reiniciar
+
+⚠️ **Es un servidor compartido.** Reiniciarlo saca de Aspel a todos los que estén capturando, y apaga lo que más corra ahí (carpetas compartidas, otros servicios). Se hace en una ventana acordada con BAMX, fuera de horario.
 
 ```bash
 shutdown /r /t 0
@@ -209,10 +254,10 @@ powershell -ExecutionPolicy Bypass -File .\03-verify.ps1 -BaseUrl "http://192.16
 
 Esto prueba de una sola vez las tres cosas que ningún paso anterior prueba: que arranca solo, que no necesita sesión de usuario, y que el firewall y la red dejan pasar a los clientes.
 
-Prueba final, opcional pero recomendada — matar el proceso y ver que revive:
+Prueba final, opcional pero recomendada — matar el proceso y ver que revive. **No usar `Stop-Process -Name java`**: en un servidor puede haber otros programas en Java y los mataría a todos. Este filtra por la ruta de `C:\BAMX`:
 
-```bash
-Stop-Process -Name java -Force
+```powershell
+Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object { $_.ExecutablePath -like 'C:\BAMX\*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
 ```
 
 En 15 segundos WinSW debe haberlo relanzado.
@@ -221,34 +266,43 @@ En 15 segundos WinSW debe haberlo relanzado.
 
 # El APK para las tablets
 
-Después de que el backend esté arriba **y con la IP ya fija**.
+La URL del servidor **se quema dentro del APK al compilarlo**. Por eso se compila cuando ya se conoce la **IP fija** del servidor: si ya la pasaron, antes de ir; si no, en cuanto se conozca.
 
-### 1. Apuntar el frontend al servidor
-
-En `frontend\.env`:
-
-```
-EXPO_PUBLIC_API_URL=http://192.168.1.100:8080
-```
-
-### 2. Compilar
+### 1. Compilar (en la máquina de desarrollo)
 
 ```bash
-npx eas build --platform android --profile preview
+powershell -ExecutionPolicy Bypass -File deploy/scripts/05-build-apk.ps1 -ApiUrl http://192.168.1.100:8080
 ```
 
-Requiere cuenta de Expo (el `projectId` ya está en `app.json`). Al terminar da un link para descargar el `.apk`.
+Necesita Node y Android Studio (trae el SDK y el JDK 17 que usa Gradle). No necesita cuenta de Expo. Lo que hace:
 
-Sin conexión a la nube, la alternativa local es `npx expo run:android --variant release`, que necesita Android Studio y el SDK instalados.
+1. Valida la URL: `http`, con puerto, sin diagonal final, y nada de `localhost` (desde la tablet, `localhost` es la propia tablet).
+2. Compila en modo **hermético**: `EXPO_NO_DOTENV=1` hace que Expo ignore `frontend\.env` (que trae la IP de desarrollo) y las `EXPO_PUBLIC_*` se pasan explícitas. Además borra la caché de Metro, que no se invalida cuando cambian esas variables.
+3. `expo prebuild` + `gradlew assembleRelease`. Restaura el `package.json`, que `prebuild` reescribe.
+4. **Abre el APK y verifica que la URL quedó adentro** (y que no se coló la de desarrollo). Si no, falla en vez de entregar un APK que apunta a otro lado.
+5. Lo deja en `deploy\dist\apk\BAMX-<ip>-<puerto>-<fecha>.apk`.
 
-### 3. Instalar en cada tablet
+La primera vez tarda ~10-30 min (baja el NDK y compila código nativo para cada arquitectura). Las siguientes reutilizan la caché de Gradle. El default compila `armeabi-v7a` y `arm64-v8a`, que cubre las tablets reales. Para probarlo en el emulador de Android Studio se agrega `x86_64` con `-Abis "armeabi-v7a,arm64-v8a,x86_64"`.
 
-Copiar el `.apk`, abrirlo, y aceptar "Instalar apps de fuentes desconocidas" cuando Android lo pida.
+**Verificado el 2026-09-23** con un APK apuntando a una laptop de desarrollo, instalado en el emulador de tablet (Android 14). Con el backend arriba, un usuario inventado da "Las credenciales son incorrectas": el APK llegó al servidor por HTTP en claro. Con el backend apagado, da "No se pudo conectar con el servidor http://…".
 
-### Dos cosas que ya quedaron configuradas en el repo
+#### Por qué no EAS en la nube (como decía una versión anterior de este manual)
 
-- **`usesCleartextTraffic: true`** (`app.json`). Android bloquea HTTP sin TLS en builds de release desde Android 9. El backend habla HTTP plano, así que sin esto el APK no conecta con nada — y el síntoma es engañoso: no sale error, las pantallas simplemente aparecen vacías, porque `apiService.retrieveData` se traga los errores de red que no traen respuesta HTTP.
-- **`buildType: apk`** (`eas.json`, perfil `preview`). Sin esto EAS genera un `.aab`, que no se puede instalar a mano.
+`frontend\.env` está en `.gitignore`, y **EAS no sube archivos ignorados**. En la nube las `EXPO_PUBLIC_*` llegan vacías y la app cae a sus defaults: la API a `http://localhost:8080` y los refrigeradores a `broker.hivemq.com`, un broker público. El APK se instala sin error y no conecta a nada. Además `npx eas ...` resuelve al paquete npm `eas`, que no tiene nada que ver con Expo; el correcto es `npx eas-cli`.
+
+Si algún día se necesita EAS: las variables van en `eas.json` → `build.preview.env` (o como variables de entorno de EAS), y se compila con `npx eas-cli build -p android --profile preview` desde una cuenta con acceso al `projectId` de `app.json`. Un APK de EAS se firma con otra llave que uno local: para cambiar de uno a otro hay que desinstalar la app de cada tablet primero.
+
+### 2. Instalar en cada tablet
+
+Copiar el `.apk`, abrirlo, y aceptar "Instalar apps de fuentes desconocidas" cuando Android lo pida. Con cable USB y depuración activada: `adb install -r <archivo.apk>`.
+
+Para actualizar, se instala el nuevo encima (sin desinstalar). Funciona porque los builds de `05-build-apk.ps1` se firman siempre con la misma llave: la *debug* estándar de la plantilla de React Native, suficiente para distribuir a mano dentro de BAMX (si algún día va a Play Store, hará falta una llave propia).
+
+### Tres cosas que ya quedaron configuradas en el repo
+
+- **`usesCleartextTraffic: true`** (`app.json`). Android bloquea HTTP sin TLS en builds de release desde Android 9. El backend habla HTTP plano, así que sin esto el APK no conecta con nada.
+- **`buildType: apk`** (`eas.json`, perfil `preview`). Sin esto EAS genera un `.aab`, que no se puede instalar a mano. Solo aplica si se usa EAS.
+- **El login distingue "no hay servidor" de "credenciales incorrectas"**, y con timeout de 30 s. Antes una IP equivocada dejaba el botón girando un par de minutos y terminaba en "Las credenciales son incorrectas", que mandaba a buscar el problema donde no estaba. Ahora dice **"No se pudo conectar con el servidor http://…"** con la URL que quedó quemada en el APK, que es justo el dato que hace falta en sitio.
 
 ### Qué esperar al abrir la app
 
@@ -329,7 +383,13 @@ Get-Content C:\BAMX\logs\bamx-backend.out.log -Tail 80
 
 ### Las tablets no conectan pero desde la PC sí funciona
 
-En orden de probabilidad:
+Primero, **leer el mensaje del login en la tablet**:
+
+- **"No se pudo conectar con el servidor http://…"**: el problema es de red, no de contraseña. Revisar que la URL del mensaje sea la IP fija actual del servidor. Si no lo es, el APK se compiló con otra: recompilarlo con `05-build-apk.ps1` y reinstalarlo. Si la URL es correcta, seguir con la lista de abajo.
+- **"Las credenciales son incorrectas"**: la tablet **sí** llegó al servidor. Es el usuario o la contraseña de Aspel.
+- **"El servidor respondió con un error"**: llegó, pero el backend falló. Revisar los logs de `C:\BAMX\logs`.
+
+Luego, en orden de probabilidad:
 
 1. **La red está clasificada como Pública.** Es la causa más traicionera, porque *todo se ve bien*: la regla de firewall existe, aparece en la consola, y aun así no pasa nada. Una regla solo aplica en los perfiles que se le indicaron, y Windows bloquea casi todo lo entrante en el perfil Público. Verificar y corregir:
 
@@ -339,7 +399,7 @@ En orden de probabilidad:
    ```
 
    La red interna de BAMX debe ser **Privada**. El pre-flight avisa de esto, y el instalador se niega a abrir el puerto en una red Pública salvo que se le pase `-PermitirEnRedPublica`.
-2. **Firewall** — `Get-NetFirewallRule -DisplayName "BAMX Backend API*"`
+2. **Firewall** — `Get-NetFirewallRule -DisplayName "BAMX Backend API*"`. Si el servidor está en un dominio y su área de TI administra el firewall por GPO, las reglas locales pueden no aplicar aunque existan: hay que pedirles que abran el TCP 8080 hacia el servidor.
 3. **Aislamiento de clientes en el WiFi** — muchos access points, sobre todo en redes de invitados, bloquean el tráfico entre dispositivos aunque el firewall esté abierto. Se detecta probando desde la tablet, nunca desde la PC. La prueba rápida es abrir `http://<ip>:8080/api/public/fotos-inventarios/x` en el navegador de la tablet: si da 404, la red deja pasar.
 4. **Subredes distintas** — que la tablet y la PC estén en el mismo rango de IP.
 5. **`usesCleartextTraffic`** — si el APK se compiló sin ese ajuste, Android bloquea el HTTP en silencio.
@@ -369,7 +429,7 @@ El preflight lo detecta y lo avisa. Cambian cuatro cosas:
 
 # Deuda conocida
 
-Esta entrega es **solo despliegue**: no se modificó el backend. Lo siguiente queda documentado a propósito, no arreglado.
+El despliegue no modificó el backend. Lo siguiente queda documentado a propósito, no arreglado.
 
 | # | Punto | Riesgo real hoy |
 |---|---|---|
@@ -378,8 +438,10 @@ Esta entrega es **solo despliegue**: no se modificó el backend. Lo siguiente qu
 | 3 | Sin logging a archivo desde la app | Se depende de que WinSW capture stdout. No hay control de niveles. |
 | 4 | HikariCP sin configurar: hasta 20 conexiones a Firebird | 10 por datasource. Debería aguantar, pero vale la pena vigilarlo la primera semana. |
 | 5 | `TOKEN_BLOCK_LIST` no existe | El logout responde 200 pero no invalida el token; sigue vivo hasta 10 minutos. |
-| 6 | Axios sin timeout | Si el backend se cae, las peticiones de la tablet quedan colgadas en vez de dar error. |
+| 6 | ~~Axios sin timeout~~ | **Resuelto** (`fix/apk-produccion`): 30 s, y el login distingue la falta de conexión. |
 | 7 | `criticalDate`/`warningDate` invertidos en `InveService` | Latente; no se manifiesta con los datos actuales. |
+| 8 | Si el servidor no responde, el Semáforo muestra ceros sin avisar | Ya no muestra productos inventados (antes caía a `productosDummy`), pero tampoco dice "sin conexión". Un aviso en el Home lo haría explícito. |
+| 9 | APK firmado con la llave *debug* de la plantilla | Suficiente para instalar a mano en la LAN de BAMX. Para Play Store haría falta una llave propia. |
 
 ---
 
@@ -387,11 +449,14 @@ Esta entrega es **solo despliegue**: no se modificó el backend. Lo siguiente qu
 
 | Script | Dónde | Admin | Qué hace |
 |---|---|---|---|
-| `00-preflight.ps1` | BAMX | no | Diagnostica. No modifica nada. |
-| `01-build.ps1` | desarrollo | no | Compila el jar. |
-| `02-install.ps1` | BAMX | **sí** | Instala el servicio. Con `-SoloValidar` revisa el `.env` sin admin y sin instalar. |
-| `03-verify.ps1` | ambas | no | Prueba de humo end-to-end. |
+| `00-preflight.ps1` | BAMX | no | Diagnostica. No modifica nada. `-RutaEmpresa`/`-RutaPerfiles` si Aspel está en otra unidad. |
+| `01-build.ps1` | desarrollo | no | Compila el jar desde una copia limpia del último commit. |
+| `02-install.ps1` | BAMX | **sí** | Instala el servicio. Con `-SoloValidar` revisa material y `.env` sin admin y sin instalar. |
+| `03-verify.ps1` | ambas | no | Prueba de humo end-to-end (9 pasos, detecta un jar viejo). |
 | `04-update.ps1` | BAMX | **sí** | Actualiza el jar, revierte solo si falla. |
+| `05-build-apk.ps1` | desarrollo | no | Compila el APK con la URL del servidor adentro y verifica que quedó. |
 | `99-uninstall.ps1` | BAMX | **sí** | Desinstala. No toca Aspel. |
+
+Todos invocan sus ejecutables (`mvnw.cmd`, `gradlew.bat`, `isql.exe`, WinSW) con **ruta absoluta**. No es manía: si el sistema tiene definida `NoDefaultCurrentDirectoryInExePath`, `cmd` se niega a ejecutar nada del directorio actual aunque se haya hecho `cd`, y responde "no se reconoce como comando".
 
 Los `.ps1` están escritos **sin acentos** a propósito: PowerShell 5.1 lee los scripts como ANSI cuando no traen BOM, y los acentos se verían rotos en máquinas con otra configuración regional.
