@@ -26,13 +26,20 @@
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\00-preflight.ps1 -DbPassword "otraClave"
+
+.EXAMPLE
+    # En servidores es comun que los datos de Aspel vivan en otra unidad. Si
+    # el diagnostico no encuentra los .FDB, se le dan las rutas:
+    powershell -ExecutionPolicy Bypass -File .\00-preflight.ps1 -RutaEmpresa "D:\Aspel\Empresa03\Datos\SAE80EMPRE03.FDB" -RutaPerfiles "D:\Aspel\Perfiles\PERFILES.FDB"
 #>
 [CmdletBinding()]
 param(
-    [string] $DbUser     = "sysdba",
-    [string] $DbPassword = "masterkey",
-    [int]    $Puerto     = 8080,
-    [string] $IsqlPath   = "",
+    [string] $DbUser       = "sysdba",
+    [string] $DbPassword   = "masterkey",
+    [int]    $Puerto       = 8080,
+    [string] $IsqlPath     = "",
+    [string] $RutaEmpresa  = "",
+    [string] $RutaPerfiles = "",
     [switch] $SaltarSql
 )
 
@@ -101,6 +108,16 @@ try {
         Write-Ok "Windows de 64 bits."
     }
 
+    # Oracle certifica el JDK 25 en Windows Server 2016, 2019, 2022, 2025 y
+    # Windows 11. Server 2016 es la build 14393; lo anterior (Server 2012 R2 es
+    # la 9600) ya no tiene soporte de Microsoft ni del JDK.
+    $build = [int] $os.BuildNumber
+    if ($build -lt 14393) {
+        Write-Advertencia "Windows anterior a Server 2016 / Windows 10 1607 (build $build)." "El JDK 25 no esta certificado en esta version y puede no arrancar. Lo seguro es un Windows Server 2016 o posterior."
+    } else {
+        Write-Ok "Version de Windows compatible con el JDK 25 (build $build)."
+    }
+
     if ($ramGb -lt 3) {
         Write-Advertencia "Solo $ramGb GB de RAM y la maquina la comparte con Aspel." "Bajar -Xmx768m a -Xmx512m en bamx-backend.xml."
     }
@@ -112,18 +129,20 @@ try {
 # ---------------------------------------------------------------------------
 # 2. .NET Framework (lo necesita WinSW v2)
 # ---------------------------------------------------------------------------
-Write-Titulo "2. .NET Framework (requisito de WinSW)"
+# WinSW-x64.exe (el de la USB, 18 MB) es el build self-contained de .NET Core:
+# trae su propio runtime y NO depende del .NET Framework de la maquina. Solo
+# WinSW.NET461.exe (650 KB) lo necesitaria. Por eso aqui nada es bloqueante.
+Write-Titulo "2. .NET Framework (informativo)"
+Write-Info "WinSW-x64.exe trae su propio runtime: no necesita .NET Framework."
 try {
     $ndp = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full" -ErrorAction Stop
     $release = [int] $ndp.Release
     Write-Info "Release del registro: $release  (version reportada: $($ndp.Version))"
-    if ($release -ge 394254) {
-        Write-Ok ".NET Framework 4.6.1 o superior. WinSW v2 va a funcionar."
-    } else {
-        Write-Bloqueante ".NET Framework menor a 4.6.1 (release $release)." "Instalar .NET Framework 4.8, o usar el build self-contained de WinSW v3."
+    if ($release -lt 394254) {
+        Write-Info "Menor a 4.6.1: NO usar WinSW.NET461.exe en esta maquina, solo WinSW-x64.exe."
     }
 } catch {
-    Write-Bloqueante "No se encontro .NET Framework 4.x en el registro." "Instalar .NET Framework 4.8, o usar el build self-contained de WinSW v3."
+    Write-Info "No hay .NET Framework 4.x. No importa con WinSW-x64.exe."
 }
 
 
@@ -220,8 +239,8 @@ if ($aspelRoot) {
             $mb = [math]::Round($f.Length / 1MB, 1)
             Write-Info ("{0,10} MB  {1}" -f $mb, $f.FullName)
         }
-    } else {
-        Write-Bloqueante "No se encontro ningun .FDB bajo la carpeta de Aspel." "Buscar manualmente: Get-ChildItem C:\ -Recurse -Filter *.FDB"
+    } elseif ($RutaEmpresa -eq "") {
+        Write-Bloqueante "No se encontro ningun .FDB bajo la carpeta de Aspel." "En servidores los datos suelen vivir en otra unidad. Buscarlos (Get-ChildItem D:\ -Recurse -Filter *.FDB) y volver a correr con -RutaEmpresa y -RutaPerfiles."
     }
 
     $conex = Get-ChildItem -Path $aspelRoot -Recurse -Filter "Conexiones.ini" -ErrorAction SilentlyContinue | Select-Object -First 1
@@ -244,12 +263,26 @@ foreach ($f in $fdbs) {
     if (-not $esPerfil -and -not $fdbEmpresa -and $f.Name -notlike "*Ejemplo*") { $fdbEmpresa = $f }
 }
 
+# Las rutas dadas a mano mandan sobre la heuristica. Con ellas las consultas
+# de los pasos 8-10 corren aunque Aspel no este en su carpeta de siempre.
+foreach ($par in @(@("RutaEmpresa", $RutaEmpresa), @("RutaPerfiles", $RutaPerfiles))) {
+    $nombre = $par[0]; $ruta = $par[1]
+    if ($ruta -eq "") { continue }
+    if (Test-Path $ruta -PathType Leaf) {
+        $archivo = Get-Item $ruta
+        if ($nombre -eq "RutaEmpresa") { $fdbEmpresa = $archivo } else { $fdbAuth = $archivo }
+        Write-Info "Se usa la ruta dada con -${nombre}: $($archivo.FullName)"
+    } else {
+        Write-Bloqueante "-$nombre apunta a un archivo que no existe: $ruta" "Revisar la ruta (con la unidad y el nombre del .FDB completos)."
+    }
+}
+
 Write-Host ""
 if ($fdbEmpresa) {
     Write-Ok "Candidata a base de EMPRESA: $($fdbEmpresa.FullName)"
     $script:Sugerido["DATABASE_PATH_EMPRESA"] = $fdbEmpresa.FullName.Replace("\", "/")
 } else {
-    Write-Advertencia "No se pudo deducir la base de empresa." "Elegirla a mano de la lista de arriba."
+    Write-Advertencia "No se pudo deducir la base de empresa." "Elegirla a mano de la lista de arriba y volver a correr con -RutaEmpresa, para que corran las consultas de los pasos 8-10."
 }
 
 
@@ -261,7 +294,7 @@ if ($fdbAuth) {
     Write-Ok "Base de perfiles: $($fdbAuth.FullName)"
     $script:Sugerido["DATABASE_PATH_AUTH"] = $fdbAuth.FullName.Replace("\", "/")
 } else {
-    Write-Bloqueante "No se encontro la base de perfiles (BAMX_PERFILES.FDB o similar)." "Sin la base de auth NADIE puede iniciar sesion en la app. Hay que localizarla o llevarla a esta maquina antes de instalar."
+    Write-Bloqueante "No se encontro la base de perfiles (PERFILES.FDB o similar)." "Sin la base de auth NADIE puede iniciar sesion en la app (entra con los usuarios de Aspel). Localizarla y volver a correr con -RutaPerfiles."
 }
 
 

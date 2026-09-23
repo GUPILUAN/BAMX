@@ -8,8 +8,10 @@
       1-2  el servicio existe y el puerto abre        -> Windows / WinSW
       3    endpoint publico devuelve 404              -> HTTP + Hikari + Jaybird + Firebird
       4    login devuelve tokens                      -> base de perfiles + JWT
-      5-7  endpoints con token devuelven datos        -> sufijo de empresa correcto
-      8    los logs no traen stacktraces              -> arranque limpio
+      5    inventario devuelve el producto            -> sufijo de empresa correcto
+      6    detalle por almacen responde               -> el jar instalado es el nuevo
+      7-8  almacenes y lotes responden                -> resto de la API
+      9    los logs no traen stacktraces              -> arranque limpio
 
     El paso 3 merece explicacion: /api/public/fotos-inventarios/{cveArt} es
     publico (no pide token), consulta la tabla de fotos en Firebird, no
@@ -18,7 +20,7 @@
     hasta la base de datos. Un 500 ahi significa problema de conexion o de
     esquema. Es el healthcheck disponible sin agregar codigo al backend.
 
-    Sin -Usuario / -Password se corren solo los pasos 1, 2, 3 y 8.
+    Sin -Usuario / -Password se corren solo los pasos 1, 2, 3 y 9.
 
 .EXAMPLE
     powershell -ExecutionPolicy Bypass -File .\03-verify.ps1
@@ -145,7 +147,7 @@ $tokenAcceso = $null
 
 if ($Usuario -eq "") {
     Write-Host ""
-    Write-Host "  [--] Pasos 4 a 7 omitidos: no se dieron credenciales." -ForegroundColor DarkGray
+    Write-Host "  [--] Pasos 4 a 8 omitidos: no se dieron credenciales." -ForegroundColor DarkGray
     Write-Host "       Volver a correr con -Usuario '<user>' -Password '<pass>'" -ForegroundColor DarkGray
     Write-Host "       Sin esto NO queda probado que el sufijo de empresa sea el correcto." -ForegroundColor DarkGray
 } else {
@@ -221,6 +223,39 @@ if ($Usuario -eq "") {
             Write-Host "      [WARN] Cero resultados para '$ClaveArt'." -ForegroundColor Yellow
             Write-Host "             O la clave no existe en esta base, o APP_EMPRESA_SUFFIX apunta" -ForegroundColor Yellow
             Write-Host "             a una empresa vacia. Probar con -ClaveArt de un producto real." -ForegroundColor Yellow
+        }
+    }
+
+    Test-Paso "Detalle por almacen de '$ClaveArt' (version del jar)" {
+        if (-not $script:tokenAcceso) { Write-Host "      [SKIP] Sin token." -ForegroundColor DarkGray; return }
+        $h = @{ Authorization = "Bearer $($script:tokenAcceso)" }
+        try {
+            $r = Invoke-RestMethod -Uri "$BaseUrl/api/inventarios/$ClaveArt/almacenes" -Headers $h -TimeoutSec 60
+            $n = @($r.data.warehouses).Count
+            Write-Host "      [ OK ] El endpoint responde: $n almacen(es) para '$ClaveArt'." -ForegroundColor Green
+        } catch {
+            if (-not $_.Exception.Response) { throw }
+            $codigo = [int] $_.Exception.Response.StatusCode
+            $cuerpo = $null
+            try {
+                $lector = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+                $cuerpo = $lector.ReadToEnd() | ConvertFrom-Json
+            } catch { }
+
+            # Dos 404 distintos: el de la app ("Product not found") dice que la
+            # ruta existe pero el producto no; el de Spring (sin "message", con
+            # "path") dice que la ruta NO existe, o sea que el jar es anterior
+            # a ese endpoint. Pasa si se copia un jar viejo de dist\.
+            if ($codigo -eq 404 -and $cuerpo -and $cuerpo.message -eq "Product not found") {
+                Write-Host "      [WARN] La ruta existe, pero '$ClaveArt' no. Probar con -ClaveArt de un producto real." -ForegroundColor Yellow
+            } elseif ($codigo -eq 404) {
+                Write-Host "      [FAIL] 404 de Spring: el jar instalado NO trae /api/inventarios/{clave}/almacenes." -ForegroundColor Red
+                Write-Host "             Es una version vieja. Recompilar con 01-build.ps1 y actualizar con 04-update.ps1." -ForegroundColor Yellow
+                return $false
+            } else {
+                Write-Host "      [FAIL] HTTP $codigo." -ForegroundColor Red
+                return $false
+            }
         }
     }
 
