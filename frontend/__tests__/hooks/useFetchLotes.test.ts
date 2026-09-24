@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react-native";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 import useFetchLotes from "@/hooks/useFetchLotes";
 import { apiService } from "@/api/apiService";
 import { productosDummy } from "@/constants/Products";
@@ -50,13 +50,26 @@ describe("useFetchLotes", () => {
     expect(result.current[1].product_id).toBe("YOGH450GR");
   });
 
-  it("cae a los productos dummy si el API falla", async () => {
-    retrieveData.mockResolvedValue(undefined);
+  it("deja el Semáforo vacío si el API falla, sin inventar productos", async () => {
+    // El estado inicial ya es [], así que un waitFor no distinguiría "terminó
+    // de cargar" de "no ha empezado". Se resuelve la promesa a mano dentro de
+    // act para que el setLotes posterior al await ya haya corrido al revisar.
+    let responder!: (valor: unknown) => void;
+    retrieveData.mockReturnValue(
+      new Promise((resolve) => {
+        responder = resolve;
+      })
+    );
 
     const { result } = renderHook(() => useFetchLotes());
+    await act(async () => {
+      responder(undefined);
+    });
 
-    await waitFor(() =>
-      expect(result.current).toHaveLength(productosDummy.items.length)
+    expect(result.current).toEqual([]);
+    const dummyIds = productosDummy.items.map((p) => p.product_id);
+    expect(result.current.some((l) => dummyIds.includes(l.product_id))).toBe(
+      false
     );
   });
 });

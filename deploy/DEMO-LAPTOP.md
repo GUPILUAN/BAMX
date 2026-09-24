@@ -284,20 +284,19 @@ Entra con tu usuario (`Alexito` o el que uses en Aspel) y recorre las pantallas.
 
 ## Cómo saber si estás viendo datos reales
 
-Esto es importante y no es obvio. El frontend tiene un respaldo silencioso: si
-la llamada al API falla, `useFetchLotes` cae a datos inventados en vez de
-mostrar un error.
+Hasta la rama `fix/apk-produccion` (2026-09-23), el frontend tenía un respaldo
+silencioso: si la llamada al API fallaba, `useFetchLotes` caía a datos
+inventados (`productosDummy`) y la app se veía perfecta **estando el backend
+caído**. Ya no: ahora el Semáforo se queda en ceros, y si el backend no responde
+al iniciar sesión, el login lo dice ("No se pudo conectar con el servidor
+http://…") en vez de culpar a las credenciales.
 
-```
-frontend/hooks/useFetchLotes.ts:19
-   setLotes(data?.content || productosDummy.items);
-```
-
-Así que la app puede verse perfecta **estando el backend caído**.
+Si la versión que vas a presentar es anterior a ese cambio, esto sigue aplicando:
 
 | Lo que ves | Qué significa |
 |---|---|
-| "Manzanas", "Plátano", claves `PROD001` | Datos **falsos**. El backend no responde. |
+| "Manzanas", "Plátano", claves `PROD001` | Datos **falsos** (versión anterior al cambio). El backend no responde. |
+| Semáforo en 0 / 0 / 0 | El backend no responde (o no hay lotes). Revisarlo antes de presentar. |
 | "FRUTA A GRANEL", "VERDURA A GRANEL", "JAMON A GRANEL KG", claves `FRUT000GR` | Datos **reales** de Aspel. |
 
 Revísalo antes de que entre la directora.

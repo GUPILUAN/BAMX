@@ -512,7 +512,7 @@ Distinto del despliegue: **enseñar** la app en una máquina que no tiene nada i
 Tres cosas que no son obvias y cuestan la demo:
 
 1. **El emulador de Android llega a la laptop por `10.0.2.2`, no por `localhost`.** Adentro del emulador `localhost` es el emulador.
-2. **`useFetchLotes` cae a datos inventados** (`productosDummy`) cuando el API falla — la app puede verse perfecta con el backend caído. Si dice "Manzanas" y "Plátano", no son datos reales; los reales dicen "FRUTA A GRANEL".
+2. **Con el backend caído, el Semáforo sale en ceros.** (Corrección 2026-09-23, rama `fix/apk-produccion`: antes `useFetchLotes` caía a datos inventados (`productosDummy`) y la app se veía perfecta con el backend caído; se quitó porque en producción pintaba "Manzanas" en estado crítico cada vez que se caía el WiFi.) Si una versión vieja dice "Manzanas" y "Plátano", no son datos reales; los reales dicen "FRUTA A GRANEL".
 3. **Los `.env` no pueden llevar BOM.** `Set-Content -Encoding UTF8` en PowerShell 5.1 lo mete; Spring lee el archivo como `.properties` en ISO-8859-1, el BOM se pega a la primera clave y el arranque truena con `Could not resolve placeholder 'JWT_SECRET'`. Los scripts escriben con `UTF8Encoding($false)`.
 
 La app **sí corre en Expo Go** (SDK 54 trae Skia, Reanimated 4, worklets, gesture-handler, svg y secure-store en `bundledNativeModules.json`): no hace falta development build ni Gradle para demostrar.
@@ -532,24 +532,33 @@ C:\BAMX\
 |   |-- .env                  config de produccion, NO va a git
 |   |-- bamx-backend.exe      WinSW v2.12.0 renombrado
 |   |-- bamx-backend.xml      config del servicio
-|   +-- runtime\bin\java.exe  JDK 25 portable (zip de Temurin)
+|   +-- runtime\bin\java.exe  JDK 25 portable (Oracle 25.0.2 copiado, o zip de Temurin)
 +-- logs\                    rotados a diario, capturados por WinSW
 ```
 
 Nada se instala fuera de `C:\BAMX`: no se toca el PATH, ni el registro, ni Java global, ni Aspel, ni Firebird. Rollback = parar el servicio y borrar la carpeta.
 
+**Sistema operativo**: Windows Server **2016 o posterior**. Oracle certifica el JDK 25 en Server 2016/2019/2022/2025 y Windows 11 (verificado en su página de configuraciones certificadas, 2026-09-23); Server 2012 R2 no está. **No hace falta .NET Framework**: `WinSW-x64.exe` es el build self-contained (.NET Core adentro, 18 MB). (Corrección: en sesiones previas se documentó ".NET ≥ 4.6.1, lo necesita WinSW"; eso solo aplica a `WinSW.NET461.exe`.)
+
+**Estado del material al 2026-09-23**: `deploy/dist/` en la máquina de Alex está completo y validado con `02-install.ps1 -SoloValidar`: jar del commit `5afe6d7` (trae el endpoint de almacenes), JDK 25.0.2, WinSW v2.12.0 (SHA256 en `deploy/README.md`) y un `.env` pre-armado con `JWT_SECRET` nuevo que se confirma en sitio contra el preflight. Falta solo el APK, que necesita la IP fija del servidor.
+
 ### Scripts
 
 | Script | Donde corre | Que hace |
 |---|---|---|
-| `00-preflight.ps1` | BAMX | Diagnostica 14 puntos (Aspel, Firebird, .FDB, sufijo de empresa, puertos, IP). **No modifica nada.** Imprime los valores para armar el `.env`. |
-| `01-build.ps1` | desarrollo | `mvnw clean package` y deja el jar en `deploy/dist/`. |
+| `00-preflight.ps1` | BAMX | Diagnostica 14 puntos (Aspel, Firebird, .FDB, sufijo de empresa, puertos, IP). **No modifica nada.** Imprime los valores para armar el `.env`. `-RutaEmpresa`/`-RutaPerfiles` cuando los `.FDB` viven fuera de la carpeta de Aspel. |
+| `01-build.ps1` | desarrollo | Compila una **copia limpia del último commit** (`git archive` a `%TEMP%`) y deja el jar en `deploy/dist/`. `-DesdeCarpeta` compila `backend\` tal cual. |
 | `02-install.ps1` | BAMX (admin) | Valida el `.env`, copia todo, registra el servicio, abre el firewall, arranca. |
-| `03-verify.ps1` | ambas | Prueba de humo de 8 pasos, de "el servicio existe" hasta "el inventario devuelve datos". |
+| `03-verify.ps1` | ambas | Prueba de humo de 9 pasos, de "el servicio existe" hasta "el inventario devuelve datos". El paso de `/almacenes` detecta un jar viejo (404 de Spring vs 404 "Product not found" de la app). |
 | `04-update.ps1` | BAMX (admin) | Actualiza el jar. **Revierte solo** si la version nueva no levanta. |
+| `05-build-apk.ps1` | desarrollo | Compila el APK en local (Gradle, sin EAS) con `-ApiUrl http://<ip>:<puerto>` y **verifica dentro del APK** que la URL quedó. Deja el `.apk` en `deploy/dist/apk/`. |
 | `99-uninstall.ps1` | BAMX (admin) | Desinstala. No toca Aspel. |
 
 Los `.ps1` estan **sin acentos** a proposito: PowerShell 5.1 lee los scripts como ANSI cuando no traen BOM.
+
+**Por qué `01-build.ps1` no compila en `backend\`**: el 2026-09-23 falló con `ClassNotFoundException` en los tests sin que el código tuviera nada. `backend\target` lo comparten la extensión Java de VS Code (JDT recompila ahí en cuanto ve el `clean`) y el backend de desarrollo corriendo con `spring-boot:run`. Compilando desde `git archive` en `%TEMP%` pasó a la primera, y de paso el jar corresponde a un commit exacto.
+
+**Ejecutables siempre con ruta absoluta**: el entorno de las tools de Claude (y cualquier máquina endurecida) tiene `NoDefaultCurrentDirectoryInExePath=1`, con la que `cmd` no ejecuta nada del directorio actual aunque se haya hecho `cd`: `cd android && gradlew.bat` responde "no se reconoce". (Corrección: la memoria de sesiones previas lo atribuía a que `Push-Location` no cambia el cwd; la causa real es esa variable.)
 
 ### En el `.env`, unas claves van en MAYUSCULAS y otras con punto
 
@@ -562,13 +571,19 @@ No es inconsistencia, son **dos mecanismos distintos**, y confundirlos cuesta un
 
 Si algún día hace falta forzar una propiedad de Spring desde afuera sin editar el `.env`, la vía que sí traduce mayúsculas es una variable de entorno real, p. ej. `<env name="BAMX_REFRIGERADORES" value="1"/>` en el XML de WinSW.
 
-### Las tres trampas del despliegue
+### Las trampas del despliegue
 
 1. **El `.env` se resuelve relativo al directorio de trabajo del proceso.** Un servicio de Windows arranca en `C:\Windows\System32`, no encuentra el `.env`, y como el import es `optional:` **no falla ahi**: revienta despues con `Could not resolve placeholder 'JWT_SECRET'`, error que no menciona el `.env`. Por eso el XML fija `<workingdirectory>%BASE%</workingdirectory>`.
 
 2. **`EXPO_PUBLIC_API_URL` se inlinea en tiempo de bundle.** La IP del servidor queda quemada dentro del APK. Si la computadora cambia de IP, **todas las tablets mueren a la vez** y hay que recompilar y reinstalar. La IP fija (reserva DHCP) es requisito, no recomendacion.
 
 3. **Android bloquea HTTP sin TLS en release desde Android 9.** El backend habla HTTP plano. Ya se agrego `expo-build-properties` con `usesCleartextTraffic: true` en `app.json`, y `buildType: apk` en el perfil `preview` de `eas.json` (sin eso EAS genera un `.aab` que no se puede instalar a mano). El sintoma de que falte es enganoso: no sale error, las pantallas salen vacias, porque `apiService.retrieveData` se traga los errores de red sin `response`.
+
+4. **EAS en la nube NO ve `frontend/.env`** (verificado 2026-09-23). Está en `.gitignore` (`*.env`), no hay `.easignore`, y EAS no sube archivos ignorados: el APK saldría con `EXPO_PUBLIC_API_URL` vacía → `http://localhost:8080`, y MQTT → `broker.hivemq.com` (público). Además `npx eas` resuelve al paquete npm `eas` (motor de templates, sin bin); el CLI es `eas-cli`. Por eso el camino oficial es `05-build-apk.ps1` (Gradle local). Si se usa EAS: variables en `eas.json` → `build.preview.env` y `npx eas-cli build`. Dos detalles del build local: `expo prebuild` reescribe los scripts `android`/`ios` de `package.json` (el script lo restaura), y Metro **no** mete las `EXPO_PUBLIC_*` en su llave de caché (el script borra `%TEMP%\metro-cache`).
+
+**APK verificado end-to-end el 2026-09-23**: build de release (3 ABIs, 143 MB, ~10 min la primera vez) apuntando a la laptop de Alex, instalado en el AVD `Medium_Tablet` (Android 14). Con el backend arriba, un usuario inventado → "Las credenciales son incorrectas" (llegó por HTTP en claro); con el backend apagado → "No se pudo conectar con el servidor http://192.168.100.244:18080…" a los ~15 s.
+
+**El login distingue red de credenciales** (`functions/loginErrorMessage.ts`): sin respuesta HTTP (IP mal quemada, firewall, WiFi aislado, backend caído) muestra la URL del APK; con 401/403/404, "credenciales incorrectas"; con 5xx, error del servidor. Antes todo salía como "Las credenciales son incorrectas". Axios tiene ahora timeout de 30 s: React Native no pone ninguno, y una IP inalcanzable dejaba el login girando ~2 min.
 
 ### Healthcheck sin tocar codigo
 
@@ -632,6 +647,7 @@ Detalle no obvio: ese endpoint corre **sin token**, y sin token el sufijo de emp
 - 🚧 `feat/inventory-stock-filter` — **encima de chore/ui-cleanup (stacked)**. Toggle "Solo con existencia" en Inventario (default ON), `ORDER BY CASE WHEN EXIST>0 THEN 0 ELSE 1 END`, page size 25-30, badge "Sin stock" para filas con `EXIST=0`.
 - ~~`fix/backend-env-loading`~~ — **ya no hace falta**, `spring.config.import` ya está en `application.properties`.
 - ✅ `infra/deploy-windows-bamx` — despliegue del backend como servicio de Windows en BAMX (carpeta `deploy/`).
+- 🚧 `fix/apk-produccion` — deja el despliegue listo para Windows Server: `05-build-apk.ps1` (APK local hermético y verificado), `01-build.ps1` desde commit limpio, preflight con `-RutaEmpresa`/`-RutaPerfiles` y sin el falso bloqueante de .NET, `03-verify` detecta jar viejo, login que distingue red de credenciales, timeout de axios, sin `productosDummy` en producción.
 - `feat/pages-entregables-no-aptos` — pantallas para los 2 botones grandes del SideBar.
 - `infra/dockerize-backend` — Dockerfile + docker-compose para despliegue en BAMX.
 - `feat/refrigeradores-iot` — wire MQTT real (esperar a tener hardware).
@@ -665,7 +681,7 @@ Funciona limpio si la base usa **merge commit** o **rebase merge**. Con **squash
 - Para validar que el backend está leyendo empresa 03: pegar `cveArt='VEDU000GR'` en una query a `/api/inventarios/?search=VEDU000GR`. Si responde con datos, el sufijo está bien.
 - Si Aspel SAE GUI no muestra datos pero el backend sí, **no es un problema del backend**; revisar configuración GUI de Aspel.
 - Cuando un endpoint nuevo del backend devuelva 401 inesperado, revisar `shouldNotFilter` en `JwtAuthenticationFilter` antes de tocar `SecurityConfig`.
-- Frontend: si `useFetchLotes` cae a `productosDummy.items`, el API falló silenciosamente — revisar `EXPO_PUBLIC_API_URL` y network del device.
+- Frontend: si el Semáforo sale en ceros o el login dice "No se pudo conectar con el servidor http://…", el API no responde — revisar la URL del mensaje (es la que quedó en el bundle/APK) y la red del device. (Antes `useFetchLotes` caía a `productosDummy.items` y lo disimulaba; ver corrección en "Demo en una laptop".)
 
 ---
 

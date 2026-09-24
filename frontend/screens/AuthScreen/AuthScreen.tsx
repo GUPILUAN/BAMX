@@ -19,6 +19,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { navigate } from "@/functions/NavigationService";
 import useUserColorScheme from "@/hooks/useUserColorScheme";
 import { apiService } from "@/api/apiService";
+import { API_URL } from "@/api/axiosInstance";
+import { loginErrorMessage } from "@/functions/loginErrorMessage";
 
 export default function AuthScreen() {
   const { width } = useWindowDimensions();
@@ -75,13 +77,14 @@ export default function AuthScreen() {
       await apiService.loginUser(username, password);
       navigate("Dashboard");
     } catch (error: any) {
+      const mensaje = loginErrorMessage(error, API_URL);
       if (Platform.OS === "web") {
-        const confirmed = window.confirm("Las credenciales son incorrectas");
+        const confirmed = window.confirm(mensaje);
         if (confirmed) {
           return;
         }
       } else {
-        Alert.alert("Error", "Las credenciales son incorrectas");
+        Alert.alert("Error", mensaje);
       }
 
       setUsername("");
