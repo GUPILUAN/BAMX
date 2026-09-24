@@ -213,12 +213,16 @@ if ($Usuario -eq "") {
         $h = @{ Authorization = "Bearer $($script:tokenAcceso)" }
         $r = Invoke-RestMethod -Uri "$BaseUrl/api/inventarios/?search=$ClaveArt&size=5" -Headers $h -TimeoutSec 60
 
+        # La API envuelve todo en ApiResponse: { status, message, data: { content, totalElements } }.
+        # Leer $r.content (sin .data) daba siempre cero aunque el inventario funcionara.
         $n = 0
-        if ($r.content)             { $n = @($r.content).Count }
-        elseif ($r -is [array])     { $n = $r.Count }
+        if ($r.data -and $r.data.content) { $n = @($r.data.content).Count }
 
         if ($n -gt 0) {
             Write-Host "      [ OK ] $n resultado(s) para '$ClaveArt'. El sufijo de empresa es correcto." -ForegroundColor Green
+            $conStock = Invoke-RestMethod -Uri "$BaseUrl/api/inventarios/?size=1" -Headers $h -TimeoutSec 60
+            $todos    = Invoke-RestMethod -Uri "$BaseUrl/api/inventarios/?size=1&onlyWithStock=false" -Headers $h -TimeoutSec 60
+            Write-Host "      [INFO] Pantalla Inventario: $($conStock.data.totalElements) con existencia, $($todos.data.totalElements) en total." -ForegroundColor Gray
         } else {
             Write-Host "      [WARN] Cero resultados para '$ClaveArt'." -ForegroundColor Yellow
             Write-Host "             O la clave no existe en esta base, o APP_EMPRESA_SUFFIX apunta" -ForegroundColor Yellow
@@ -272,7 +276,7 @@ if ($Usuario -eq "") {
         $r = Invoke-RestMethod -Uri "$BaseUrl/api/lotes/?size=5" -Headers $h -TimeoutSec 60
 
         $total = 0
-        if ($null -ne $r.totalElements) { $total = $r.totalElements }
+        if ($r.data -and $null -ne $r.data.totalElements) { $total = $r.data.totalElements }
         Write-Host "      [ OK ] El endpoint responde. Lotes totales: $total" -ForegroundColor Green
         if ($total -lt 20) {
             Write-Host "      [INFO] Pocos lotes es lo ESPERADO: el Semaforo depende de que se" -ForegroundColor DarkGray

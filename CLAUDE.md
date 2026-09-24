@@ -47,7 +47,28 @@ Branch base: `main` (protegida). Flujo real: `feature/<algo>` o `chore/<algo>` �
 - Si en algún momento BAMX decide capturar desde celular en bodega, eso es V2 (cambio de filosofía, no feature menor) — requiere reescribir asientos contables, validar contra reglas de Aspel, etc.
 - Las tablas propias de la app (`TOKEN_BLOCK_LIST` en la DB de perfiles, sensores MQTT) sí son writeables — son de la app, no de Aspel.
 
-### Estado real de los datos en BAMX (verificado contra DB en sesión 2026-05-15)
+### ⚠️ Corrección 2026-09-24: la base VIVA del servidor NO es igual a la copia local
+
+Verificado con isql en el servidor de BAMX (`SRVBAMAX`, Windows Server 2016) durante el despliegue:
+
+| Dato | Copia local (2026-05-15) | Servidor real (2026-09-24) |
+|---|---|---|
+| Productos en `INVE03` | 37,199 | 37,560 |
+| `CON_LOTE='S'` | 37,199 (100%) | **10** (37,547 `'N'`, 3 NULL) |
+| Productos con `EXIST >= 0.01` | 39 | 81 (**ninguno** con `CON_LOTE='S'`) |
+| Empresas en SAE8.00 | solo 03 (01 vacía) | 01 a 07; la de BAMX es la **03** |
+| Filas de `USREMP` por usuario | 1 | hasta 20 (una por sistema Aspel `IDSIST` × empresa). SAE = `IDSIST 1005` |
+
+Consecuencias:
+- **La hipótesis "el capturista se salta la ventana de lote" es probablemente falsa**: con `CON_LOTE='N'` Aspel **no pide** lote ni caducidad. Lo que falta es prender el flag en el catálogo (decisión de BAMX en Aspel, no de la app). Todo lo que abajo dice "`CON_LOTE='S'` en los 37,199" describe la copia local, no producción.
+- `InveRepository` filtraba por `CON_LOTE='S'` → en producción el Inventario salía con 10 productos y 0 con stock. **Se quitó el filtro.**
+- `UsuarioService` asumía una sola fila de `USREMP` → login con 500 para 22 de 29 usuarios. Ahora elige la de SAE (1005) para la empresa configurada, luego EMPRESA 0 (todas).
+- `03-verify.ps1` leía `$r.content`/`$r.totalElements` sin el envoltorio `ApiResponse.data`: los pasos [5] y [8] marcaban cero **siempre**. Corregido.
+- **Regla**: antes de afirmar algo sobre los datos de BAMX, distinguir si se verificó contra la copia local o contra el servidor.
+
+**Backend en producción desde 2026-09-24** en `SRVBAMAX` (`http://192.168.1.144:8080`, IP aún por DHCP). `03-verify` 9/9: Inventario 81 productos con existencia / 37,534 en total, 11 almacenes, 3 lotes. Pendiente: prueba desde otra PC, reserva DHCP, reinicio de prueba, APK.
+
+### Estado real de los datos en BAMX (verificado contra la COPIA LOCAL en sesión 2026-05-15)
 
 Antes de planear cualquier cosa que dependa de lotes/caducidad, hay que entender el desfase entre **cómo está modelado el sistema** y **cómo se está usando**.
 

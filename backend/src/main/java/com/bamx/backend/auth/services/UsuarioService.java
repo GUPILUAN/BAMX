@@ -20,6 +20,8 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import java.security.Key;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +30,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UsuarioService {
+
+  static final Integer SAE_IDSIST = 1005;
+  private static final String SIN_ROL = "Sin rol";
 
   private final UsuarioRepository usuarioRepository;
   private final TokenBlockListService tokenBlockListService;
@@ -65,19 +70,7 @@ public class UsuarioService {
             .findById(id)
             .orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
-    UsrEmp usrEmp =
-        usrEmpRepository
-            .findByIdUsr(id)
-            .orElseThrow(() -> new UserNotFoundException("No user-company association found."));
-
-    Integer idRol = usrEmp.getIdRol();
-    if (idRol == null) {
-      throw new UserNotFoundException("No role found for the user.");
-    }
-    Rol1005 rol1005 =
-        rol1005Repository
-            .findById(idRol)
-            .orElseThrow(() -> new UserNotFoundException("No role found for the user."));
+    UsrEmp usrEmp = findUsrEmp(id);
 
     boolean hasProfilePicture = fotoUsuarioService.hasProfilePicture(id);
     // Ruta relativa: el frontend (getImage/axios) le antepone su baseURL. Evita
@@ -95,7 +88,7 @@ public class UsuarioService {
         .position(usuario.getPuesto())
         .department(usuario.getDepto())
         .company(resolveEmpresa(usrEmp.getEmpresa()))
-        .role(rol1005.getNombre())
+        .role(resolveRol(usrEmp))
         .status(usrEmp.getStatus())
         .profile_picture(profilePictureUrl)
         .build();
@@ -153,19 +146,7 @@ public class UsuarioService {
 
   private String generateAccessJwtToken(Usuario usuario) {
     long now = System.currentTimeMillis();
-    UsrEmp usrEmp =
-        usrEmpRepository
-            .findByIdUsr(usuario.getIdUsr())
-            .orElseThrow(() -> new UserNotFoundException("No user-company association found."));
-
-    Integer idRol = usrEmp.getIdRol();
-    if (idRol == null) {
-      throw new UserNotFoundException("No role found for the user.");
-    }
-    Rol1005 rol1005 =
-        rol1005Repository
-            .findById(idRol)
-            .orElseThrow(() -> new UserNotFoundException("No role found for the user."));
+    UsrEmp usrEmp = findUsrEmp(usuario.getIdUsr());
 
     return Jwts.builder()
         .setId(UUID.randomUUID().toString().toUpperCase())
@@ -173,11 +154,47 @@ public class UsuarioService {
         .setIssuedAt(new java.util.Date(now))
         .setExpiration(new java.util.Date(now + jwtExpiration))
         .claim("type", "access")
-        .claim("rol", rol1005.getNombre())
+        .claim("rol", resolveRol(usrEmp))
         .claim("empresa", resolveEmpresa(usrEmp.getEmpresa()).toString().trim())
         .claim("status", usrEmp.getStatus().toString().trim())
         .signWith(key)
         .compact();
+  }
+
+  private UsrEmp findUsrEmp(Integer idUsr) {
+    return selectUsrEmp(usrEmpRepository.findByIdUsrOrderByIdUsrEmp(idUsr), empresaObjetivo())
+        .orElseThrow(() -> new UserNotFoundException("No user-company association found."));
+  }
+
+  /**
+   * USREMP trae una fila por sistema de Aspel y por empresa. Se prefiere la de SAE (IDSIST 1005,
+   * cuyos roles viven en ROL001005) para la empresa configurada; EMPRESA = 0 es "todas" (así la
+   * tiene ADMINISTRADOR). Si el usuario no tiene fila de SAE se usa la primera que haya, como antes.
+   */
+  static Optional<UsrEmp> selectUsrEmp(List<UsrEmp> filas, Integer empresa) {
+    List<UsrEmp> sae = filas.stream().filter(f -> SAE_IDSIST.equals(f.getIdSist())).toList();
+    List<UsrEmp> candidatas = sae.isEmpty() ? filas : sae;
+    return candidatas.stream()
+        .filter(f -> empresa != null && empresa.equals(f.getEmpresa()))
+        .findFirst()
+        .or(() -> candidatas.stream().filter(f -> Integer.valueOf(0).equals(f.getEmpresa())).findFirst())
+        .or(() -> candidatas.stream().findFirst());
+  }
+
+  // El rol solo se muestra (perfil y claim del JWT), no autoriza nada: si no se encuentra en
+  // ROL001005 (p. ej. IDROL 0 de ADMINISTRADOR) no se bloquea el login por eso.
+  private String resolveRol(UsrEmp usrEmp) {
+    if (usrEmp.getIdRol() == null || !SAE_IDSIST.equals(usrEmp.getIdSist())) {
+      return SIN_ROL;
+    }
+    return rol1005Repository.findById(usrEmp.getIdRol()).map(Rol1005::getNombre).orElse(SIN_ROL);
+  }
+
+  private Integer empresaObjetivo() {
+    if (empresaSuffixOverride == null || empresaSuffixOverride.isBlank()) {
+      return null;
+    }
+    return Integer.valueOf(empresaSuffixOverride.trim());
   }
 
   private Integer resolveEmpresa(Integer empresa) {

@@ -8,13 +8,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+// Sin filtro por CON_LOTE: en la base viva de BAMX (servidor, 2026-09-24) solo 10 de 37,560
+// productos tienen CON_LOTE='S', y ninguno con existencia. Filtrar por lote dejaba vacio el Inventario.
 @Repository
 public interface InveRepository extends JpaRepository<Inve, String> {
   @Query(
 """
 SELECT i FROM Inve i
-WHERE i.conLote = 'S'
-  AND i.tipoEle = 'P'
+WHERE i.tipoEle = 'P'
   AND i.status = 'A'
   AND (LOWER(i.cveArt) LIKE %:search% OR LOWER(i.descr) LIKE %:search%)
 """)
@@ -30,8 +31,7 @@ WHERE i.conLote = 'S'
   @Query(
 """
 SELECT i FROM Inve i
-WHERE i.conLote = 'S'
-  AND i.tipoEle = 'P'
+WHERE i.tipoEle = 'P'
   AND i.status = 'A'
   AND i.exist >= 0.01
   AND (LOWER(i.cveArt) LIKE %:search% OR LOWER(i.descr) LIKE %:search%)
