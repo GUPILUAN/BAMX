@@ -118,6 +118,8 @@ Para comprobarlo en cualquier máquina: `Get-FileHash dist\WinSW-x64.exe`.
 
 - O bajar el **.zip** de Temurin JDK 25 (LTS), Windows x64: <https://adoptium.net/temurin/releases/?version=25&os=windows&arch=x64&package=jdk>
 
+⚠️ **No reutilizar el `runtime\` del `BAMX-DEMO-KIT`.** `10-armar-kit-demo.ps1` copia el JDK **más nuevo ≥ 25** que encuentre, y en la máquina de Alex ese es el **26, que no es LTS**. Sirve para una demo de un día, no para un servicio que va a correr meses. Para producción, el 25.
+
 Se usa una carpeta portable y no un instalador `.msi` a propósito: no toca el PATH ni el registro, no choca con nada que Aspel necesite, y evita el problema clásico de que el servicio corre como `LocalSystem` y `LocalSystem` no ve el `JAVA_HOME` del usuario.
 
 ⚠️ **Sin carpeta contenedora.** El resultado correcto es:
@@ -187,6 +189,8 @@ copy ..\env\.env.produccion.example ..\dist\.env
 $b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)
 ```
 
+(Corrección 2026-10-21: hasta esa fecha, `00-preflight.ps1` y la plantilla sugerían `Get-Random -Maximum 256`, que **no es un generador criptográfico**: sirve para nombres de archivo temporales, no para firmar tokens. Un `.env` cuyo secreto salió de esa sugerencia necesita uno nuevo. El `.env` pre-armado de `dist\` siempre se generó con `RandomNumberGenerator`.)
+
 ### Cuatro reglas que rompen el arranque
 
 1. **Rutas con `/`, nunca con `\`.** El archivo se lee como `.properties`, donde `\` es carácter de escape.
@@ -228,6 +232,16 @@ Si el puerto 8080 estaba ocupado y usaste otro, se lo pasas:
 powershell -ExecutionPolicy Bypass -File .\02-install.ps1 -Puerto 8081
 ```
 
+**Si el puerto está ocupado, el instalador no sigue**, y dice qué programa lo tiene. Al final, además de esperar a que el puerto responda, revisa que quien escucha sea el java de `C:\BAMX`. (Corrección 2026-10-21: antes solo esperaba a que *algo* contestara. En el ensayo del 2026-09-23, con el backend de desarrollo de VS Code prendido en el 8080, el servicio tronó con `Port 8080 was already in use` y el instalador dijo "Instalación completa" de todos modos. `03-verify` tampoco lo detecta: si quien ocupa el puerto es otro backend de BAMX sale 9/9, y si es otra aplicación el paso 3 pasa igual porque acepta cualquier 404.)
+
+Para confirmar a mano quién escucha, por ejemplo después de un reinicio:
+
+```powershell
+Get-NetTCPConnection -LocalPort 8080 -State Listen | ForEach-Object { (Get-Process -Id $_.OwningProcess).Path }
+```
+
+Tiene que salir `C:\BAMX\app\runtime\bin\java.exe`. Cualquier otra ruta significa que el servicio no está atendiendo: revisar `C:\BAMX\logs`.
+
 ## Paso 4 — Verificar
 
 ```bash
@@ -262,6 +276,10 @@ Get-CimInstance Win32_Process -Filter "Name='java.exe'" | Where-Object { $_.Exec
 
 En 15 segundos WinSW debe haberlo relanzado.
 
+## Al terminar: borrar el `.env` de la USB
+
+`dist\.env` trae la **contraseña de SYSDBA** y el **`JWT_SECRET`**. Una vez instalado, la copia que importa es la de `C:\BAMX\app\.env`. La de la USB se borra, igual que cualquier copia que haya quedado en el escritorio del servidor. Con el `JWT_SECRET` cualquiera puede firmar tokens válidos para la API, y con la clave de SYSDBA tiene acceso total a la base de Aspel.
+
 ---
 
 # El APK para las tablets
@@ -282,7 +300,13 @@ Necesita Node y Android Studio (trae el SDK y el JDK 17 que usa Gradle). No nece
 4. **Abre el APK y verifica que la URL quedó adentro** (y que no se coló la de desarrollo). Si no, falla en vez de entregar un APK que apunta a otro lado.
 5. Lo deja en `deploy\dist\apk\BAMX-<ip>-<puerto>-<fecha>.apk`.
 
-La primera vez tarda ~10-30 min (baja el NDK y compila código nativo para cada arquitectura). Las siguientes reutilizan la caché de Gradle. El default compila `armeabi-v7a` y `arm64-v8a`, que cubre las tablets reales. Para probarlo en el emulador de Android Studio se agrega `x86_64` con `-Abis "armeabi-v7a,arm64-v8a,x86_64"`.
+La primera vez tarda ~10-30 min (baja el NDK y compila código nativo para cada arquitectura). Las siguientes reutilizan la caché de Gradle, que vive en `~\.gradle` y `node_modules`, no en `frontend\android`. El default compila `armeabi-v7a` y `arm64-v8a`, que cubre las tablets reales. Para probarlo en el emulador de Android Studio se agrega `x86_64` con `-Abis "armeabi-v7a,arm64-v8a,x86_64"`.
+
+`frontend\android` queda pesando **~2.2 GB** después del build. Está ignorado por git y el siguiente build lo regenera desde cero (`prebuild --clean`), así que se puede borrar. **Con PowerShell 5.1 no se puede**: `Remove-Item` falla con las rutas de más de 260 caracteres que deja CMake en `.cxx`. Desde Git Bash sí:
+
+```bash
+rm -rf frontend/android
+```
 
 **Verificado el 2026-09-23** con un APK apuntando a una laptop de desarrollo, instalado en el emulador de tablet (Android 14). Con el backend arriba, un usuario inventado da "Las credenciales son incorrectas": el APK llegó al servidor por HTTP en claro. Con el backend apagado, da "No se pudo conectar con el servidor http://…".
 
@@ -313,6 +337,8 @@ Para actualizar, se instala el nuevo encima (sin desinstalar). Funciona porque l
 | Refrigeradores | Vacía hasta que haya sensores |
 
 El Semáforo depende de que en Aspel se capture **lote y fecha de caducidad** al registrar entradas. Hoy hay muy pocos registros con ese dato, así que la pantalla sale casi vacía. **No es una falla del despliegue**: es la conversación operativa con BAMX que está documentada en `CLAUDE.md` (sección "Estado real de los datos en BAMX").
+
+En el servidor de BAMX (verificado el 2026-09-24) la causa de fondo es que **casi ningún producto tiene `CON_LOTE='S'`**: solo 10 de 37,560. Con el flag en `'N'`, Aspel no abre la ventana de lote y caducidad al registrar una entrada, así que no hay nada que el capturista se esté saltando. Para que el Semáforo se llene, BAMX tendría que prender ese flag en su catálogo de Aspel. La app no puede hacerlo: es de solo lectura.
 
 ---
 
@@ -429,7 +455,7 @@ El preflight lo detecta y lo avisa. Cambian cuatro cosas:
 
 # Deuda conocida
 
-El despliegue no modificó el backend. Lo siguiente queda documentado a propósito, no arreglado.
+Lo siguiente queda documentado a propósito, no arreglado.
 
 | # | Punto | Riesgo real hoy |
 |---|---|---|
@@ -442,6 +468,9 @@ El despliegue no modificó el backend. Lo siguiente queda documentado a propósi
 | 7 | `criticalDate`/`warningDate` invertidos en `InveService` | Latente; no se manifiesta con los datos actuales. |
 | 8 | Si el servidor no responde, el Semáforo muestra ceros sin avisar | Ya no muestra productos inventados (antes caía a `productosDummy`), pero tampoco dice "sin conexión". Un aviso en el Home lo haría explícito. |
 | 9 | APK firmado con la llave *debug* de la plantilla | Suficiente para instalar a mano en la LAN de BAMX. Para Play Store haría falta una llave propia. |
+| 10 | ~~`02-install.ps1` no revisaba que el puerto estuviera libre~~ | **Resuelto** (2026-10-21): aborta si el puerto está ocupado y al final verifica que lo atienda el java de `C:\BAMX`. `03-verify` sigue sin distinguir quién responde: tras un reinicio, revisar el dueño del puerto con el comando del paso 3. |
+| 11 | ~~`00-preflight.ps1` y `.env.produccion.example` sugerían `Get-Random` para el `JWT_SECRET`~~ | **Resuelto** (2026-10-21): ahora sugieren `RandomNumberGenerator`. El `.env` de `dist\` nunca estuvo afectado. |
+| 12 | La URL del servidor va quemada en el APK | Un cambio de IP obliga a recompilar y reinstalar en cada tablet. Si la URL se pudiera editar dentro de la app (una pantalla de ajustes con valor por defecto), bastaría con cambiarla. No se hizo porque cambia el alcance. Mientras tanto la defensa es la reserva DHCP. |
 
 ---
 
