@@ -619,7 +619,7 @@ foreach ($k in $script:Sugerido.Keys) {
 Write-Host ""
 Write-Host "  Falta definir a mano:" -ForegroundColor DarkGray
 Write-Host "    JWT_SECRET  -> generar con:" -ForegroundColor DarkGray
-Write-Host "      [Convert]::ToBase64String((1..48 | ForEach-Object { Get-Random -Maximum 256 }))" -ForegroundColor DarkGray
+Write-Host '      $b = New-Object byte[] 48; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); [Convert]::ToBase64String($b)' -ForegroundColor DarkGray
 
 if ($script:Sugerido["_DEPEND_"] -or $script:Sugerido["_EXPO_PUBLIC_API_URL_"]) {
     Write-Host ""
