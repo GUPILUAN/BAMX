@@ -563,6 +563,8 @@ Nada se instala fuera de `C:\BAMX`: no se toca el PATH, ni el registro, ni Java 
 
 **Estado del material al 2026-09-23**: `deploy/dist/` en la máquina de Alex está completo y validado con `02-install.ps1 -SoloValidar`: jar del commit `5afe6d7` (trae el endpoint de almacenes), JDK 25.0.2, WinSW v2.12.0 (SHA256 en `deploy/README.md`) y un `.env` pre-armado con `JWT_SECRET` nuevo que se confirma en sitio contra el preflight. Falta solo el APK, que necesita la IP fija del servidor.
 
+**Actualización 2026-10-20**: ese jar de `5afe6d7` **quedó viejo** el 2026-09-24. No trae el fix de `991a8c8` (#77: login con varias filas de `USREMP`, Inventario sin filtro `CON_LOTE`), así que un `04-update.ps1` con él habría vuelto a romper login e Inventario en el servidor. Se recompiló de `6803a27` con `01-build.ps1` (18 tests en verde); el jar nuevo no contiene `conLote = 'S'`. **Regla**: antes de llevar `dist\` a BAMX, comparar la fecha del jar contra el último merge del backend en `main`. El jar no lleva el commit en el nombre; `01-build.ps1` lo imprime al terminar.
+
 ### Scripts
 
 | Script | Donde corre | Que hace |
@@ -601,6 +603,14 @@ Si algún día hace falta forzar una propiedad de Spring desde afuera sin editar
 3. **Android bloquea HTTP sin TLS en release desde Android 9.** El backend habla HTTP plano. Ya se agrego `expo-build-properties` con `usesCleartextTraffic: true` en `app.json`, y `buildType: apk` en el perfil `preview` de `eas.json` (sin eso EAS genera un `.aab` que no se puede instalar a mano). El sintoma de que falte es enganoso: no sale error, las pantallas salen vacias, porque `apiService.retrieveData` se traga los errores de red sin `response`.
 
 4. **EAS en la nube NO ve `frontend/.env`** (verificado 2026-09-23). Está en `.gitignore` (`*.env`), no hay `.easignore`, y EAS no sube archivos ignorados: el APK saldría con `EXPO_PUBLIC_API_URL` vacía → `http://localhost:8080`, y MQTT → `broker.hivemq.com` (público). Además `npx eas` resuelve al paquete npm `eas` (motor de templates, sin bin); el CLI es `eas-cli`. Por eso el camino oficial es `05-build-apk.ps1` (Gradle local). Si se usa EAS: variables en `eas.json` → `build.preview.env` y `npx eas-cli build`. Dos detalles del build local: `expo prebuild` reescribe los scripts `android`/`ios` de `package.json` (el script lo restaura), y Metro **no** mete las `EXPO_PUBLIC_*` en su llave de caché (el script borra `%TEMP%\metro-cache`).
+
+5. **"Instalación completa" no prueba que el servicio responda** (sesiones del 2026-09-23). `02-install.ps1` no revisa que el puerto esté libre (eso solo lo advierte el preflight) y al final solo espera a que *algo* conteste en el puerto. Si otro proceso ocupa el 8080, el servicio truena con `Port 8080 was already in use` y el instalador dice "Instalación completa" igual. Si ese proceso es el backend de desarrollo de VS Code con la misma base (pasó en el ensayo en la laptop), `03-verify` sale 9/9. Si es otra aplicación, el paso 3 pasa porque acepta cualquier 404, y solo fallan los pasos con login. **Corregido 2026-10-21**: `02-install` aborta si el puerto está ocupado (dice qué PID lo tiene) y al final exige que el dueño del puerto sea `C:\BAMX\app\runtime\bin\java.exe`. `03-verify` sigue sin distinguirlo. Tras un reinicio, el comando del paso 3 de `deploy/README.md` lo confirma a mano.
+
+6. **El `runtime\` del `BAMX-DEMO-KIT` no sirve para producción.** `10-armar-kit-demo.ps1` copia el JDK más nuevo ≥ 25, y en la máquina de Alex es el **26 (no LTS)**. El de `deploy\dist\runtime` es el 25.0.2.
+
+7. **El `.env` de la USB trae la clave de SYSDBA y el `JWT_SECRET`.** Se borra al terminar la instalación. Además, hasta el 2026-10-21 `00-preflight.ps1` y `.env.produccion.example` sugerían generar el secreto con `Get-Random`, que no es criptográfico. Ya se corrigió: ahora usan `RandomNumberGenerator`. El `.env` de `dist\` siempre se generó con esa.
+
+8. **`frontend\android` pesa ~2.2 GB después de `05-build-apk.ps1`** y PowerShell 5.1 no lo puede borrar: CMake deja en `.cxx` rutas de más de 260 caracteres. Se borra con `rm -rf` de Git Bash. No afecta el siguiente build: usa `prebuild --clean`, y la caché que importa vive en `~\.gradle`.
 
 **APK verificado end-to-end el 2026-09-23**: build de release (3 ABIs, 143 MB, ~10 min la primera vez) apuntando a la laptop de Alex, instalado en el AVD `Medium_Tablet` (Android 14). Con el backend arriba, un usuario inventado → "Las credenciales son incorrectas" (llegó por HTTP en claro); con el backend apagado → "No se pudo conectar con el servidor http://192.168.100.244:18080…" a los ~15 s.
 
@@ -659,7 +669,7 @@ Detalle no obvio: ese endpoint corre **sin token**, y sin token el sufijo de emp
 
 - Branch default: **`main`**. **Protegida server-side**: requiere PR + 2 status checks (`backend-tests`, `frontend-tests`). No se puede `git push` directo (lo rechaza GitHub aunque hagas `--force`).
 - **No hay `develop` viva.** Existen `origin/develop`, `develop-java`, `develop-ponce` pero las tres están abandonadas hace 6-8 meses. **No crear nuevos `develop`** — el flujo real es `feature/<algo>` → PR → `main` directo (ver merges recientes en `git log`).
-- `gh` CLI **no está instalado** en el entorno local. Para abrir PRs usar la web: `https://github.com/GUPILUAN/BAMX/compare/main...<branch>`.
+- `gh` CLI **sí está instalado** (`C:\Program Files\GitHub CLI`) y con sesión como `alexito0307` (verificado 2026-10-21). Los PRs se abren y se mergean con `gh pr create` / `gh pr merge`, esperando a que pasen los checks. (Corrección: se documentó que no estaba instalado.)
 - `.claude/settings.json` tiene `attribution.commit = ""` y `attribution.pr = ""`. **No agregar `Co-Authored-By: Claude`** ni footers de Claude en commits/PRs.
 - Convention de mensajes (Conventional Commits, ver `git log --oneline`): `feat:`, `fix(scope):`, `chore:`, `docs:`, `refactor:`.
 
@@ -668,7 +678,9 @@ Detalle no obvio: ese endpoint corre **sin token**, y sin token el sufijo de emp
 - 🚧 `feat/inventory-stock-filter` — **encima de chore/ui-cleanup (stacked)**. Toggle "Solo con existencia" en Inventario (default ON), `ORDER BY CASE WHEN EXIST>0 THEN 0 ELSE 1 END`, page size 25-30, badge "Sin stock" para filas con `EXIST=0`.
 - ~~`fix/backend-env-loading`~~ — **ya no hace falta**, `spring.config.import` ya está en `application.properties`.
 - ✅ `infra/deploy-windows-bamx` — despliegue del backend como servicio de Windows en BAMX (carpeta `deploy/`).
-- 🚧 `fix/apk-produccion` — deja el despliegue listo para Windows Server: `05-build-apk.ps1` (APK local hermético y verificado), `01-build.ps1` desde commit limpio, preflight con `-RutaEmpresa`/`-RutaPerfiles` y sin el falso bloqueante de .NET, `03-verify` detecta jar viejo, login que distingue red de credenciales, timeout de axios, sin `productosDummy` en producción.
+- ✅ `fix/apk-produccion` — **mergeada (#76)**. Deja el despliegue listo para Windows Server: `05-build-apk.ps1` (APK local hermético y verificado), `01-build.ps1` desde commit limpio, preflight con `-RutaEmpresa`/`-RutaPerfiles` y sin el falso bloqueante de .NET, `03-verify` detecta jar viejo, login que distingue red de credenciales, timeout de axios, sin `productosDummy` en producción.
+- ✅ `fix/produccion-bamx` — **mergeada (#77)**. Fixes que salieron del despliegue en `SRVBAMAX` (2026-09-24): login con varias filas de `USREMP`, Inventario sin filtro `CON_LOTE`, `03-verify` leyendo `ApiResponse.data`.
+- ✅ `docs/hallazgos-windows-server` — documenta lo que faltaba de las sesiones de preparación del 2026-09-23 (trampas 5-8 del despliegue, jar de `dist\` desfasado, deuda 10-12 en `deploy/README.md`). Además corrige `02-install` (puerto ocupado) y la sugerencia del `JWT_SECRET`.
 - `feat/pages-entregables-no-aptos` — pantallas para los 2 botones grandes del SideBar.
 - `infra/dockerize-backend` — Dockerfile + docker-compose para despliegue en BAMX.
 - `feat/refrigeradores-iot` — wire MQTT real (esperar a tener hardware).

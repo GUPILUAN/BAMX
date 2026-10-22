@@ -238,6 +238,20 @@ if ($existente) {
 }
 Write-Ok "No hay instalacion previa."
 
+# Con el puerto ocupado el servicio truena con "Port already in use", pero el
+# paso 9 veria responder al OTRO programa y diria "Instalacion completa".
+# Paso en el ensayo del 2026-09-23 con el backend de desarrollo prendido.
+$ocupado = @(Get-NetTCPConnection -LocalPort $Puerto -State Listen -ErrorAction SilentlyContinue)
+if ($ocupado.Count -gt 0) {
+    $pidsOcupado = @($ocupado | Select-Object -ExpandProperty OwningProcess -Unique)
+    foreach ($p in $pidsOcupado) {
+        $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$p" -ErrorAction SilentlyContinue
+        if ($proc) { Write-Info "Ocupado por PID $p ($($proc.Name)) - $($proc.ExecutablePath)" }
+    }
+    throw "El puerto $Puerto ya esta en uso por otro programa. Cerrarlo, o usar otro puerto: agregar 'server.port=8081' al .env y correr con -Puerto 8081."
+}
+Write-Ok "Puerto $Puerto libre."
+
 
 # ---------------------------------------------------------------------------
 # 5. Copiar archivos
@@ -390,6 +404,24 @@ for ($i = 1; $i -le 45; $i++) {
         $t = Test-NetConnection -ComputerName "localhost" -Port $Puerto -WarningAction SilentlyContinue -ErrorAction Stop
         if ($t.TcpTestSucceeded) { $arriba = $true; break }
     } catch { }
+}
+
+# Que el puerto responda no basta: tiene que ser el java de esta instalacion.
+$duenoPuerto = $null
+if ($arriba) {
+    $escucha = @(Get-NetTCPConnection -LocalPort $Puerto -State Listen -ErrorAction SilentlyContinue)
+    foreach ($c in $escucha) {
+        $proc = Get-CimInstance Win32_Process -Filter "ProcessId=$($c.OwningProcess)" -ErrorAction SilentlyContinue
+        if ($proc -and $proc.ExecutablePath) { $duenoPuerto = $proc.ExecutablePath; break }
+    }
+    $javaEsperado = Join-Path $appDir "runtime\bin\java.exe"
+    if ($duenoPuerto -and $duenoPuerto -ne $javaEsperado) {
+        Write-Host ""
+        Write-Host "  El puerto $Puerto responde, pero NO es este servicio:" -ForegroundColor Red
+        Write-Host "    $duenoPuerto" -ForegroundColor Red
+        Write-Host "  Se esperaba $javaEsperado. Revisar los logs en $logsDir." -ForegroundColor Red
+        exit 1
+    }
 }
 
 Write-Host ""
